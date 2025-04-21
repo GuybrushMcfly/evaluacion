@@ -10,6 +10,8 @@ import time
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
+import pandas as pd
+
 
 
 # Inicializar Firebase solo una vez
@@ -60,7 +62,7 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     clasificaciones = config_formularios["clasificaciones"]
 
 # Menú lateral de navegación
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "📊 Evaluación General"])
 
 
 # Crear tabs
@@ -250,4 +252,34 @@ elif opcion == "📋 Evaluaciones":
                 st.rerun()
         else:
             st.caption("⬅️ Marque al menos un agente para habilitar la acción.")
+
+elif opcion == "📋 Evaluación General":
+    # Obtener evaluaciones
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [doc.to_dict() for doc in evaluaciones_ref]
+
+    # Obtener agentes (para nombre completo)
+    agentes_ref = db.collection("agentes").stream()
+    agentes = {doc.id: doc.to_dict() for doc in agentes_ref}
+
+    filas = []
+    for ev in evaluaciones:
+        cuil = ev.get("cuil", "")
+        nombre = agentes.get(cuil, {}).get("apellido_nombre", "Nombre no encontrado")
+
+        factores = ev.get("factor_puntaje", {})
+        factor_str = ", ".join([f"{k} ({v})" for k, v in factores.items()])
+
+        filas.append({
+            "CUIL": cuil,
+            "Apellido y Nombre": nombre,
+            "Formulario": ev.get("formulario", ""),
+            "Puntaje Total": ev.get("puntaje_total", ""),
+            "Evaluación": ev.get("evaluacion", ""),
+            "Factor/Puntaje": factor_str,
+        })
+
+    df = pd.DataFrame(filas)
+    st.dataframe(df, use_container_width=True)
+
 
