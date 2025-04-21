@@ -148,9 +148,10 @@ elif opcion == "📄 Formulario":
 
             if st.session_state.previsualizado and st.session_state.respuestas_completas:
                 total = sum(st.session_state.puntajes)
-                rango = clasificaciones.get(tipo, [])
+                tipo_formulario = tipo  # 👈 esto antes
+                rango = clasificaciones.get(tipo_formulario, [])
                 puntaje_maximo = max(p for bloque in formularios[tipo_formulario] for _, p in bloque["opciones"]) * len(formularios[tipo_formulario])
-                resultado_absoluto = round(total / puntaje_maximo, 4)  # Decimal con 4 dígitos
+                resultado_absoluto = round(total / puntaje_maximo, 4)
                 clasificacion = next(
                     (nombre for nombre, maxv, minv in rango if minv <= total <= maxv),
                     "Sin clasificación"
