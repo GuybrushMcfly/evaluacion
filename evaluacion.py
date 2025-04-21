@@ -756,6 +756,7 @@ if tipo != "":
             
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                 st.balloons()
+                time.sleep(2)  # Esperar 2 segundos antes del reinicio
             
                 # Resetear estados
                 st.session_state.previsualizado = False
