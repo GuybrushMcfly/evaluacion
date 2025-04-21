@@ -663,7 +663,8 @@ clasificaciones = {
     6: [("DESTACADO", 24, 16), ("BUENO", 15, 10), ("REGULAR", 9, 4), ("DEFICIENTE", 3, 0)],
 }
 
-
+# Menú lateral de navegación
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
 
 # Crear tabs
 tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
