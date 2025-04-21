@@ -9,6 +9,8 @@ import json
 import time
 import yaml
 from yaml.loader import SafeLoader
+import streamlit_authenticator as stauth
+
 
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
