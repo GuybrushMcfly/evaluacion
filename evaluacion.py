@@ -9,7 +9,6 @@ import re
 from yaml.loader import SafeLoader
 from firebase_admin import credentials, firestore
 
-
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
     cred_json = json.loads(st.secrets["GOOGLE_FIREBASE_CREDS"])
@@ -19,12 +18,38 @@ if not firebase_admin._apps:
 # Conectar con Firestore
 db = firestore.client()
 
+# ---- FUNCIONES OPTIMIZADAS ----
+@st.cache_data
+def cargar_configuracion_formularios():
+    with open("formularios.yaml", "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+@st.cache_data(ttl=300)
+def cargar_todas_evaluaciones():
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    return [e.to_dict() for e in evaluaciones_ref]
+
+def obtener_agentes_no_evaluados():
+    if "agentes_no_evaluados" not in st.session_state:
+        agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+        st.session_state.agentes_no_evaluados = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+    return st.session_state.agentes_no_evaluados
+
+def actualizar_lista_agentes(cuil_evaluado):
+    if "agentes_no_evaluados" in st.session_state:
+        st.session_state.agentes_no_evaluados = [
+            a for a in st.session_state.agentes_no_evaluados 
+            if a["cuil"] != cuil_evaluado
+        ]
+
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
-#st.sidebar.image("logo-cap.png", use_container_width=True)
-
 
 # ---- CARGAR CONFIGURACIÓN DESDE YAML ----
+config_formularios = cargar_configuracion_formularios()
+formularios = config_formularios["formularios"]
+clasificaciones = config_formularios["clasificaciones"]
+
 with open("config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
@@ -41,7 +66,6 @@ authenticator.login()
 if st.session_state["authentication_status"]:
     authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.success(f"Hola, {st.session_state['name']}")
-    #st.title("📊 Dashboard Tramos Escalafonarios")
     st.markdown("""<h1 style='font-size: 30px; color: white;'>📊 Evaluación de Desempeño</h1>""", unsafe_allow_html=True)
 elif st.session_state["authentication_status"] is False:
     st.error("❌ Usuario o contraseña incorrectos.")
@@ -52,22 +76,8 @@ elif st.session_state["authentication_status"] is None:
 
 st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
-
-
-with open("formularios.yaml", "r", encoding="utf-8") as f:
-    config_formularios = yaml.safe_load(f)
-    formularios = config_formularios["formularios"]
-    clasificaciones = config_formularios["clasificaciones"]
-
-#formularios, clasificaciones = cargar_formularios()
-
-
 # Menú lateral de navegación
 opcion = st.sidebar.radio("📂 Navegación", ["📄 Formulario", "📋 Evaluaciones", "📝 Instructivo"])
-
-
-# Crear tabs
-#tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
 
 if opcion == "📝 Instructivo":
     st.title("📝 Instructivo")
@@ -79,12 +89,10 @@ if opcion == "📝 Instructivo":
     """)
 
 elif opcion == "📄 Formulario":
-    # Evaluación de desempeño (primero seleccionar persona, luego formulario)
     previsualizar = False
 
-    # Obtener agentes no evaluados
-    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-    agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+    # Obtener agentes no evaluados (USANDO LA NUEVA FUNCIÓN)
+    agentes = obtener_agentes_no_evaluados()
     agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
 
     if not agentes_ordenados:
@@ -96,9 +104,6 @@ elif opcion == "📄 Formulario":
     seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
     agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
 
-
-
-    #traer datos de agentes
     if agente:
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
@@ -107,7 +112,6 @@ elif opcion == "📄 Formulario":
         unidad = agente.get("unidad", "")
         dependencia_simple = agente.get("dependencia_simple", "")
        
-        # Mostrar selección de tipo de formulario
         tipo = st.selectbox(
             "Seleccione el tipo de formulario",
             options=[""] + list(formularios.keys()),
@@ -159,7 +163,7 @@ elif opcion == "📄 Formulario":
 
             if st.session_state.previsualizado and st.session_state.respuestas_completas:
                 total = sum(st.session_state.puntajes)
-                tipo_formulario = tipo  # 👈 esto antes
+                tipo_formulario = tipo
                 rango = clasificaciones.get(tipo_formulario, [])
                 puntaje_maximo = max(p for bloque in formularios[tipo_formulario] for _, p in bloque["opciones"]) * len(formularios[tipo_formulario])
                 resultado_absoluto = round(total / puntaje_maximo, 4)
@@ -199,16 +203,19 @@ elif opcion == "📄 Formulario":
                         doc_id = f"{cuil}-2025"
                         db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
                         db.collection("agentes").document(cuil).update({"evaluado_2025": True})
+                        
+                        # ACTUALIZAR LA LISTA DE NO EVALUADOS (NUEVA LÍNEA)
+                        actualizar_lista_agentes(cuil)
 
                         st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                         st.balloons()
+                        
+                        # Limpiar el estado manteniendo el agente seleccionado
+                        agente_actual = st.session_state.get("select_agente")
+                        st.session_state.clear()
+                        if agente_actual:
+                            st.session_state.select_agente = agente_actual
                         time.sleep(2)
-
-                        # Eliminar solo las claves necesarias
-                        for key in list(st.session_state.keys()):
-                            if key.startswith("factor_") or key in ["select_tipo", "previsualizado", "confirmado", "puntajes", "respuestas_completas", "last_tipo", "select_agente"]:
-                                del st.session_state[key]
-
                         st.rerun()
 
                 with col2:
@@ -222,19 +229,10 @@ elif opcion == "📄 Formulario":
             st.session_state.last_tipo = tipo
 
 elif opcion == "📋 Evaluaciones":
-    evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    evaluaciones = cargar_todas_evaluaciones()
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        import pandas as pd
-        import time
-
         df_eval = pd.DataFrame(evaluaciones)
         st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
-
-
-
-
-
