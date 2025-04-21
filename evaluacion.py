@@ -86,19 +86,11 @@ elif opcion == "📄 Formulario":
         st.stop()
 
     # 1. Buscar agente por nombre
-    st.markdown("### 🔎 Buscar agente para evaluar")
-    busqueda = st.text_input("Ingrese parte del nombre o apellido", value="", placeholder="Ej: GARCÍA, MARÍA")
 
-    agentes_filtrados = [a for a in agentes_ordenados if busqueda.lower() in a["apellido_nombre"].lower()]
+    nombres = [a["apellido_nombre"] for a in agentes_ordenados]
+    seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
+    agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
 
-    if len(agentes_filtrados) == 0 and busqueda:
-        st.info("No se encontraron coincidencias.")
-        st.stop()
-
-    if agentes_filtrados:
-        nombres_filtrados = [a["apellido_nombre"] for a in agentes_filtrados]
-        seleccionado = st.selectbox("Seleccione un agente", nombres_filtrados, key="select_agente")
-        agente = next((a for a in agentes_filtrados if a["apellido_nombre"] == seleccionado), None)
 
         if agente:
             cuil = agente["cuil"]
