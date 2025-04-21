@@ -51,13 +51,13 @@ elif st.session_state["authentication_status"] is None:
 
 st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
-@st.cache_data(ttl=60)
-def get_evaluaciones():
-    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
+#@st.cache_data(ttl=60)
+#def get_evaluaciones():
+#    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
 
-@st.cache_data(ttl=60)
-def get_agentes():
-    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
+#@st.cache_data(ttl=60)
+#def get_agentes():
+#    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
 
 with open("formularios.yaml", "r", encoding="utf-8") as f:
     config_formularios = yaml.safe_load(f)
@@ -221,11 +221,8 @@ elif opcion == "📄 Formulario":
             st.session_state.last_tipo = tipo
 
 elif opcion == "📋 Evaluaciones":
-    #evaluaciones_ref = db.collection("evaluaciones").stream()
-    #evaluaciones = [e.to_dict() for e in evaluaciones_ref]
-    evaluaciones = get_evaluaciones()
-    agentes = get_agentes()
-
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
@@ -240,55 +237,17 @@ elif opcion == "📋 Evaluaciones":
 
 elif opcion == "EVALUACIÓN GENERAL":
 
-# Obtener evaluaciones
-    #evaluaciones_ref = db.collection("evaluaciones").stream()
-    #evaluaciones = [e.to_dict() for e in evaluaciones_ref]
-    evaluaciones = get_evaluaciones()
-    agentes = get_agentes()
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
-    # Obtener agentes (para nombre completo)
-    agentes_ref = db.collection("agentes").stream()
-    agentes = {doc.id: doc.to_dict() for doc in agentes_ref}
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        import pandas as pd
+        import time
 
-    filas = []
-    for ev in evaluaciones:
-        cuil = ev.get("cuil", "")
-        nombre = agentes.get(cuil, {}).get("apellido_nombre", "Nombre no encontrado")
-
-     #   factores = ev.get("factor_puntaje", {})
-     #   factor_str = ", ".join([f"{k} ({v})" for k, v in factores.items()])
-
-        factores = ev.get("factor_puntaje", {})
-        
-        def clave_orden(factor):
-            # Extrae números y subíndices para ordenar: ej. "Factor 3.2." → (3, 2)
-            match = re.match(r"Factor (\d+)(?:\.(\d+))?", factor)
-            if match:
-                parte1 = int(match.group(1))
-                parte2 = int(match.group(2)) if match.group(2) else 0
-                return (parte1, parte2)
-            return (float('inf'), float('inf'))  # Poner al final si no matchea
-        
-        # Ordenar factores antes de construir el string
-        factores_ordenados = sorted(factores.items(), key=lambda x: clave_orden(x[0]))
-        factor_str = ", ".join([f"{k} ({v})" for k, v in factores_ordenados])
-        
-
-        filas.append({
-            "CUIL": cuil,
-            "Apellido y Nombre": nombre,
-            "Formulario": ev.get("formulario", ""),
-            "Puntaje Total": ev.get("puntaje_total", ""),
-            "Evaluación": ev.get("evaluacion", ""),
-            "Factor/Puntaje": factor_str,
-            "Puntaje Máximo": ev.get("puntaje_maximo", ""),
-            "Result. Absoluto": ev.get("resultado_absoluto", ""),
-            "Sector": ev.get("dependencia_simple", ""),
-            "Unidad": ev.get("unidad", ""),
-        })
-
-    df = pd.DataFrame(filas)
-    st.dataframe(df, use_container_width=True)
+        df_eval = pd.DataFrame(evaluaciones)
+        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
 
 
 
