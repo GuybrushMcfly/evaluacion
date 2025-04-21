@@ -700,14 +700,15 @@ if tipo != "":
             if seleccion is not None:
                 puntaje = dict(bloque['opciones'])[seleccion]
                 puntajes.append(puntaje)
-        
-                # Extraer clave de factor como "Factor 1", "Factor 3.2", etc.
-                partes = bloque['factor'].split('. ')
-                clave_numerica = partes[0].strip()  # "3.2" o "4"
-                factor_puntaje[f"Factor {clave_numerica}"] = puntaje
+                
+                # Extraer solo la numeración del factor (ej: "1.1" o "3")
+                numero_factor = bloque['factor'].split('.')[0].strip()  # Tomar solo la parte antes del primer punto
+                if '.' in bloque['factor']:  # Si tiene subnumeración (como 1.1)
+                    numero_factor = bloque['factor'].split(' ')[0].strip()  # Tomar "1.1."
+                
+                factor_puntaje[f"Factor {numero_factor}"] = puntaje  # Formato "Factor 1.1."
             else:
                 respuestas_completas = False
-
 
     
         # 👇 Este botón DEBE estar dentro del formulario
