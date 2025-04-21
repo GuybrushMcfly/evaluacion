@@ -649,7 +649,18 @@ if tipo != "":
         st.session_state.confirmado = False
     
     with st.form("form_eval"):
-        persona = st.text_input("Nombre del evaluado", key="nombre_evaluado")
+       # persona = st.text_input("Nombre del evaluado", key="nombre_evaluado")
+
+        # Obtener lista de agentes desde Firestore
+        agentes_docs = db.collection("agentes").stream()
+        agentes_lista = [{"label": doc.to_dict().get("apellido_nombre", ""), "cuil": doc.id} for doc in agentes_docs]
+        agentes_lista = sorted(agentes_lista, key=lambda x: x["label"])  # orden alfabético
+        
+        # Mostrar en el selectbox
+        nombres = [a["label"] for a in agentes_lista]
+        seleccionado = st.selectbox("Nombre del evaluado", nombres)
+        cuil = next((a["cuil"] for a in agentes_lista if a["label"] == seleccionado), None)
+
 
         puntajes = []
         respuestas_completas = True
@@ -707,12 +718,14 @@ if tipo != "":
                 # Aquí podrías agregar la lógica para guardar los datos
                 # Ejemplo de datos simulados (luego podés incluir más)
                 evaluacion_data = {
-                    "apellido_nombre": persona,
+                    "apellido_nombre": seleccionado,
+                    "cuil": cuil,
                     "formulario": tipo,
                     "puntaje_total": total,
                     "evaluacion": clasificacion,
                     "_timestamp": firestore.SERVER_TIMESTAMP,
                 }
+
                 
                 # Guardar con ID automático (o usá cuil si lo tuvieras)
                 db.collection("evaluaciones").add(evaluacion_data)
