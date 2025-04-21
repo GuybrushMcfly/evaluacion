@@ -93,7 +93,9 @@ elif opcion == "📄 Formulario":
     # Selección directa de agente
     nombres = [a["apellido_nombre"] for a in agentes_ordenados]
     seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
-    agentes = get_agentes_para_evaluar()
+    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+    agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+
 
     #traer datos de agentes
     if agente:
