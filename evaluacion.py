@@ -36,13 +36,10 @@ elif st.session_state["authentication_status"] is None:
     st.stop()
 
 # ---- CONECTAR A SUPABASE ----
-@st.cache_resource
-def get_engine():
-    s = st.secrets["supabase"]
-    url = f"postgresql://{s['user']}:{s['password']}@{s['host']}:{s['port']}/{s['database']}"
-    return create_engine(url)
-
-engine = get_engine()
+supabase_url = st.secrets["supabase"]
+engine = create_engine(
+    f'postgresql://{supabase_url["user"]}:{supabase_url["password"]}@{supabase_url["host"]}:{supabase_url["port"]}/{supabase_url["database"]}'
+)
 
 # ---- CARGAR FORMULARIOS ----
 with open("formularios.yaml", "r", encoding="utf-8") as f:
