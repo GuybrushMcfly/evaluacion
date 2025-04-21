@@ -213,9 +213,20 @@ elif opcion == "📄 Formulario":
             st.session_state.last_tipo = tipo
 
 
+@st.cache_data(ttl=60)
+def get_evaluaciones():
+    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
+
+@st.cache_data(ttl=60)
+def get_agentes():
+    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
+
 elif opcion == "📋 Evaluaciones":
-    evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    #evaluaciones_ref = db.collection("evaluaciones").stream()
+    #evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    evaluaciones = get_evaluaciones()
+    agentes = get_agentes()
+
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
@@ -231,8 +242,10 @@ elif opcion == "📋 Evaluaciones":
 elif opcion == "EVALUACIÓN GENERAL":
 
 # Obtener evaluaciones
-    evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [doc.to_dict() for doc in evaluaciones_ref]
+    #evaluaciones_ref = db.collection("evaluaciones").stream()
+    #evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    evaluaciones = get_evaluaciones()
+    agentes = get_agentes()
 
     # Obtener agentes (para nombre completo)
     agentes_ref = db.collection("agentes").stream()
