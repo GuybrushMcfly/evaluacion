@@ -62,14 +62,6 @@ if opcion == "📝 Instructivo":
     """)
 
 
-conn = psycopg2.connect(
-    host=supabase_url["host"],
-    port=supabase_url["port"],
-    database=supabase_url["database"],
-    user=supabase_url["user"],
-    password=supabase_url["password"]
-)
-
 df_agentes = pd.read_sql("SELECT cuil, apellido_nombre FROM agentes ORDER BY apellido_nombre", conn)
 conn.close()
 
