@@ -391,6 +391,72 @@ formularios:
         - ["d) Le cuesta asimilar los cambios. Tiene dificultad para generar cursos de acción adecuados.", 1]
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptados a ellas.", 0]
 
+  5:
+    - descripcion: "Capacidad para lograr que el sector a su cargo trabaje con el máximo de eficiencia global haciendo un uso racional de los recursos asignados."
+      factor: "1. ORGANIZACIÓN"
+      opciones:
+        - ["a) Excelente capacidad organizativa que le permite administrar de manera excepcional los recursos. Logra la eficiencia global del equipo a su cargo.", 4]
+        - ["b) Tiene muy buena capacidad organizativa y de asignación de recursos, supera los requerimientos normales del puesto.", 3]
+        - ["c) Organiza adecuadamente los procesos de trabajo normal y los mantiene bajo control.", 2]
+        - ["d) Escasa capacidad organizativa. En ocasiones no maneja adecuadamente los factores involucrados en el trabajo del equipo a su cargo.", 1]
+        - ["e) Tiene dificultades para manejar adecuadamente los factores involucrados en el trabajo del equipo a su cargo y es ineficiente en el uso de los recursos.", 0]
+    - descripcion: "Habilidad para supervisar personas o grupos de trabajo de modo que alcancen resultados de conjunto."
+      factor: "2. SUPERVISIÓN"
+      opciones:
+        - ["a) Excepcional habilidad para supervisar personas o grupos de trabajo.", 4]
+        - ["b) Buen criterio para supervisar. Logra muy buenos resultados de conjunto.", 3]
+        - ["c) Logra un buen trabajo de conjunto. Tiene buen ascendente sobre su grupo.", 2]
+        - ["d) A veces presenta dificultades para supervisar a su personal y obtener resultados de conjunto.", 1]
+        - ["e) Continuamente tiene dificultades en la supervisión de su personal.", 0]
+    - descripcion: "Volumen de producción de acuerdo con los requerimientos del puesto en el tiempo acordado."
+      factor: "3.1. CANTIDAD DE TRABAJO"
+      opciones:
+        - ["a) Rendimiento excepcionalmente alto. Sobrepasa los márgenes requeridos normalmente en su puesto.", 4]
+        - ["b) Siempre alcanza y frecuentemente supera el rendimiento requerido en los plazos previstos.", 3]
+        - ["c) Alcanza los niveles normales de trabajo a un ritmo aceptable y en los plazos establecidos.", 2]
+        - ["d) Su rendimiento está por debajo de los niveles requeridos para el puesto, o no respeta los plazos establecidos.", 1]
+        - ["e) Su rendimiento está muy por debajo de los requerimientos y habitualmente no respeta los plazos establecidos.", 0]
+    - descripcion: "Nivel de terminación y perfección del trabajo que realiza. (Si la tarea es con atención al público se evalúa la correción en el trato con los usuarios y la adecuada satisfacción de las demandas)."
+      factor: "3.2. CALIDAD DE TRABAJO"
+      opciones:
+        - ["a) Excepcional nivel de calidad de trabajo.", 4]
+        - ["b) Muy buen nivel de calidad de su trabajo.", 3]
+        - ["c) Adecuado nivel de calidad de su trabajo.", 2]
+        - ["d) Tiene dificultades para realizar su trabajo con la calidad requerida.", 1]
+        - ["e) Falta de calidad en la realización de su trabajo. Necesita constante monitoreo.", 0]
+    - descripcion: "Eficiente utilización del tiempo, materiales, procedimientos y métodos de trabajo."
+      factor: "3.3. MANEJO DE RECURSOS"
+      opciones:
+        - ["a) Excelente utilización de los recursos asignados a su puesto. Muy habilidoso para encontrar mejores métodos de trabajo y reducir costos.", 4]
+        - ["b) Muy efectivo para administrar recursos y reducir costos, mejorar métodos, procedimientos y técnicas.", 3]
+        - ["c) Buen sentido de la administración de los recursos. Uso adecuado de los métodos y técnicas.", 2]
+        - ["d) Tiene dificultades para administrar apropiadamente.", 1]
+        - ["e) No aprovecha los recursos asignados a su puesto, necesita constante monitoreo para administrar su tiempo y procedimientos de trabajo.", 0]
+    - descripcion: "Nivel de conocimientos requeridos para desempeñar las tareas relacionadas con el puesto."
+      factor: "4. CONOCIMIENTO DE LAS TAREAS"
+      opciones:
+        - ["a) Excepcional dominio de todas las fases de su trabajo y tareas relacionadas con el mismo.", 4]
+        - ["b) Buen dominio de las fases de su trabajo y sólidos conocimientos de sus tareas.", 3]
+        - ["c) Conoce adecuadamente su trabajo y las tareas relacionadas.", 2]
+        - ["d) Posee sólo los conocimientos elementales relacionados con su tarea.", 1]
+        - ["e) Conocimientos insuficientes para el desempleo de las tareas a su cargo.", 0]
+    - descripcion: "Capacidad para comprender y actuar de acuerdo a las pautas establecidas."
+      factor: "5. CRITERIO"
+      opciones:
+        - ["a) Excepcional capacidad para comprender las pautas de trabajo y actuar en consecuencia.", 4]
+        - ["b) Muy buena capacidad de comprensión de las pautas de trabajo, que le permite actuar minimizando los errores.", 3]
+        - ["c) Interpreta sin dificultad las pautas de trabajo y responde adecuadamente.", 2]
+        - ["d) Tiene dificultad para interpretar las pautas de trabajo y necesita frecuente monitoreo.", 1]
+        - ["e) Le cuesta comprender las pautas de trabajo y requiere una permanente indicación y monitoreo de la tarea.", 0]
+    - descripcion: "Disposición a cooperar con el superior y los demás empleados en la realización de tareas comunes."
+      factor: "6. COLABORACIÓN"
+      opciones:
+        - ["a) Excelente disposición a cooperar ante cada circunstancia o problema que se presente.", 4]
+        - ["b) Muy dispuesto a cooperar. En general es requerido por su actitud que es reconocida y valorada.", 3]
+        - ["c) Coopera con sus jefes y compañeros. Generalmente se muestra interesado en brindar ayuda en el trabajo de los demás.", 2]
+        - ["d) Dispuesto a prestar ayuda sólo en algunos casos. Prefiere no trabajar en equipo.", 1]
+        - ["e) Siempre tiene dificultades para cooperar con sus pares y superiores.", 0]
+
 clasificaciones:
   1:
     - ["DESTACADO", 56, 37]
