@@ -82,6 +82,7 @@ elif opcion == "📄 Formulario":
     # Evaluación de desempeño (primero seleccionar persona, luego formulario)
     previsualizar = False
 
+    # Obtener agentes no evaluados
     agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
     agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
     agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
@@ -93,8 +94,8 @@ elif opcion == "📄 Formulario":
     # Selección directa de agente
     nombres = [a["apellido_nombre"] for a in agentes_ordenados]
     seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
-    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-    agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+    agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+
 
 
     #traer datos de agentes
