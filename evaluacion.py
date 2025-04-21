@@ -89,10 +89,15 @@ elif opcion == "📄 Formulario":
     seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
     agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
 
+    #traer datos de agentes
     if agente:
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
+        nivel = agente.get("nivel", "")
+        grado = agente.get("grado", "")
+        unidad = agente.get("unidad", "")
 
+        
         # Mostrar selección de tipo de formulario
         tipo = st.selectbox(
             "Seleccione el tipo de formulario",
