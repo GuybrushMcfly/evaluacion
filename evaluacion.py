@@ -5,15 +5,16 @@ import streamlit as st
 
 import firebase_admin
 from firebase_admin import credentials, firestore
+import json
 
-# Inicializar Firebase solo si no fue inicializado antes
+# Inicializar Firebase solo una vez
 if not firebase_admin._apps:
-    cred = credentials.Certificate(dict(st.secrets["GOOGLE_CREDS"]))
+    cred_json = json.loads(st.secrets["GOOGLE_FIREBASE_CREDS"])
+    cred = credentials.Certificate(cred_json)
     firebase_admin.initialize_app(cred)
 
-# Conexión a Firestore
+# Conectar con Firestore
 db = firestore.client()
-
 
 # ─────────────────────────────────────────────────────────
 # 📋 FORMULARIOS DE EVALUACIÓN - FORMATO ADAPTADO
