@@ -96,8 +96,8 @@ elif opcion == "📄 Formulario":
         nivel = agente.get("nivel", "")
         grado = agente.get("grado", "")
         unidad = agente.get("unidad", "")
-
-        
+        dependencia_simple = agente.get("dependencia_simple", "")
+       
         # Mostrar selección de tipo de formulario
         tipo = st.selectbox(
             "Seleccione el tipo de formulario",
@@ -181,8 +181,9 @@ elif opcion == "📄 Formulario":
                             "puntaje_maximo": puntaje_maximo,
                             "nivel": nivel,
                             "grado": grado,
-                            "unidad": unidad,                            
-                            "resultado_absoluto": resultado_absoluto,
+                            "unidad": unidad,                         
+                            "dependencia_simple": dependencia_simple,
+                            "resultado_absoluto": resultado_absoluto,                            
                             "timestamp": firestore.SERVER_TIMESTAMP,                            
                         }
 
@@ -270,6 +271,8 @@ elif opcion == "EVALUACIÓN GENERAL":
             "Factor/Puntaje": factor_str,
             "Puntaje Máximo": ev.get("puntaje_maximo", ""),
             "Result. Absoluto": ev.get("resultado_absoluto", ""),
+            "Sector": ev.get("dependencia_simple", ""),
+            "Unidad": ev.get("unidad", ""),
         })
 
     df = pd.DataFrame(filas)
