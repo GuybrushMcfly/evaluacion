@@ -58,9 +58,9 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     config_formularios = yaml.safe_load(f)
     formularios = config_formularios["formularios"]
     clasificaciones = config_formularios["clasificaciones"]
+
 # Menú lateral de navegación
-#opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
-opcion = st.sidebar.radio("Navegación", ["Instructivo", "Formulario", "Evaluaciones"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
 
 
 # Crear tabs
