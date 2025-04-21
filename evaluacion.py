@@ -2,6 +2,15 @@
 # No requiere archivos externos, los datos están embebidos a partir de los Excel originales
 
 import streamlit as st
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# Inicialización segura para no duplicar
+if not firebase_admin._apps:
+    cred = credentials.Certificate(st.secrets["GOOGLE_CREDS"])
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 # ─────────────────────────────────────────────────────────
 # 📋 FORMULARIOS DE EVALUACIÓN - FORMATO ADAPTADO
@@ -692,6 +701,20 @@ if tipo != "":
             if st.button("✅ Sí, enviar evaluación"):
                 st.session_state.confirmado = True
                 # Aquí podrías agregar la lógica para guardar los datos
+                # Ejemplo de datos simulados (luego podés incluir más)
+                evaluacion_data = {
+                    "apellido_nombre": persona,
+                    "formulario": tipo,
+                    "puntaje_total": total,
+                    "evaluacion": clasificacion,
+                    "_timestamp": firestore.SERVER_TIMESTAMP,
+                }
+                
+                # Guardar con ID automático (o usá cuil si lo tuvieras)
+                db.collection("evaluaciones").add(evaluacion_data)
+
+
+                
                 st.success(f"📤 Evaluación de {st.session_state.get('nombre_evaluado', '')} enviada correctamente")
                 st.balloons()
                                
