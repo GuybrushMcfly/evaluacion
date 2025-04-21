@@ -24,6 +24,13 @@ def get_evaluaciones():
 def get_agentes():
     return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
 
+@st.cache_data(ttl=60)
+def get_agentes_para_evaluar():
+    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+    return [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+
+
+
 
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
@@ -108,7 +115,7 @@ elif opcion == "📄 Formulario":
     # Selección directa de agente
     nombres = [a["apellido_nombre"] for a in agentes_ordenados]
     seleccionado = st.selectbox("Seleccione un agente para evaluar", nombres, key="select_agente")
-    agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+    agentes = get_agentes_para_evaluar()
 
     #traer datos de agentes
     if agente:
