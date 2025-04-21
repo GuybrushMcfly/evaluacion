@@ -797,7 +797,13 @@ with tabs[1]:
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        st.markdown("### Seleccione agentes para re-evaluar")
+        import pandas as pd
+        import time
+
+        df_eval = pd.DataFrame(evaluaciones)
+        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
+
+        st.markdown("### 🔁 Seleccione agentes para re-evaluar")
 
         seleccionados = []
         for idx, ev in enumerate(evaluaciones):
@@ -822,7 +828,8 @@ with tabs[1]:
             if st.button("🔁 Re-evaluar seleccionados"):
                 for ev in seleccionados:
                     db.collection("agentes").document(ev['cuil']).update({"evaluado_2025": False})
-                st.success(f"✅ {len(seleccionados)} agente(s) marcados para re-evaluación.")
+                st.success(f"✅ {len(seleccionados)} agente(s) marcados para reevaluación.")
+                time.sleep(1)
                 st.rerun()
         else:
             st.caption("⬅️ Marque al menos un agente para habilitar la acción.")
