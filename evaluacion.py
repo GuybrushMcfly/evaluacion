@@ -50,7 +50,7 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     clasificaciones = config_formularios["clasificaciones"]
 
 # ---- NAVEGACIÓN ----
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📝 Prueba supabase","📄 Formulario", "📋 Evaluaciones"])
 
 if opcion == "📝 Instructivo":
     st.title("📝 Instructivo")
@@ -61,6 +61,12 @@ if opcion == "📝 Instructivo":
     3. Previsualizá y confirmá la evaluación.  
     """)
 
+if opcion == "📝 Prueba supabase":
+
+
+# ---- NAVEGACIÓN ----
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📝 Prueba supabase", "📄 Formulario", "📋 Evaluaciones"])
+
 if opcion == "📝 Instructivo":
     st.title("📝 Instructivo")
     st.markdown("""
@@ -69,6 +75,56 @@ if opcion == "📝 Instructivo":
     2. Completá todos los factores.  
     3. Previsualizá y confirmá la evaluación.  
     """)
+
+elif opcion == "📝 Prueba supabase":
+    st.title("🔌 Prueba de conexión a Supabase")
+    
+    try:
+        # Prueba de conexión básica
+        with engine.connect() as conn:
+            st.success("✅ Conexión a Supabase establecida correctamente")
+            
+            # Prueba de consulta a la tabla agentes
+            try:
+                df_agentes = pd.read_sql("SELECT cuil, apellido_nombre FROM agentes LIMIT 5", conn)
+                if not df_agentes.empty:
+                    st.write("📄 Primeros 5 registros de la tabla 'agentes':")
+                    st.dataframe(df_agentes)
+                else:
+                    st.warning("La tabla 'agentes' existe pero está vacía")
+            except Exception as e:
+                st.error(f"❌ Error al consultar la tabla 'agentes': {str(e)}")
+            
+            # Prueba de consulta a la tabla evaluaciones
+            try:
+                df_eval = pd.read_sql("SELECT * FROM evaluaciones LIMIT 5", conn)
+                if not df_eval.empty:
+                    st.write("📊 Primeros 5 registros de la tabla 'evaluaciones':")
+                    st.dataframe(df_eval)
+                else:
+                    st.warning("La tabla 'evaluaciones' existe pero está vacía")
+            except Exception as e:
+                st.warning(f"⚠️ No se pudo acceder a la tabla 'evaluaciones': {str(e)}")
+                
+    except Exception as e:
+        st.error(f"❌ Error de conexión a Supabase: {str(e)}")
+        st.error("Verifica:")
+        st.error("1. La configuración en secrets.toml")
+        st.error("2. Que la instancia de Supabase esté activa")
+        st.error("3. Los permisos del usuario de la base de datos")
+        
+        # Mostrar detalles de conexión (ocultando contraseña)
+        if 'supabase' in st.secrets:
+            st.write("ℹ️ Detalles de conexión:")
+            st.json({
+                "host": st.secrets.supabase.host,
+                "port": st.secrets.supabase.port,
+                "database": st.secrets.supabase.database,
+                "user": st.secrets.supabase.user,
+                "password": "******"  # No mostrar la contraseña real
+            })
+
+
 
 elif opcion == "📄 Formulario":
     previsualizar = False
