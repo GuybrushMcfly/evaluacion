@@ -651,16 +651,19 @@ if tipo != "":
     with st.form("form_eval"):
        # persona = st.text_input("Nombre del evaluado", key="nombre_evaluado")
 
-        # Obtener lista de agentes desde Firestore
-        agentes_docs = db.collection("agentes").stream()
-        agentes_lista = [{"label": doc.to_dict().get("apellido_nombre", ""), "cuil": doc.id} for doc in agentes_docs]
-        agentes_lista = sorted(agentes_lista, key=lambda x: x["label"])  # orden alfabético
+        # Obtener lista de agentes desde Firebase
+        agentes_ref = db.collection("agentes").stream()
+        agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+        agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
         
-        # Mostrar en el selectbox
-        nombres = [a["label"] for a in agentes_lista]
-        seleccionado = st.selectbox("Nombre del evaluado", nombres)
-        cuil = next((a["cuil"] for a in agentes_lista if a["label"] == seleccionado), None)
-
+        # Mostrar selectbox con nombre completo
+        opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
+        seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
+        
+        # Extraer datos del agente seleccionado
+        agente = next(a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado)
+        cuil = agente["cuil"]
+        apellido_nombre = agente["apellido_nombre"]
 
         puntajes = []
         respuestas_completas = True
@@ -714,30 +717,41 @@ if tipo != "":
         col1, col2 = st.columns(2)
         with col1:
             if st.button("✅ Sí, enviar evaluación"):
+                
+
+            
                 st.session_state.confirmado = True
-                # Aquí podrías agregar la lógica para guardar los datos
-                # Ejemplo de datos simulados (luego podés incluir más)
+                total = sum(st.session_state.puntajes)
+                anio = 2025
+                tipo_formulario = tipo
+                clasificacion = next(
+                    (nombre for nombre, maxv, minv in clasificaciones[tipo_formulario] if minv <= total <= maxv),
+                    "Sin clasificación"
+                )
+                
                 evaluacion_data = {
-                    "apellido_nombre": seleccionado,
+                    "apellido_nombre": apellido_nombre,
                     "cuil": cuil,
-                    "formulario": tipo,
+                    "anio": anio,
+                    "formulario": tipo_formulario,
                     "puntaje_total": total,
                     "evaluacion": clasificacion,
                     "_timestamp": firestore.SERVER_TIMESTAMP,
                 }
-
                 
-                # Guardar con ID automático (o usá cuil si lo tuvieras)
-                db.collection("evaluaciones").add(evaluacion_data)
-
-
-                
-                st.success(f"📤 Evaluación de {st.session_state.get('nombre_evaluado', '')} enviada correctamente")
+                doc_id = f"{cuil}-{anio}"
+                db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
+            
+                st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                 st.balloons()
-                               
-                # Resetear el estado después de enviar
+            
+                # Resetear estados
                 st.session_state.previsualizado = False
                 st.session_state.confirmado = False
+
+
+
+                
                 # También podrías limpiar los campos del formulario aquí
         
         with col2:
