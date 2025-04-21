@@ -61,9 +61,14 @@ if opcion == "📝 Instructivo":
     3. Previsualizá y confirmá la evaluación.  
     """)
 
-
-df_agentes = pd.read_sql("SELECT cuil, apellido_nombre FROM agentes ORDER BY apellido_nombre", conn)
-conn.close()
+if opcion == "📝 Instructivo":
+    st.title("📝 Instructivo")
+    st.markdown("""
+    Bienvenido al sistema de Evaluación de Desempeño.  
+    1. Seleccioná el formulario correspondiente.  
+    2. Completá todos los factores.  
+    3. Previsualizá y confirmá la evaluación.  
+    """)
 
 elif opcion == "📄 Formulario":
     previsualizar = False
