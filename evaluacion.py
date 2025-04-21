@@ -702,11 +702,8 @@ if tipo != "":
                 puntajes.append(puntaje)
                 
                 # Extraer solo la numeración del factor (ej: "1.1" o "3")
-                numero_factor = bloque['factor'].split('.')[0].strip()  # Tomar solo la parte antes del primer punto
-                if '.' in bloque['factor']:  # Si tiene subnumeración (como 1.1)
-                    numero_factor = bloque['factor'].split(' ')[0].strip()  # Tomar "1.1."
-                
-                factor_puntaje[f"Factor {numero_factor}"] = puntaje  # Formato "Factor 1.1."
+                numero_factor = bloque['factor'].split(' ')[0].strip()
+                factor_puntaje[f"Factor {numero_factor}"] = puntaje
             else:
                 respuestas_completas = False
 
