@@ -693,19 +693,14 @@ if tipo != "":
                 index=None
             )
     
-            #if seleccion is not None:
-             #   puntaje = dict(bloque['opciones'])[seleccion]
-             #   puntajes.append(puntaje)
-                #factor_puntaje[bloque['factor']] = puntaje  # 👈 Guardar cada factor con su puntaje
-              #  clave = bloque['factor'].split('.')[0] if '.' not in bloque['factor'] else bloque['factor'].split('. ')[0]
-              #  factor_puntaje[f"Factor {clave}"] = puntaje
-
             if seleccion is not None:
                 puntaje = dict(bloque['opciones'])[seleccion]
                 puntajes.append(puntaje)
-                clave = bloque['factor'].split('. ')[0]
+                #factor_puntaje[bloque['factor']] = puntaje  # 👈 Guardar cada factor con su puntaje
+                clave = bloque['factor'].split('.')[0] if '.' not in bloque['factor'] else bloque['factor'].split('. ')[0]
                 factor_puntaje[f"Factor {clave}"] = puntaje
-            
+
+         
             
             else:
                 respuestas_completas = False
