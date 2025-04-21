@@ -208,3 +208,48 @@ elif opcion == "📄 Formulario":
                     st.session_state.previsualizado = False
                     st.session_state.confirmado = False
                 st.session_state.last_tipo = tipo
+
+elif opcion == "📋 Evaluaciones":
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        import pandas as pd
+        import time
+
+        df_eval = pd.DataFrame(evaluaciones)
+        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
+
+        st.markdown("### 🔁 Seleccione agentes para re-evaluar")
+
+        seleccionados = []
+        for idx, ev in enumerate(evaluaciones):
+            cols = st.columns([0.1, 1, 1, 1, 1, 1])
+            with cols[0]:
+                marcado = st.checkbox("", key=f"chk_{idx}")
+            with cols[1]:
+                st.write(ev["apellido_nombre"])
+            with cols[2]:
+                st.write(ev["anio"])
+            with cols[3]:
+                st.write(ev["formulario"])
+            with cols[4]:
+                st.write(ev["puntaje_total"])
+            with cols[5]:
+                st.write(ev["evaluacion"])
+
+            if marcado:
+                seleccionados.append(ev)
+
+        if seleccionados:
+            if st.button("🔁 Re-evaluar seleccionados"):
+                for ev in seleccionados:
+                    db.collection("agentes").document(ev['cuil']).update({"evaluado_2025": False})
+                st.success(f"✅ {len(seleccionados)} agente(s) marcados para reevaluación.")
+                time.sleep(1)
+                st.rerun()
+        else:
+            st.caption("⬅️ Marque al menos un agente para habilitar la acción.")
+
