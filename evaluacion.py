@@ -254,35 +254,17 @@ elif opcion == "📋 Evaluaciones":
             st.caption("⬅️ Marque al menos un agente para habilitar la acción.")
 
 elif opcion == "📋 Evaluación General":
-    # Obtener evaluaciones
+
     evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [doc.to_dict() for doc in evaluaciones_ref]
-    st.write("Evaluaciones:", evaluaciones)
-    st.write("Agentes disponibles:", list(agentes.keys()))
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        import pandas as pd
+        import time
 
-    # Obtener agentes (para nombre completo)
-    agentes_ref = db.collection("agentes").stream()
-    agentes = {doc.id: doc.to_dict() for doc in agentes_ref}
-
-    filas = []
-    for ev in evaluaciones:
-        cuil = ev.get("cuil", "")
-        nombre = agentes.get(cuil, {}).get("apellido_nombre", "Nombre no encontrado")
-
-        factores = ev.get("factor_puntaje", {})
-        factor_str = ", ".join([f"{k} ({v})" for k, v in factores.items()])
-
-        filas.append({
-            "CUIL": cuil,
-            "Apellido y Nombre": nombre,
-            "Formulario": ev.get("formulario", ""),
-            "Puntaje Total": ev.get("puntaje_total", ""),
-            "Evaluación": ev.get("evaluacion", ""),
-            "Factor/Puntaje": factor_str,
-        })
-
-    df = pd.DataFrame(filas)
-    st.dataframe(df, use_container_width=True)
+        df_eval = pd.DataFrame(evaluaciones)
+        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
 
 
