@@ -755,11 +755,11 @@ if tipo != "":
                     "Sin clasificación"
                 )
                 
-                # Construir diccionario de factor -> puntaje
-                factor_puntaje = {
-                    formularios[tipo][i]["factor"]: dict(formularios[tipo][i]["opciones"])[st.session_state[f"factor_{i}"]]
-                    for i in range(len(formularios[tipo]))
-                }
+                ## Construir diccionario de factor -> puntaje
+                ##factor_puntaje = {
+                ##    formularios[tipo][i]["factor"]: dict(formularios[tipo][i]["opciones"])[st.session_state[f"factor_{i}"]]
+                ##    for i in range(len(formularios[tipo]))
+                ##}
                 
                 evaluacion_data = {
                     "apellido_nombre": apellido_nombre,
