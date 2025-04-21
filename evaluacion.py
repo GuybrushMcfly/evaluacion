@@ -668,22 +668,23 @@ if tipo != "":
     with st.form("form_eval"):
         opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
         seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
-
+    
         agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
         if agente is None:
             st.error("❌ No se encontró el agente seleccionado.")
             st.stop()
-
+    
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
-
+    
         puntajes = []
         respuestas_completas = True
-
+        factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
+    
         for i, bloque in enumerate(formularios[tipo]):
             st.subheader(bloque['factor'])
             st.write(bloque['descripcion'])
-
+    
             opciones = [texto for texto, _ in bloque['opciones']]
             seleccion = st.radio(
                 label="Seleccione una opción",
@@ -691,13 +692,14 @@ if tipo != "":
                 key=f"factor_{i}",
                 index=None
             )
-
+    
             if seleccion is not None:
                 puntaje = dict(bloque['opciones'])[seleccion]
                 puntajes.append(puntaje)
+                factor_puntaje[bloque['factor']] = puntaje  # 👈 Guardar cada factor con su puntaje
             else:
                 respuestas_completas = False
-
+    
         # 👇 Este botón DEBE estar dentro del formulario
         previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
 
@@ -742,6 +744,12 @@ if tipo != "":
                     "Sin clasificación"
                 )
                 
+                # Construir diccionario de factor -> puntaje
+                factor_puntaje = {
+                    formularios[tipo][i]["factor"]: dict(formularios[tipo][i]["opciones"])[st.session_state[f"factor_{i}"]]
+                    for i in range(len(formularios[tipo]))
+                }
+                
                 evaluacion_data = {
                     "apellido_nombre": apellido_nombre,
                     "cuil": cuil,
@@ -749,9 +757,11 @@ if tipo != "":
                     "formulario": tipo_formulario,
                     "puntaje_total": total,
                     "evaluacion": clasificacion,
+                    "evaluado_2025": True,
+                    "factor_puntaje": factor_puntaje,
                     "_timestamp": firestore.SERVER_TIMESTAMP,
                 }
-                
+
                 doc_id = f"{cuil}-{anio}"
                 db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
                 db.collection("agentes").document(cuil).update({"evaluado_2025": True})
