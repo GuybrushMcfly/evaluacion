@@ -679,12 +679,14 @@ if tipo != "":
     
         puntajes = []
         respuestas_completas = True
-        factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
+        #factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
     
+        factor_puntaje = {}  # Inicializar el diccionario
+        
         for i, bloque in enumerate(formularios[tipo]):
             st.subheader(bloque['factor'])
             st.write(bloque['descripcion'])
-    
+        
             opciones = [texto for texto, _ in bloque['opciones']]
             seleccion = st.radio(
                 label="Seleccione una opción",
@@ -692,18 +694,22 @@ if tipo != "":
                 key=f"factor_{i}",
                 index=None
             )
-    
+        
             if seleccion is not None:
                 puntaje = dict(bloque['opciones'])[seleccion]
                 puntajes.append(puntaje)
-                #factor_puntaje[bloque['factor']] = puntaje  # 👈 Guardar cada factor con su puntaje
-                clave = bloque['factor'].split('.')[0] if '.' not in bloque['factor'] else bloque['factor'].split('. ')[0]
-                factor_puntaje[f"Factor {clave}"] = puntaje
-
-         
-            
+        
+                # 🔧 Extraer el número del factor
+                raw_factor = bloque['factor'].split('.')[0]
+                if bloque['factor'].count('.') >= 2:
+                    clave = '.'.join(bloque['factor'].split('.')[:2])
+                else:
+                    clave = bloque['factor'].split('.')[0]
+        
+                factor_puntaje[f"Factor {clave.strip()}"] = puntaje
             else:
                 respuestas_completas = False
+
     
         # 👇 Este botón DEBE estar dentro del formulario
         previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
