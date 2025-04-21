@@ -457,6 +457,56 @@ formularios:
         - ["d) Dispuesto a prestar ayuda sólo en algunos casos. Prefiere no trabajar en equipo.", 1]
         - ["e) Siempre tiene dificultades para cooperar con sus pares y superiores.", 0]
 
+  6:
+    - descripcion: "Volumen de producción de acuerdo con los requerimientos del puesto en el tiempo acordado."
+      factor: "1.1. CANTIDAD DE TRABAJO"
+      opciones:
+        - ["a) Rendimiento excepcionalmente alto. Sobrepasa los márgenes requeridos normalmente en su puesto.", 4]
+        - ["b) Siempre alcanza y frecuentemente supera el rendimiento requerido en los plazos previstos.", 3]
+        - ["c) Alcanza los niveles normales de trabajo a un ritmo aceptable y en los plazos establecidos.", 2]
+        - ["d) Su rendimiento está por debajo de los niveles requeridos para el puesto, o no respeta los plazos establecidos.", 1]
+        - ["e) Su rendimiento está muy por debajo de los requerimientos y no respeta los plazos establecidos.", 0]
+    - descripcion: "Nivel de terminación y perfección del trabajo que realiza."
+      factor: "1.2. CALIDAD DE TRABAJO"
+      opciones:
+        - ["a) Excepcional nivel de calidad de su trabajo.", 4]
+        - ["b) Muy buen nivel de calidad de su trabajo.", 3]
+        - ["c) Adecuado nivel de calidad de su trabajo.", 2]
+        - ["d) Tiene dificultades para realizar su trabajo con la calidad requerida. Necesita supervisión mayor que la normal.", 1]
+        - ["e) Falta de calidad en la realización de su trabajo. Necesita constante supervisión.", 0]
+    - descripcion: "Eficiente utilización del tiempo, materiales, procedimientos y métodos de trabajo."
+      factor: "1.3. MANEJO DE RECURSOS"
+      opciones:
+        - ["a) Excelente utilización de los recursos asignados a su puesto. Muy habilidoso para encontrar mejores métodos de trabajo y reducir costos.", 4]
+        - ["b) Muy efectivo para administrar recursos y reducir costos, mejorar métodos, procedimientos y técnicas.", 3]
+        - ["c) Buen sentido de la administración de los recursos. Uso adecuado de los métodos y técnicas.", 2]
+        - ["d) Tiene dificultades para administrar apropiadamente los recursos asignados a su puesto.", 1]
+        - ["e) No aprovecha los recursos asignados a su puesto, necesita constante monitoreo para administrar su tiempo y procedimientos de trabajo.", 0]
+    - descripcion: "Nivel de conocimientos requeridos para desempeñar las tareas relacionadas con el puesto."
+      factor: "2. CONOCIMIENTO DE LAS TAREAS"
+      opciones:
+        - ["a) Excepcional dominio de todas las fases de su trabajo y tareas relacionadas con el mismo.", 4]
+        - ["b) Buen dominio de las fases de su trabajo y sólidos conocimientos de sus tareas.", 3]
+        - ["c) Conoce adecuadamente su trabajo y las tareas relacionadas.", 2]
+        - ["d) Posee sólo los conocimientos elementales relacionados con su tarea.", 1]
+        - ["e) Conocimientos insuficientes para el desempleo de las tareas a su cargo.", 0]
+    - descripcion: "Capacidad para comprender y actuar de acuerdo a las pautas establecidas."
+      factor: "3. CRITERIO"
+      opciones:
+        - ["a) Excepcional capacidad para comprender las pautas de trabajo y actuar en consecuencia.", 4]
+        - ["b) Muy buena capacidad de comprensión de las pautas de trabajo, que le permite actuar minimizando los errores.", 3]
+        - ["c) Interpreta sin dificultad las pautas de trabajo y responde adecuadamente.", 2]
+        - ["d) Tiene dificultad para interpretar las pautas de trabajo y necesita frecuentes indicaciones.", 1]
+        - ["e) Le cuesta comprender las pautas de trabajo y requiere una permanente indicación y monitoreo de sus trabajos.", 0]
+    - descripcion: "Disposición a cooperar con el superior y los demás empleados en la realización de tareas comunes."
+      factor: "4. COLABORACIÓN"
+      opciones:
+        - ["a) Excelente disposición a cooperar ante cada circunstancia o problema que se presente.", 4]
+        - ["b) Muy dispuesto a cooperar. En general es requerido por su actitud que es reconocida y valorada.", 3]
+        - ["c) Coopera con sus jefes y compañeros. Generalmente se muestra interesado en brindar ayuda en el trabajo de los demás.", 2]
+        - ["d) Dispuesto a prestar ayuda sólo en algunos casos. Prefiere no trabajar en equipo.", 1]
+        - ["e) Siempre tiene dificultades para cooperar con sus pares y superiores.", 0]
+
 clasificaciones:
   1:
     - ["DESTACADO", 56, 37]
