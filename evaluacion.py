@@ -62,7 +62,7 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     clasificaciones = config_formularios["clasificaciones"]
 
 # Menú lateral de navegación
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "📊 Evaluación General"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "Evaluación General"])
 
 
 # Crear tabs
@@ -224,7 +224,7 @@ elif opcion == "📋 Evaluaciones":
 
 
 
-elif opcion == "📋 Evaluación General":
+elif opcion == "Evaluación General":
 
     evaluaciones_ref = db.collection("evaluaciones").stream()
     evaluaciones = [e.to_dict() for e in evaluaciones_ref]
