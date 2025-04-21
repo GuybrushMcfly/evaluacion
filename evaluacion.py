@@ -682,6 +682,8 @@ if tipo != "":
         #factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
     
         factor_puntaje = {}  # Inicializar el diccionario
+        puntajes = []
+        respuestas_completas = True
         
         for i, bloque in enumerate(formularios[tipo]):
             st.subheader(bloque['factor'])
@@ -699,16 +701,13 @@ if tipo != "":
                 puntaje = dict(bloque['opciones'])[seleccion]
                 puntajes.append(puntaje)
         
-                # 🔧 Extraer el número del factor
-                raw_factor = bloque['factor'].split('.')[0]
-                if bloque['factor'].count('.') >= 2:
-                    clave = '.'.join(bloque['factor'].split('.')[:2])
-                else:
-                    clave = bloque['factor'].split('.')[0]
-        
-                factor_puntaje[f"Factor {clave.strip()}"] = puntaje
+                # Extraer clave de factor como "Factor 1", "Factor 3.2", etc.
+                partes = bloque['factor'].split('. ')
+                clave_numerica = partes[0].strip()  # "3.2" o "4"
+                factor_puntaje[f"Factor {clave_numerica}"] = puntaje
             else:
                 respuestas_completas = False
+
 
     
         # 👇 Este botón DEBE estar dentro del formulario
