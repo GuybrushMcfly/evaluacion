@@ -632,6 +632,10 @@ clasificaciones = {
 # Título principal
 st.title("Formulario de Evaluación de Desempeño")
 
+
+# Inicializar valor por defecto para evitar errores
+previsualizar = False
+
 # Selector de formulario
 tipo = st.selectbox(
     "Seleccione el tipo de formulario",
