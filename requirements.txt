@@ -3,3 +3,8 @@ pandas>=2.0.0
 numpy>=1.24.0
 firebase-admin
 pyyaml
+streamlit-authenticator>=0.3.0
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
