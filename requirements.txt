@@ -1,8 +1,16 @@
-streamlit==1.32.2
-pandas==2.0.3
-numpy==1.24.3
-pyyaml==6.0.1
-streamlit-authenticator==0.3.1
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.23
-python-dotenv==1.0.0  # Nuevo - para manejar variables de entorno
+#streamlit==1.32.2
+#pandas==2.0.3
+#numpy==1.24.3
+#pyyaml==6.0.1
+#streamlit-authenticator==0.3.1
+#psycopg2-binary==2.9.9
+#sqlalchemy==2.0.23
+#python-dotenv==1.0.0  # Nuevo - para manejar variables de entorno
+
+streamlit
+pandas
+numpy
+pyyaml
+streamlit-authenticator
+psycopg2-binary
+sqlalchemy
