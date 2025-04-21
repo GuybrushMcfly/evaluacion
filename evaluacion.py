@@ -61,20 +61,6 @@ if opcion == "📝 Instructivo":
     3. Previsualizá y confirmá la evaluación.  
     """)
 
-if opcion == "📝 Prueba supabase":
-
-
-# ---- NAVEGACIÓN ----
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📝 Prueba supabase", "📄 Formulario", "📋 Evaluaciones"])
-
-if opcion == "📝 Instructivo":
-    st.title("📝 Instructivo")
-    st.markdown("""
-    Bienvenido al sistema de Evaluación de Desempeño.  
-    1. Seleccioná el formulario correspondiente.  
-    2. Completá todos los factores.  
-    3. Previsualizá y confirmá la evaluación.  
-    """)
 
 elif opcion == "📝 Prueba supabase":
     st.title("🔌 Prueba de conexión a Supabase")
