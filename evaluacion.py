@@ -703,7 +703,10 @@ if tipo != "":
                 
                 # Extraer solo la numeración del factor (ej: "1.1" o "3")
                 numero_factor = bloque['factor'].split(' ')[0].strip()
-                factor_puntaje[f"Factor {numero_factor}"] = puntaje
+                #factor_puntaje[f"Factor {numero_factor}"] = puntaje
+                clave = bloque['factor'].split(' ')[0].strip()
+                factor_puntaje[f"Factor {clave}"] = puntaje
+
             else:
                 respuestas_completas = False
 
