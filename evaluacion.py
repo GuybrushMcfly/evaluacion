@@ -659,6 +659,11 @@ if tipo != "":
         agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
         agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
         agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+    
+        if not agentes_ordenados:
+            st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
+            st.stop()
+    
 
         
         # Mostrar selectbox con nombre completo
@@ -666,7 +671,11 @@ if tipo != "":
         seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
         
         # Extraer datos del agente seleccionado
-        agente = next(a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado)
+        #agente = next(a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado)
+        agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+        if agente is None:
+            st.error("❌ No se encontró el agente seleccionado.")
+            st.stop()
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
 
