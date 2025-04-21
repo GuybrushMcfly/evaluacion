@@ -7,6 +7,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import json
 import time
+import yaml
+from yaml.loader import SafeLoader
 
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
@@ -16,6 +18,39 @@ if not firebase_admin._apps:
 
 # Conectar con Firestore
 db = firestore.client()
+
+# ---- CONFIGURACIÓN DE PÁGINA ----
+st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
+#st.sidebar.image("logo-cap.png", use_container_width=True)
+
+
+# ---- CARGAR CONFIGURACIÓN DESDE YAML ----
+with open("config.yaml") as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
+# ---- AUTENTICACIÓN ----
+authenticator = stauth.Authenticate(
+    credentials=config['credentials'],
+    cookie_name=config['cookie']['name'],
+    cookie_key=config['cookie']['key'],
+    cookie_expiry_days=config['cookie']['expiry_days']
+)
+
+authenticator.login()
+
+if st.session_state["authentication_status"]:
+    authenticator.logout("Cerrar sesión", "sidebar")
+    st.sidebar.success(f"Hola, {st.session_state['name']}")
+    #st.title("📊 Dashboard Tramos Escalafonarios")
+    st.markdown("""<h1 style='font-size: 30px; color: white;'>📊 Evaluación de Desempeño</h1>""", unsafe_allow_html=True)
+elif st.session_state["authentication_status"] is False:
+    st.error("❌ Usuario o contraseña incorrectos.")
+    st.stop()
+elif st.session_state["authentication_status"] is None:
+    st.warning("🔒 Ingresá tus credenciales para acceder al dashboard.")
+    st.stop()
+
+st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────
 # 📋 FORMULARIOS DE EVALUACIÓN - FORMATO ADAPTADO
@@ -677,8 +712,8 @@ if tipo != "":
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
     
-        puntajes = []
-        respuestas_completas = True
+        #puntajes = []
+        #respuestas_completas = True
         #factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
     
         factor_puntaje = {}  # Inicializar el diccionario
