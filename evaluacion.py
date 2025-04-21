@@ -267,6 +267,8 @@ elif opcion == "Evaluación General":
             "Puntaje Total": ev.get("puntaje_total", ""),
             "Evaluación": ev.get("evaluacion", ""),
             "Factor/Puntaje": factor_str,
+            "Puntaje Máximo": ev.get("puntaje_maximo", ""),
+            "Result. Absoluto": ev.get("resultado_absoluto", ""),
         })
 
     df = pd.DataFrame(filas)
