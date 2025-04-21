@@ -647,37 +647,31 @@ if tipo != "":
         st.session_state.previsualizado = False
     if 'confirmado' not in st.session_state:
         st.session_state.confirmado = False
-    
-    with st.form("form_eval"):
-       # persona = st.text_input("Nombre del evaluado", key="nombre_evaluado")
 
-        # Obtener lista de agentes desde Firebase
-        #agentes_ref = db.collection("agentes").stream()
-        #agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
-        #agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+    # Obtener lista de agentes desde Firebase
+    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+    agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+    agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
 
-        agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-        agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
-        agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
-    
-        if not agentes_ordenados:
-            st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
-            st.stop()
-    
+    # ⚠️ Mostrar advertencia si no hay agentes
+    if not agentes_ordenados:
+        st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
+    else:
+        # ⬇️ SOLO SI HAY AGENTES, mostrar el formulario
+        with st.form("form_eval"):
+            opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
+            seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
+
+            agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+            if agente is None:
+                st.error("❌ No se encontró el agente seleccionado.")
+                st.stop()
+
+            cuil = agente["cuil"]
+            apellido_nombre = agente["apellido_nombre"]
 
         
-        # Mostrar selectbox con nombre completo
-        opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
-        seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
-        
-        # Extraer datos del agente seleccionado
-        #agente = next(a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado)
-        agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
-        if agente is None:
-            st.error("❌ No se encontró el agente seleccionado.")
-            st.stop()
-        cuil = agente["cuil"]
-        apellido_nombre = agente["apellido_nombre"]
+
 
         puntajes = []
         respuestas_completas = True
