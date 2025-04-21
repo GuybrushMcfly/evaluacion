@@ -181,8 +181,17 @@ elif opcion == "📄 Formulario":
                     st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                     st.balloons()
                     time.sleep(2)
-                    st.session_state.clear()
+                   # st.session_state.clear()
+                   # st.rerun()
+
+
+                    # Eliminar solo las claves necesarias
+                    for key in list(st.session_state.keys()):
+                        if key.startswith("factor_") or key in ["select_tipo", "previsualizado", "confirmado", "puntajes", "respuestas_completas", "last_tipo"]:
+                            del st.session_state[key]
+                    
                     st.rerun()
+
 
             with col2:
                 if st.button("❌ No, revisar opciones"):
