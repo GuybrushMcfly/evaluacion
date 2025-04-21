@@ -10,28 +10,6 @@ from yaml.loader import SafeLoader
 from firebase_admin import credentials, firestore
 
 
-@st.cache_data
-def cargar_formularios():
-    with open("formularios.yaml", "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-    return config["formularios"], config["clasificaciones"]
-
-@st.cache_data(ttl=60)
-def get_evaluaciones():
-    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
-
-@st.cache_data(ttl=60)
-def get_agentes():
-    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
-
-@st.cache_data(ttl=60)
-def get_agentes_para_evaluar():
-    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-    return [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
-
-
-
-
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
     cred_json = json.loads(st.secrets["GOOGLE_FIREBASE_CREDS"])
@@ -76,16 +54,16 @@ st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
 
 
-#with open("formularios.yaml", "r", encoding="utf-8") as f:
-#    config_formularios = yaml.safe_load(f)
-#    formularios = config_formularios["formularios"]
-#    clasificaciones = config_formularios["clasificaciones"]
+with open("formularios.yaml", "r", encoding="utf-8") as f:
+    config_formularios = yaml.safe_load(f)
+    formularios = config_formularios["formularios"]
+    clasificaciones = config_formularios["clasificaciones"]
 
-formularios, clasificaciones = cargar_formularios()
+#formularios, clasificaciones = cargar_formularios()
 
 
 # Menú lateral de navegación
-opcion = st.sidebar.radio("📂 Navegación", ["📄 Formulario", "📋 Evaluaciones", "📝 Instructivo", "EVALUACIÓN GENERAL", ])
+opcion = st.sidebar.radio("📂 Navegación", ["📄 Formulario", "📋 Evaluaciones", "📝 Instructivo"])
 
 
 # Crear tabs
@@ -241,23 +219,15 @@ elif opcion == "📄 Formulario":
             st.session_state.last_tipo = tipo
 
 elif opcion == "📋 Evaluaciones":
-    evaluaciones = get_evaluaciones()
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        df_eval = pd.DataFrame(evaluaciones)
-        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
+        import pandas as pd
+        import time
 
-
-
-
-elif opcion == "EVALUACIÓN GENERAL":
-    evaluaciones = get_evaluaciones()
-
-    if not evaluaciones:
-        st.info("No hay evaluaciones registradas.")
-    else:
         df_eval = pd.DataFrame(evaluaciones)
         st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
 
