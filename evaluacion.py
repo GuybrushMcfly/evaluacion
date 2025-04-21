@@ -9,6 +9,22 @@ import re
 from yaml.loader import SafeLoader
 from firebase_admin import credentials, firestore
 
+
+@st.cache_data
+def cargar_formularios():
+    with open("formularios.yaml", "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    return config["formularios"], config["clasificaciones"]
+
+@st.cache_data(ttl=60)
+def get_evaluaciones():
+    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
+
+@st.cache_data(ttl=60)
+def get_agentes():
+    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
+
+
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
     cred_json = json.loads(st.secrets["GOOGLE_FIREBASE_CREDS"])
@@ -51,18 +67,15 @@ elif st.session_state["authentication_status"] is None:
 
 st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
-#@st.cache_data(ttl=60)
-#def get_evaluaciones():
-#    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
 
-#@st.cache_data(ttl=60)
-#def get_agentes():
-#    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
 
-with open("formularios.yaml", "r", encoding="utf-8") as f:
-    config_formularios = yaml.safe_load(f)
-    formularios = config_formularios["formularios"]
-    clasificaciones = config_formularios["clasificaciones"]
+#with open("formularios.yaml", "r", encoding="utf-8") as f:
+#    config_formularios = yaml.safe_load(f)
+#    formularios = config_formularios["formularios"]
+#    clasificaciones = config_formularios["clasificaciones"]
+
+formularios, clasificaciones = cargar_formularios()
+
 
 # Menú lateral de navegación
 opcion = st.sidebar.radio("📂 Navegación", ["📄 Formulario", "📋 Evaluaciones", "📝 Instructivo", "EVALUACIÓN GENERAL", ])
@@ -221,33 +234,26 @@ elif opcion == "📄 Formulario":
             st.session_state.last_tipo = tipo
 
 elif opcion == "📋 Evaluaciones":
-    evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    evaluaciones = get_evaluaciones()
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        import pandas as pd
-        import time
-
         df_eval = pd.DataFrame(evaluaciones)
         st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
+
 
 
 
 elif opcion == "EVALUACIÓN GENERAL":
-
-    evaluaciones_ref = db.collection("evaluaciones").stream()
-    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+    evaluaciones = get_evaluaciones()
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        import pandas as pd
-        import time
-
         df_eval = pd.DataFrame(evaluaciones)
         st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]], use_container_width=True)
+
 
 
 
