@@ -149,14 +149,16 @@ elif opcion == "📄 Formulario":
             if st.session_state.previsualizado and st.session_state.respuestas_completas:
                 total = sum(st.session_state.puntajes)
                 rango = clasificaciones.get(tipo, [])
+                puntaje_maximo = max(p for bloque in formularios[tipo_formulario] for _, p in bloque["opciones"]) * len(formularios[tipo_formulario])
+                resultado_absoluto = round(total / puntaje_maximo, 4)  # Decimal con 4 dígitos
                 clasificacion = next(
                     (nombre for nombre, maxv, minv in rango if minv <= total <= maxv),
                     "Sin clasificación"
                 )
 
                 st.markdown("---")
-                st.markdown(f"### 📊 Puntaje preliminar: {total}")
-                st.markdown(f"### 📌 Calificación estimada: **{clasificacion}**")
+                st.markdown(f"### 📊 Puntaje: {total}")
+                st.markdown(f"### 📌 Calificación: **{clasificacion}**")
                 st.markdown("---")
 
                 col1, col2 = st.columns(2)
@@ -173,6 +175,8 @@ elif opcion == "📄 Formulario":
                             "evaluacion": clasificacion,
                             "evaluado_2025": True,
                             "factor_puntaje": factor_puntaje,
+                            "puntaje_maximo": puntaje_maximo,
+                            "resultado_absoluto": resultado_absoluto,
                             "_timestamp": firestore.SERVER_TIMESTAMP,
                         }
 
