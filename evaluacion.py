@@ -79,15 +79,6 @@ formularios = {
             ('d) Suele tener dificultades para dirigir a su personal, delegar funciones y obtener un trabajo de conjunto.', 1),
             ('e) Continuamente presenta problemas para dirigir la acción de su personal, delegar funciones y obtener resultados adecuados de equipos.', 0)
          ]},
-        {'descripcion': 'Habilidad para concretar los procesos de negociación iniciados.',
-         'factor': '6.2. CERRAR TRANSACCIONES',
-         'opciones': [
-            ('a) Notable facilidad para conducir negociaciones y llegar a cierres exitosos con logros superiores a los previstos.', 4),
-            ('b) Conduce habilidosamente y concreta los procesos de negociación con muy buenos resultados.', 3),
-            ('c) Conduce y cierra satisfactoriamente procesos de negociación habituales.', 2),
-            ('d) Puede iniciar y conducir transacciones pero tiene dificultades para cerrarlas satisfactoriamente. En algunas oportunidades requiere apoyo.', 1),
-            ('e) Su actuación normalmente lleva a cierres confusos o inconvenientes que deben ser rectificados mediante la intervención de sus superiores.', 0)
-         ]},
         {'descripcion': 'Capacidad para relacionarse eficazmente con el contexto, interno y externo, asumiendo la representación de su área.',
          'factor': '6.1 ASUMIR LA REPRESENTACIÓN INTERNA Y EXTERNA',
          'opciones': [
@@ -96,6 +87,15 @@ formularios = {
             ('c) Establece y mantiene relaciones convenientes para el accionar laboral de su área.', 2),
             ('d) A veces no asume adecuadamente la representación de su área. En algunas ocasiones sus relaciones no son beneficiosas y sus contactos pueden producir roces por falta de tacto y manejo.', 1),
             ('e) Tiene dificultades para establecer relaciones cuando asume la representación de su área. Sus contactos suelen ser conflictivos y hasta contraproducentes.', 0)
+         ]},
+        {'descripcion': 'Habilidad para concretar los procesos de negociación iniciados.',
+         'factor': '6.2. CERRAR TRANSACCIONES',
+         'opciones': [
+            ('a) Notable facilidad para conducir negociaciones y llegar a cierres exitosos con logros superiores a los previstos.', 4),
+            ('b) Conduce habilidosamente y concreta los procesos de negociación con muy buenos resultados.', 3),
+            ('c) Conduce y cierra satisfactoriamente procesos de negociación habituales.', 2),
+            ('d) Puede iniciar y conducir transacciones pero tiene dificultades para cerrarlas satisfactoriamente. En algunas oportunidades requiere apoyo.', 1),
+            ('e) Su actuación normalmente lleva a cierres confusos o inconvenientes que deben ser rectificados mediante la intervención de sus superiores.', 0)
          ]},
         {'descripcion': 'Habilidad para leer la realidad de manera acorde a sus incumbencias y definir las fortalezas y oportunidades, así como las amenazas y debilidades para su área de influencia.',
          'factor': '7.1. INTERPRETACIÓN Y PREDICCIÓN DEL CONTEXTO',
