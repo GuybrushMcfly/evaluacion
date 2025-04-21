@@ -181,8 +181,11 @@ elif opcion == "📄 Formulario":
                             "evaluado_2025": True,
                             "factor_puntaje": factor_puntaje,
                             "puntaje_maximo": puntaje_maximo,
+                            "nivel": nivel,
+                            "grado": grado,
+                            "unidad": unidad,                            
                             "resultado_absoluto": resultado_absoluto,
-                            "_timestamp": firestore.SERVER_TIMESTAMP,
+                            "timestamp": firestore.SERVER_TIMESTAMP,                            
                         }
 
                         doc_id = f"{cuil}-2025"
