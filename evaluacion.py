@@ -667,10 +667,20 @@ clasificaciones = {
 opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
 
 # Crear tabs
-tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
+#tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
 
-with tabs[0]:
-    st.title("Formulario de Evaluación de Desempeño")
+if opcion == "📝 Instructivo":
+    st.title("📝 Instructivo")
+    st.markdown("""
+    Bienvenido al sistema de Evaluación de Desempeño.  
+    1. Seleccioná el formulario correspondiente.  
+    2. Completá todos los factores.  
+    3. Previsualizá y confirmá la evaluación.  
+    """)
+
+elif opcion == "📄 Formulario":
+    # Acá va todo lo que tenés en tabs[0]
+    # Evaluación de desempeño
 
     # Inicializar valor por defecto para evitar errores
     previsualizar = False
@@ -847,8 +857,10 @@ if tipo != "":
 # ─────────────────────────────────────
 # 📋 TAB 2: EVALUADOS
 # ─────────────────────────────────────
-with tabs[1]:
-    st.header("📋 Lista de Evaluados")
+elif opcion == "📋 Evaluaciones":
+    # Acá va lo que tenés en tabs[1]
+    # Lista de evaluados y reevaluaciones
+
 
     evaluaciones_ref = db.collection("evaluaciones").stream()
     evaluaciones = [e.to_dict() for e in evaluaciones_ref]
