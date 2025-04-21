@@ -645,6 +645,7 @@ tipo = st.selectbox(
 )
 
 # Mostrar factores solo si se seleccionó un tipo válido
+# Mostrar factores solo si se seleccionó un tipo válido
 if tipo != "":
     # Inicializar variables de estado
     if 'previsualizado' not in st.session_state:
@@ -652,30 +653,27 @@ if tipo != "":
     if 'confirmado' not in st.session_state:
         st.session_state.confirmado = False
 
-    # Obtener lista de agentes desde Firebase
+    # Obtener lista de agentes
     agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
     agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
     agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
 
-    # ⚠️ Mostrar advertencia si no hay agentes
     if not agentes_ordenados:
         st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
-    else:
-        # ⬇️ SOLO SI HAY AGENTES, mostrar el formulario
-        with st.form("form_eval"):
-            opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
-            seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
+        st.stop()  # ❗ DETIENE TODO ANTES DEL FORMULARIO
 
-            agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
-            if agente is None:
-                st.error("❌ No se encontró el agente seleccionado.")
-                st.stop()
+    # Si hay agentes, mostrar el formulario
+    with st.form("form_eval"):
+        opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
+        seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
 
-            cuil = agente["cuil"]
-            apellido_nombre = agente["apellido_nombre"]
+        agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+        if agente is None:
+            st.error("❌ No se encontró el agente seleccionado.")
+            st.stop()
 
-        
-
+        cuil = agente["cuil"]
+        apellido_nombre = agente["apellido_nombre"]
 
         puntajes = []
         respuestas_completas = True
@@ -698,9 +696,10 @@ if tipo != "":
             else:
                 respuestas_completas = False
 
-        # Botón de previsualización dentro del form
+        # 👇 Este botón DEBE estar dentro del formulario
         previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
-    
+
+   
     # Lógica de previsualización fuera del form
     if previsualizar:
         if respuestas_completas:
