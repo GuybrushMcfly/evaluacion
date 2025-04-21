@@ -679,13 +679,9 @@ if opcion == "📝 Instructivo":
     """)
 
 elif opcion == "📄 Formulario":
-    # Acá va todo lo que tenés en tabs[0]
     # Evaluación de desempeño
-
-    # Inicializar valor por defecto para evitar errores
     previsualizar = False
 
-    # Selector de formulario
     tipo = st.selectbox(
         "Seleccione el tipo de formulario",
         options=[""] + list(formularios.keys()),
@@ -693,175 +689,117 @@ elif opcion == "📄 Formulario":
         key="select_tipo"
     )
 
-
-
-# Mostrar factores solo si se seleccionó un tipo válido
-if tipo != "":
-    # Inicializar variables de estado
-    if 'previsualizado' not in st.session_state:
-        st.session_state.previsualizado = False
-    if 'confirmado' not in st.session_state:
-        st.session_state.confirmado = False
-
-    # Obtener lista de agentes
-    agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-    agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
-    agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
-
-    if not agentes_ordenados:
-        st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
-        st.stop()  # ❗ DETIENE TODO ANTES DEL FORMULARIO
-
-    # Si hay agentes, mostrar el formulario
-    with st.form("form_eval"):
-        opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
-        seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
-    
-        agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
-        if agente is None:
-            st.error("❌ No se encontró el agente seleccionado.")
-            st.stop()
-    
-        cuil = agente["cuil"]
-        apellido_nombre = agente["apellido_nombre"]
-    
-        #puntajes = []
-        #respuestas_completas = True
-        #factor_puntaje = {}  # 👈 Nueva variable para guardar el detalle
-    
-        factor_puntaje = {}  # Inicializar el diccionario
-        puntajes = []
-        respuestas_completas = True
-        
-        for i, bloque in enumerate(formularios[tipo]):
-            st.subheader(bloque['factor'])
-            st.write(bloque['descripcion'])
-        
-            opciones = [texto for texto, _ in bloque['opciones']]
-            seleccion = st.radio(
-                label="Seleccione una opción",
-                options=opciones,
-                key=f"factor_{i}",
-                index=None
-            )
-        
-            if seleccion is not None:
-                puntaje = dict(bloque['opciones'])[seleccion]
-                puntajes.append(puntaje)
-                
-                # Extraer solo la numeración del factor (ej: "1.1" o "3")
-                numero_factor = bloque['factor'].split(' ')[0].strip()
-                #factor_puntaje[f"Factor {numero_factor}"] = puntaje
-                clave = bloque['factor'].split(' ')[0].strip()
-                factor_puntaje[f"Factor {clave}"] = puntaje
-
-            else:
-                respuestas_completas = False
-
-    
-        # 👇 Este botón DEBE estar dentro del formulario
-        previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
-
-   
-    # Lógica de previsualización fuera del form
-    if previsualizar:
-        if respuestas_completas:
-            st.session_state.previsualizado = True
-            st.session_state.puntajes = puntajes
-            st.session_state.respuestas_completas = True
-        else:
-            st.error("❌ Complete todas las respuestas para previsualizar la calificación")
+    if tipo != "":
+        if 'previsualizado' not in st.session_state:
             st.session_state.previsualizado = False
-    
-    # Mostrar previsualización si corresponde
-    if st.session_state.previsualizado and st.session_state.respuestas_completas:
-        total = sum(st.session_state.puntajes)
-        rango = clasificaciones.get(tipo, [])
-        clasificacion = next(
-            (nombre for nombre, maxv, minv in rango if minv <= total <= maxv),
-            "Sin clasificación"
-        )
-        
-        st.markdown("---")
-        st.markdown(f"### 📊 Puntaje preliminar: {total}")
-        st.markdown(f"### 📌 Calificación estimada: **{clasificacion}**")
-        st.markdown("---")
-        
-        # Botones de confirmación
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ Sí, enviar evaluación"):
-                
+        if 'confirmado' not in st.session_state:
+            st.session_state.confirmado = False
 
-            
-                st.session_state.confirmado = True
-                total = sum(st.session_state.puntajes)
-                anio = 2025
-                tipo_formulario = tipo
-                clasificacion = next(
-                    (nombre for nombre, maxv, minv in clasificaciones[tipo_formulario] if minv <= total <= maxv),
-                    "Sin clasificación"
+        agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+        agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+        agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+
+        if not agentes_ordenados:
+            st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
+            st.stop()
+
+        with st.form("form_eval"):
+            opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
+            seleccionado = st.selectbox("Nombre del evaluado", opciones_agentes)
+            agente = next((a for a in agentes_ordenados if a["apellido_nombre"] == seleccionado), None)
+            if agente is None:
+                st.error("❌ No se encontró el agente seleccionado.")
+                st.stop()
+
+            cuil = agente["cuil"]
+            apellido_nombre = agente["apellido_nombre"]
+
+            factor_puntaje = {}
+            puntajes = []
+            respuestas_completas = True
+
+            for i, bloque in enumerate(formularios[tipo]):
+                st.subheader(bloque['factor'])
+                st.write(bloque['descripcion'])
+
+                opciones = [texto for texto, _ in bloque['opciones']]
+                seleccion = st.radio(
+                    label="Seleccione una opción",
+                    options=opciones,
+                    key=f"factor_{i}",
+                    index=None
                 )
-                
-                ## Construir diccionario de factor -> puntaje
-                ##factor_puntaje = {
-                ##    formularios[tipo][i]["factor"]: dict(formularios[tipo][i]["opciones"])[st.session_state[f"factor_{i}"]]
-                ##    for i in range(len(formularios[tipo]))
-                ##}
-                
-                evaluacion_data = {
-                    "apellido_nombre": apellido_nombre,
-                    "cuil": cuil,
-                    "anio": anio,
-                    "formulario": tipo_formulario,
-                    "puntaje_total": total,
-                    "evaluacion": clasificacion,
-                    "evaluado_2025": True,
-                    "factor_puntaje": factor_puntaje,
-                    "_timestamp": firestore.SERVER_TIMESTAMP,
-                }
 
-                doc_id = f"{cuil}-{anio}"
-                db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
-                db.collection("agentes").document(cuil).update({"evaluado_2025": True})
-            
-                st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
-                st.balloons()
-                time.sleep(2)  # Esperar 2 segundos antes del reinicio
-            
-                # Resetear estados
+                if seleccion is not None:
+                    puntaje = dict(bloque['opciones'])[seleccion]
+                    puntajes.append(puntaje)
+                    clave = bloque['factor'].split(' ')[0].strip()
+                    factor_puntaje[f"Factor {clave}"] = puntaje
+                else:
+                    respuestas_completas = False
+
+            previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
+
+        if previsualizar:
+            if respuestas_completas:
+                st.session_state.previsualizado = True
+                st.session_state.puntajes = puntajes
+                st.session_state.respuestas_completas = True
+            else:
+                st.error("❌ Complete todas las respuestas para previsualizar la calificación")
                 st.session_state.previsualizado = False
-                st.session_state.confirmado = False
 
-                # Resetear todo y recargar
-                st.session_state.clear()
-                st.rerun()
+        if st.session_state.previsualizado and st.session_state.respuestas_completas:
+            total = sum(st.session_state.puntajes)
+            rango = clasificaciones.get(tipo, [])
+            clasificacion = next(
+                (nombre for nombre, maxv, minv in rango if minv <= total <= maxv),
+                "Sin clasificación"
+            )
 
+            st.markdown("---")
+            st.markdown(f"### 📊 Puntaje preliminar: {total}")
+            st.markdown(f"### 📌 Calificación estimada: **{clasificacion}**")
+            st.markdown("---")
 
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Sí, enviar evaluación"):
+                    st.session_state.confirmado = True
+                    tipo_formulario = tipo
+                    evaluacion_data = {
+                        "apellido_nombre": apellido_nombre,
+                        "cuil": cuil,
+                        "anio": 2025,
+                        "formulario": tipo_formulario,
+                        "puntaje_total": total,
+                        "evaluacion": clasificacion,
+                        "evaluado_2025": True,
+                        "factor_puntaje": factor_puntaje,
+                        "_timestamp": firestore.SERVER_TIMESTAMP,
+                    }
 
-                
-                # También podrías limpiar los campos del formulario aquí
-        
-        with col2:
-            if st.button("❌ No, revisar opciones"):
-                st.session_state.previsualizado = False
-                st.warning("🔄 Por favor revise las opciones seleccionadas")
-    
-    # Resetear el estado si se cambia el tipo de formulario
-    if 'last_tipo' in st.session_state and st.session_state.last_tipo != tipo:
-        st.session_state.previsualizado = False
-        st.session_state.confirmado = False
-    st.session_state.last_tipo = tipo
+                    doc_id = f"{cuil}-2025"
+                    db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
+                    db.collection("agentes").document(cuil).update({"evaluado_2025": True})
 
+                    st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                    st.balloons()
+                    time.sleep(2)
+                    st.session_state.clear()
+                    st.rerun()
 
-# ─────────────────────────────────────
-# 📋 TAB 2: EVALUADOS
-# ─────────────────────────────────────
+            with col2:
+                if st.button("❌ No, revisar opciones"):
+                    st.session_state.previsualizado = False
+                    st.warning("🔄 Por favor revise las opciones seleccionadas")
+
+        if 'last_tipo' in st.session_state and st.session_state.last_tipo != tipo:
+            st.session_state.previsualizado = False
+            st.session_state.confirmado = False
+        st.session_state.last_tipo = tipo
+
 elif opcion == "📋 Evaluaciones":
-    # Acá va lo que tenés en tabs[1]
-    # Lista de evaluados y reevaluaciones
-
-
     evaluaciones_ref = db.collection("evaluaciones").stream()
     evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
@@ -904,5 +842,6 @@ elif opcion == "📋 Evaluaciones":
                 st.rerun()
         else:
             st.caption("⬅️ Marque al menos un agente para habilitar la acción.")
+
 
 
