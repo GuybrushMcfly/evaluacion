@@ -11,6 +11,8 @@ import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 import pandas as pd
+import re
+
 
 
 
@@ -239,8 +241,24 @@ elif opcion == "Evaluación General":
         cuil = ev.get("cuil", "")
         nombre = agentes.get(cuil, {}).get("apellido_nombre", "Nombre no encontrado")
 
+     #   factores = ev.get("factor_puntaje", {})
+     #   factor_str = ", ".join([f"{k} ({v})" for k, v in factores.items()])
+
         factores = ev.get("factor_puntaje", {})
-        factor_str = ", ".join([f"{k} ({v})" for k, v in factores.items()])
+        
+        def clave_orden(factor):
+            # Extrae números y subíndices para ordenar: ej. "Factor 3.2." → (3, 2)
+            match = re.match(r"Factor (\d+)(?:\.(\d+))?", factor)
+            if match:
+                parte1 = int(match.group(1))
+                parte2 = int(match.group(2)) if match.group(2) else 0
+                return (parte1, parte2)
+            return (float('inf'), float('inf'))  # Poner al final si no matchea
+        
+        # Ordenar factores antes de construir el string
+        factores_ordenados = sorted(factores.items(), key=lambda x: clave_orden(x[0]))
+        factor_str = ", ".join([f"{k} ({v})" for k, v in factores_ordenados])
+        
 
         filas.append({
             "CUIL": cuil,
