@@ -39,8 +39,19 @@ elif st.session_state["authentication_status"] is None:
 
 # ---- CONECTAR A SUPABASE ----
 supabase_url = st.secrets["supabase"]
+
 engine = create_engine(
-    f'postgresql://{supabase_url["user"]}:{supabase_url["password"]}@{supabase_url["host"]}:{supabase_url["port"]}/{supabase_url["database"]}'
+    f'postgresql+psycopg2://{supabase_url["user"]}:{supabase_url["password"]}@'
+    f'{supabase_url["host"]}:{supabase_url["port"]}/{supabase_url["database"]}',
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    connect_args={
+        'sslmode': 'require',
+        'connect_timeout': 10,
+        'options': '-c statement_timeout=15000'
+    }
 )
 
 # ---- CARGAR FORMULARIOS ----
@@ -63,52 +74,72 @@ if opcion == "📝 Instructivo":
 
 
 elif opcion == "📝 Prueba supabase":
-    st.title("🔌 Prueba de conexión a Supabase")
+
+    st.title("🔌 Prueba de conexión avanzada")
     
-    try:
-        # Prueba de conexión básica
-        with engine.connect() as conn:
-            st.success("✅ Conexión a Supabase establecida correctamente")
-            
-            # Prueba de consulta a la tabla agentes
-            try:
-                df_agentes = pd.read_sql("SELECT cuil, apellido_nombre FROM agentes LIMIT 5", conn)
-                if not df_agentes.empty:
-                    st.write("📄 Primeros 5 registros de la tabla 'agentes':")
-                    st.dataframe(df_agentes)
-                else:
-                    st.warning("La tabla 'agentes' existe pero está vacía")
-            except Exception as e:
-                st.error(f"❌ Error al consultar la tabla 'agentes': {str(e)}")
-            
-            # Prueba de consulta a la tabla evaluaciones
-            try:
-                df_eval = pd.read_sql("SELECT * FROM evaluaciones LIMIT 5", conn)
-                if not df_eval.empty:
-                    st.write("📊 Primeros 5 registros de la tabla 'evaluaciones':")
-                    st.dataframe(df_eval)
-                else:
-                    st.warning("La tabla 'evaluaciones' existe pero está vacía")
-            except Exception as e:
-                st.warning(f"⚠️ No se pudo acceder a la tabla 'evaluaciones': {str(e)}")
+    def test_supabase_connection():
+        try:
+            with engine.connect() as conn:
+                # Test 1: Conexión básica
+                conn.execute(text("SELECT 1"))
+                st.success("✅ Conexión básica establecida")
                 
-    except Exception as e:
-        st.error(f"❌ Error de conexión a Supabase: {str(e)}")
-        st.error("Verifica:")
-        st.error("1. La configuración en secrets.toml")
-        st.error("2. Que la instancia de Supabase esté activa")
-        st.error("3. Los permisos del usuario de la base de datos")
-        
-        # Mostrar detalles de conexión (ocultando contraseña)
-        if 'supabase' in st.secrets:
-            st.write("ℹ️ Detalles de conexión:")
-            st.json({
-                "host": st.secrets.supabase.host,
-                "port": st.secrets.supabase.port,
-                "database": st.secrets.supabase.database,
-                "user": st.secrets.supabase.user,
-                "password": "******"  # No mostrar la contraseña real
-            })
+                # Test 2: Consulta a agentes
+                try:
+                    agentes_count = pd.read_sql("SELECT COUNT(*) FROM agentes", conn).iloc[0,0]
+                    st.success(f"✅ Tabla 'agentes' accesible ({agentes_count} registros)")
+                except:
+                    st.warning("⚠️ Tabla 'agentes' no accesible o no existe")
+                
+                # Test 3: Consulta a evaluaciones
+                try:
+                    evaluaciones_count = pd.read_sql("SELECT COUNT(*) FROM evaluaciones", conn).iloc[0,0]
+                    st.success(f"✅ Tabla 'evaluaciones' accesible ({evaluaciones_count} registros)")
+                except:
+                    st.warning("⚠️ Tabla 'evaluaciones' no accesible o no existe")
+                
+                # Test 4: Metadata
+                try:
+                    tables = pd.read_sql("""
+                        SELECT table_name 
+                        FROM information_schema.tables 
+                        WHERE table_schema = 'public'
+                    """, conn)
+                    st.write("📊 Tablas disponibles:", tables)
+                except:
+                    st.warning("⚠️ No se pudo obtener metadata")
+                
+                return True
+                
+        except Exception as e:
+            st.error(f"""
+            ❌ Error de conexión:
+            ```
+            {str(e)}
+            ```
+            """)
+            
+            # Diagnóstico avanzado
+            st.error("**Solución sugerida:**")
+            st.markdown("""
+            1. Verifica que [tus credenciales](https://supabase.com/dashboard/project/_/settings/database) sean correctas
+            2. Asegúrate de haber añadido tu IP a los permisos en Supabase
+            3. Prueba con `psycopg2` directamente:
+               ```python
+               import psycopg2
+               conn = psycopg2.connect(
+                   host='db.pnvrykhuwfnqydrelvia.supabase.co',
+                   port=5432,
+                   dbname='postgres',
+                   user='postgres',
+                   password='TU_PASSWORD',
+                   sslmode='require'
+               )
+               ```
+            """)
+            return False
+    
+    test_supabase_connection()
 
 
 
