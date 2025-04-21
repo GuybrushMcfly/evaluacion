@@ -652,9 +652,14 @@ if tipo != "":
        # persona = st.text_input("Nombre del evaluado", key="nombre_evaluado")
 
         # Obtener lista de agentes desde Firebase
-        agentes_ref = db.collection("agentes").stream()
+        #agentes_ref = db.collection("agentes").stream()
+        #agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+        #agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+
+        agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
         agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
         agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+
         
         # Mostrar selectbox con nombre completo
         opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
@@ -741,6 +746,7 @@ if tipo != "":
                 
                 doc_id = f"{cuil}-{anio}"
                 db.collection("evaluaciones").document(doc_id).set(evaluacion_data)
+                db.collection("agentes").document(cuil).update({"evaluado_2025": True})
             
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                 st.balloons()
