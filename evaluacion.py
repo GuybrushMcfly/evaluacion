@@ -257,6 +257,9 @@ elif opcion == "📋 Evaluación General":
     # Obtener evaluaciones
     evaluaciones_ref = db.collection("evaluaciones").stream()
     evaluaciones = [doc.to_dict() for doc in evaluaciones_ref]
+    st.write("Evaluaciones:", evaluaciones)
+    st.write("Agentes disponibles:", list(agentes.keys()))
+
 
     # Obtener agentes (para nombre completo)
     agentes_ref = db.collection("agentes").stream()
