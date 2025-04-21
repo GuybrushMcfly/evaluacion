@@ -782,3 +782,28 @@ if tipo != "":
         st.session_state.confirmado = False
     st.session_state.last_tipo = tipo
 
+
+with st.sidebar:
+    seleccion = st.radio("Navegación", ["Formulario", "Evaluados"])
+
+if seleccion == "Evaluados":
+    st.header("📋 Lista de Evaluados")
+
+    evaluaciones_ref = db.collection("evaluaciones").stream()
+    evaluaciones = [e.to_dict() for e in evaluaciones_ref]
+
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        for ev in evaluaciones:
+            with st.expander(f"{ev['apellido_nombre']} - {ev['evaluacion']} ({ev['anio']})"):
+                st.write(f"**Cuil:** {ev['cuil']}")
+                st.write(f"**Formulario:** {ev['formulario']}")
+                st.write(f"**Puntaje total:** {ev['puntaje_total']}")
+                st.write(f"**Clasificación:** {ev['evaluacion']}")
+
+                if st.button(f"🔄 Re-evaluar {ev['apellido_nombre']}", key=ev['cuil']):
+                    db.collection("agentes").document(ev['cuil']).update({"evaluado_2025": False})
+                    st.success(f"{ev['apellido_nombre']} marcado para reevaluación.")
+                    st.rerun()
+
