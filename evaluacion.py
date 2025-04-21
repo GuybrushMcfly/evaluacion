@@ -643,6 +643,7 @@ with tabs[0]:
         options=[""] + list(formularios.keys()),
         format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
         key="select_tipo"
+    )
 
 
 
