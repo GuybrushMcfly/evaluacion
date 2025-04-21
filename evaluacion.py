@@ -1,20 +1,13 @@
-# Simulación Completa de Formulario de Evaluación de Desempeño en Streamlit
-# No requiere archivos externos, los datos están embebidos a partir de los Excel originales
-
 import streamlit as st
-
 import firebase_admin
-from firebase_admin import credentials, firestore
 import json
 import time
 import yaml
-from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 import pandas as pd
 import re
-
-
-
+from yaml.loader import SafeLoader
+from firebase_admin import credentials, firestore
 
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
@@ -64,7 +57,7 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     clasificaciones = config_formularios["clasificaciones"]
 
 # Menú lateral de navegación
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "Evaluación General"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "EVALUACIÓN GENERAL"])
 
 
 # Crear tabs
@@ -229,7 +222,7 @@ elif opcion == "📋 Evaluaciones":
 
 
 
-elif opcion == "Evaluación General":
+elif opcion == "EVALUACIÓN GENERAL":
 
 # Obtener evaluaciones
     evaluaciones_ref = db.collection("evaluaciones").stream()
