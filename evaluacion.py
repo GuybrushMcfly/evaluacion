@@ -755,6 +755,10 @@ if tipo != "":
                 st.session_state.previsualizado = False
                 st.session_state.confirmado = False
 
+                # Resetear todo y recargar
+                st.session_state.clear()
+                st.rerun()
+
 
 
                 
