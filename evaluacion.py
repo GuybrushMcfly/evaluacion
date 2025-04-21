@@ -51,6 +51,14 @@ elif st.session_state["authentication_status"] is None:
 
 st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
+@st.cache_data(ttl=60)
+def get_evaluaciones():
+    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
+
+@st.cache_data(ttl=60)
+def get_agentes():
+    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
+
 with open("formularios.yaml", "r", encoding="utf-8") as f:
     config_formularios = yaml.safe_load(f)
     formularios = config_formularios["formularios"]
@@ -211,15 +219,6 @@ elif opcion == "📄 Formulario":
                 st.session_state.previsualizado = False
                 st.session_state.confirmado = False
             st.session_state.last_tipo = tipo
-
-
-@st.cache_data(ttl=60)
-def get_evaluaciones():
-    return [doc.to_dict() for doc in db.collection("evaluaciones").stream()]
-
-@st.cache_data(ttl=60)
-def get_agentes():
-    return {doc.id: doc.to_dict() for doc in db.collection("agentes").stream()}
 
 elif opcion == "📋 Evaluaciones":
     #evaluaciones_ref = db.collection("evaluaciones").stream()
