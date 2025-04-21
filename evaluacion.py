@@ -628,24 +628,24 @@ clasificaciones = {
 
 
 
+# Crear tabs
+tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
+
+with tabs[0]:
+    st.title("Formulario de Evaluación de Desempeño")
+
+    # Inicializar valor por defecto para evitar errores
+    previsualizar = False
+
+    # Selector de formulario
+    tipo = st.selectbox(
+        "Seleccione el tipo de formulario",
+        options=[""] + list(formularios.keys()),
+        format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
+        key="select_tipo"
 
 
-# Título principal
-st.title("Formulario de Evaluación de Desempeño")
 
-
-# Inicializar valor por defecto para evitar errores
-previsualizar = False
-
-# Selector de formulario
-tipo = st.selectbox(
-    "Seleccione el tipo de formulario",
-    options=[""] + list(formularios.keys()),
-    format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
-    key="select_tipo"
-)
-
-# Mostrar factores solo si se seleccionó un tipo válido
 # Mostrar factores solo si se seleccionó un tipo válido
 if tipo != "":
     # Inicializar variables de estado
@@ -788,7 +788,7 @@ if tipo != "":
 tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
 
 # ─────────────────────────────────────
-# 📋 TAB: Evaluados
+# 📋 TAB 2: EVALUADOS
 # ─────────────────────────────────────
 with tabs[1]:
     st.header("📋 Lista de Evaluados")
