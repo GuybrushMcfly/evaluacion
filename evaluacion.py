@@ -6,6 +6,7 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
+import time
 
 # Inicializar Firebase solo una vez
 if not firebase_admin._apps:
@@ -783,27 +784,41 @@ if tipo != "":
     st.session_state.last_tipo = tipo
 
 
-with st.sidebar:
-    seleccion = st.radio("Navegación", ["Formulario", "Evaluados"])
+# Crear pestañas principales
+tabs = st.tabs(["📄 Formulario", "📋 Evaluados"])
 
-if seleccion == "Evaluados":
+# ─────────────────────────────────────
+# 📋 TAB: Evaluados
+# ─────────────────────────────────────
+with tabs[1]:
     st.header("📋 Lista de Evaluados")
 
+    # Cargar evaluaciones
     evaluaciones_ref = db.collection("evaluaciones").stream()
     evaluaciones = [e.to_dict() for e in evaluaciones_ref]
 
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
-        for ev in evaluaciones:
-            with st.expander(f"{ev['apellido_nombre']} - {ev['evaluacion']} ({ev['anio']})"):
-                st.write(f"**Cuil:** {ev['cuil']}")
-                st.write(f"**Formulario:** {ev['formulario']}")
-                st.write(f"**Puntaje total:** {ev['puntaje_total']}")
-                st.write(f"**Clasificación:** {ev['evaluacion']}")
+        # Mostrar tabla estilo Excel
+        import pandas as pd
 
-                if st.button(f"🔄 Re-evaluar {ev['apellido_nombre']}", key=ev['cuil']):
+        df_eval = pd.DataFrame(evaluaciones)
+
+        # Mostrar tabla sin los botones primero
+        st.dataframe(df_eval[["apellido_nombre", "anio", "formulario", "puntaje_total", "evaluacion"]])
+
+        st.markdown("### 🔁 Re-evaluar un agente")
+
+        # Agregar controles de acción
+        for ev in evaluaciones:
+            col1, col2 = st.columns([5, 1])
+            with col1:
+                st.write(f"**{ev['apellido_nombre']}** - {ev['evaluacion']} ({ev['anio']})")
+            with col2:
+                if st.button("🔄 Re-evaluar", key=f"reeval_{ev['cuil']}"):
                     db.collection("agentes").document(ev['cuil']).update({"evaluado_2025": False})
                     st.success(f"{ev['apellido_nombre']} marcado para reevaluación.")
                     st.rerun()
+
 
