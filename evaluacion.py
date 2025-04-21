@@ -75,28 +75,50 @@ if opcion == "📝 Instructivo":
 
 elif opcion == "📄 Formulario":
     # Evaluación de desempeño
-    previsualizar = False
+# Evaluación de desempeño (primero seleccionar persona, luego formulario)
+previsualizar = False
 
-    tipo = st.selectbox(
-        "Seleccione el tipo de formulario",
-        options=[""] + list(formularios.keys()),
-        format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
-        key="select_tipo"
-    )
+agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
+agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
+agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
 
-    if tipo != "":
-        if 'previsualizado' not in st.session_state:
-            st.session_state.previsualizado = False
-        if 'confirmado' not in st.session_state:
-            st.session_state.confirmado = False
+if not agentes_ordenados:
+    st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
+    st.stop()
 
-        agentes_ref = db.collection("agentes").where("evaluado_2025", "==", False).stream()
-        agentes = [{**doc.to_dict(), "id": doc.id} for doc in agentes_ref]
-        agentes_ordenados = sorted(agentes, key=lambda x: x["apellido_nombre"])
+# 1. Buscar agente por nombre
+st.markdown("### 🔎 Buscar agente para evaluar")
+busqueda = st.text_input("Ingrese parte del nombre o apellido", value="", placeholder="Ej: GARCÍA, MARÍA")
 
-        if not agentes_ordenados:
-            st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
-            st.stop()
+agentes_filtrados = [a for a in agentes_ordenados if busqueda.lower() in a["apellido_nombre"].lower()]
+
+if len(agentes_filtrados) == 0 and busqueda:
+    st.info("No se encontraron coincidencias.")
+    st.stop()
+
+if agentes_filtrados:
+    nombres_filtrados = [a["apellido_nombre"] for a in agentes_filtrados]
+    seleccionado = st.selectbox("Seleccione un agente", nombres_filtrados, key="select_agente")
+    agente = next((a for a in agentes_filtrados if a["apellido_nombre"] == seleccionado), None)
+
+    if agente:
+        cuil = agente["cuil"]
+        apellido_nombre = agente["apellido_nombre"]
+
+        # 2. Mostrar selección de tipo de formulario
+        tipo = st.selectbox(
+            "Seleccione el tipo de formulario",
+            options=[""] + list(formularios.keys()),
+            format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
+            key="select_tipo"
+        )
+
+        if tipo != "":
+            if 'previsualizado' not in st.session_state:
+                st.session_state.previsualizado = False
+            if 'confirmado' not in st.session_state:
+                st.session_state.confirmado = False
+
 
         with st.form("form_eval"):
             opciones_agentes = [a["apellido_nombre"] for a in agentes_ordenados]
