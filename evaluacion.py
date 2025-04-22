@@ -84,14 +84,25 @@ elif opcion == "📄 Formulario":
 
     st.markdown("""
         <style>
-        div[role="radiogroup"] > label {
-            padding: 10px 15px;  /* Aumenta el padding vertical y horizontal */
-            margin: 5px 0;       /* Aumenta el margen entre opciones */
-            border-radius: 8px;  /* Opcional: bordes redondeados */
+        /* Solo afecta radios dentro del formulario principal */
+        div[data-testid="stForm"] div[role="radiogroup"] > label {
+            padding: 10px 15px;
+            margin: 8px 0;  /* Aumenté un poco más el margen */
+            border-radius: 8px;
+            transition: all 0.2s;
         }
         
+     
+        
+        /* Restablece estilos para la sidebar */
+        section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+            padding: initial;
+            margin: initial;
+            border-radius: initial;
+        }
         </style>
     """, unsafe_allow_html=True)
+
 
     # Obtener lista de agentes desde Supabase con campo ingresante
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, ingresante").order("apellido_nombre").execute().data
