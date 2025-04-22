@@ -82,11 +82,22 @@ if opcion == "📝 Instructivo":
 
 elif opcion == "📄 Formulario":
 
-  
     st.markdown("""
         <style>
-        div[data-baseweb="radio"] > div {
-            gap: 0.75rem !important; /* Espacio entre opciones, podés ajustar el valor */
+        div[role="radiogroup"] > label {
+            padding: 10px 15px;  /* Aumenta el padding vertical y horizontal */
+            margin: 5px 0;       /* Aumenta el margen entre opciones */
+            border-radius: 8px;  /* Opcional: bordes redondeados */
+        }
+        
+        /* Para el hover */
+        div[role="radiogroup"] > label:hover {
+            background-color: #f0f2f6;
+        }
+        
+        /* Para enfocar */
+        div[role="radiogroup"] > label:focus-within {
+            box-shadow: 0 0 0 2px #f0f2f6;
         }
         </style>
     """, unsafe_allow_html=True)
