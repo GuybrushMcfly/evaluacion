@@ -8,7 +8,7 @@ def init_connection():
     try:
         url = st.secrets["SUPABASE_URL"]
         # Asegúrate de estar usando la service_role key, no la anon key
-        key = st.secrets["SUPABASE_SERVICE_KEY"]  # O como sea que la hayas llamado
+        key = st.secrets["SUPABASE_KEY"]  # O como sea que la hayas llamado
         client = create_client(url, key)
         st.success("✅ Conexión con Supabase establecida")
         return client
