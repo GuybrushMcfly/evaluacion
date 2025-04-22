@@ -68,7 +68,7 @@ with open("formularios.yaml", "r", encoding="utf-8") as f:
     clasificaciones = config_formularios["clasificaciones"]
 
 # ---- NAVEGACIÓN ----
-opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones"])
+opcion = st.sidebar.radio("📂 Navegación", ["📝 Instructivo", "📄 Formulario", "📋 Evaluaciones", "✏️ Editar nombres"])
 
 if opcion == "📝 Instructivo":
     st.title("📝 Instructivo")
@@ -266,6 +266,36 @@ elif opcion == "📋 Evaluaciones":
 
         df_resumen = pd.DataFrame(filas)
         st.dataframe(df_resumen, use_container_width=True)
+
+
+elif opcion == "✏️ Editar nombres":
+    st.header("✏️ Editar nombres de agentes")
+
+    # Traer datos
+    agentes = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute().data
+
+    if not agentes:
+        st.info("No hay agentes cargados.")
+        st.stop()
+
+    df_agentes = pd.DataFrame(agentes)
+
+    # Mostrar tabla tipo pandas SIN índice
+    st.dataframe(df_agentes[["apellido_nombre"]], use_container_width=True, hide_index=True)
+
+    # Selector simple para elegir cuál editar
+    seleccion = st.selectbox("👤 Seleccione un agente para editar", df_agentes["apellido_nombre"].tolist())
+
+    agente = next((a for a in agentes if a["apellido_nombre"] == seleccion), None)
+    if agente:
+        with st.form("form_edicion_nombre"):
+            nuevo_nombre = st.text_input("Editar nombre", value=agente["apellido_nombre"])
+            guardar = st.form_submit_button("Guardar cambios")
+            if guardar:
+                supabase.table("agentes").update({"apellido_nombre": nuevo_nombre}).eq("cuil", agente["cuil"]).execute()
+                st.success("✅ Nombre actualizado correctamente")
+                time.sleep(1)
+                st.rerun()
 
 
 
