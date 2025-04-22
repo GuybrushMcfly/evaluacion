@@ -38,7 +38,7 @@ elif st.session_state["authentication_status"] is None:
     st.stop()
 
 # ---- CONECTAR A SUPABASE ----
-supabase_url = st.secrets["supabase"]
+supabase_url = st.secrets["supabase_db"]
 
 engine = create_engine(
     f'postgresql+psycopg2://{supabase_url["user"]}:{supabase_url["password"]}@'
