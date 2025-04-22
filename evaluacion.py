@@ -95,7 +95,10 @@ elif opcion == "📄 Formulario":
             st.session_state.confirmado = False
 
         # Obtener personas desde la tabla agentes con evaluado_2025 = FALSE
-        df_agentes = pd.read_sql("SELECT cuil, apellido_nombre FROM agentes ORDER BY apellido_nombre", engine)
+
+        res = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute()
+        df_agentes = pd.DataFrame(res.data)
+
         if df_agentes.empty:
             st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
             st.stop()
