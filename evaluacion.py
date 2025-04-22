@@ -234,4 +234,38 @@ elif opcion == "📄 Formulario":
             st.session_state.confirmado = False
         st.session_state.last_tipo = tipo
 
+elif opcion == "📋 Evaluaciones":
+    st.header("📋 Evaluaciones realizadas")
+
+    # Obtener evaluaciones y agentes
+    evaluaciones = supabase.table("evaluaciones").select("*").execute().data
+    agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data
+    mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        filas = []
+        for e in evaluaciones:
+            cuil = e["cuil"]
+            agente = mapa_agentes.get(cuil, "Desconocido")
+
+            # Reconstruir claves de factor si es necesario
+            factores = e.get("factor_puntaje", {})
+            factores_formateados = {}
+            for k, v in factores.items():
+                # Reemplaza posibles claves mal formateadas con "Factor X"
+                if not k.startswith("Factor "):
+                    partes = k.split('. ')
+                    clave = partes[0].strip()
+                    k = f"Factor {clave}"
+                factores_formateados[k] = v
+
+            resumen = ", ".join([f"{k} ({v})" for k, v in factores_formateados.items()])
+            filas.append({"CUIL": cuil, "AGENTE": agente, "FACTOR/PUNTAJE": resumen})
+
+        df_resumen = pd.DataFrame(filas)
+        st.dataframe(df_resumen, use_container_width=True)
+
+
 
