@@ -15,4 +15,4 @@ streamlit-authenticator
 psycopg2-binary
 sqlalchemy
 st-supabase-connection
-supabase
+supabase==1.0.3
