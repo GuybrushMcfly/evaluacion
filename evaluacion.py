@@ -31,13 +31,8 @@ def obtener_agentes():
     return result.data if result.data else []
 
 # ---- CARGAR CONFIGURACIÓN DESDE YAML ----
-#with open("config.yaml") as file:
-#    config = yaml.load(file, Loader=SafeLoader)
-
-@st.cache_data
-def cargar_formularios():
-    with open("formularios.yaml", "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+with open("config.yaml") as file:
+    config = yaml.load(file, Loader=SafeLoader)
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
