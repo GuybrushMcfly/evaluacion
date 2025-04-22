@@ -14,18 +14,18 @@ supabase = init_connection()
 # ───── CONSULTA ─────
 @st.cache_data(ttl=600)
 def obtener_agentes():
-    response = supabase.table("agentes").select("*").limit(10).execute()
-    return response.data
+    result = supabase.table("agentes").select("*").limit(10).execute()
+    return result.data if result.data else []
 
 # ───── UI ─────
 st.title("👥 Primeros 10 registros de la tabla 'agentes'")
 
 try:
-    datos = obtener_agentes()
-    if not datos:
-        st.warning("No se encontraron registros en la tabla.")
-    else:
-        df = pd.DataFrame(datos)
+    agentes = obtener_agentes()
+    if agentes:
+        df = pd.DataFrame(agentes)
         st.dataframe(df)
+    else:
+        st.warning("No se encontraron registros en la tabla.")
 except Exception as e:
-    st.error(f"❌ Error al consultar Supabase: {e}")
+    st.error(f"❌ Error al consultar Supabase:\n\n{e}")
