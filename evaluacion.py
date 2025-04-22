@@ -199,7 +199,7 @@ elif opcion == "📄 Formulario":
                     # Guardar evaluación en tabla 'evaluaciones'
                     supabase.table("evaluaciones").insert({
                         "cuil": cuil,
-                        "apellido_nombre": apellido_nombre,
+                 #       "apellido_nombre": apellido_nombre,
                         "anio": 2025,
                         "formulario": tipo_formulario,
                         "puntaje_total": total,
@@ -210,9 +210,9 @@ elif opcion == "📄 Formulario":
                     }).execute()
                     
                     # Marcar como evaluado en la tabla 'agentes'
-                    supabase.table("agentes").update({
-                        "evaluado_2025": True
-                    }).eq("cuil", cuil).execute()
+                    #supabase.table("agentes").update({
+                    #    "evaluado_2025": True
+                    #}).eq("cuil", cuil).execute()
 
                     st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                     st.balloons()
