@@ -1,24 +1,37 @@
 import streamlit as st
-import psycopg2
+from supabase import create_client, Client
+import pandas as pd
 
-st.title("📋 Tablas disponibles en Supabase")
+# ───── CONEXIÓN ─────
+@st.cache_resource
+def init_connection():
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+        client = create_client(url, key)
+        st.success("✅ Conexión con Supabase establecida")
+        return client
+    except Exception as e:
+        st.error(f"❌ Error al conectar con Supabase: {e}")
+        st.stop()
+
+supabase = init_connection()
+
+# ───── CONSULTA ─────
+@st.cache_data(ttl=600)
+def obtener_agentes():
+    result = supabase.table("agentes").select("*").limit(10).execute()
+    return result.data if result.data else []
+
+# ───── UI ─────
+st.title("👥 Primeros 10 registros de la tabla 'agentes'")
 
 try:
-    conn = psycopg2.connect(
-        host=st.secrets["supabase_db"]["host"],
-        port=st.secrets["supabase_db"]["port"],
-        dbname=st.secrets["supabase_db"]["database"],
-        user=st.secrets["supabase_db"]["user"],
-        password=st.secrets["supabase_db"]["password"],
-        sslmode="require"
-    )
-
-    with conn.cursor() as cur:
-        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
-        tablas = [r[0] for r in cur.fetchall()]
-        st.success("✅ Conectado a Supabase")
-        st.write("📄 Tablas en el esquema público:")
-        st.write(tablas)
-
+    agentes = obtener_agentes()
+    if agentes:
+        df = pd.DataFrame(agentes)
+        st.dataframe(df)
+    else:
+        st.warning("⚠️ La tabla 'agentes' está vacía o no se pudo leer correctamente.")
 except Exception as e:
-    st.error(f"❌ Error al conectar o consultar Supabase:\n\n{e}")
+    st.error(f"❌ Error al consultar Supabase:\n\n{e}")
