@@ -81,20 +81,43 @@ if opcion == "📝 Instructivo":
 
 
 elif opcion == "📄 Formulario":
+
+    # Obtener lista de agentes desde Supabase con campo ingresante
+    agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, ingresante").order("apellido_nombre").execute().data
+    
+    if not agentes_data:
+        st.warning("⚠️ No hay agentes cargados en la base de datos.")
+        st.stop()
+    
+    # Selector de agente
+    opciones_agentes = [a["apellido_nombre"] for a in agentes_data]
+    seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
+
+    
+    
     # Obtener lista de agentes desde Supabase
     agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
+   
 
     if agente:
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
         ingresante = agente.get("ingresante", False)  # Si no está, False por defecto
 
-        # Mostrar datos del agente con checkbox editable para "ingresante"
-        df_persona = pd.DataFrame([{
-            "CUIL": cuil,
-            "Nombre": apellido_nombre,
-            "Ingresante": ingresante
+        # Mostrar tabla con datos del agente (sin índice y con checkbox editable)
+        df_info = pd.DataFrame([{
+            "CUIL": agente["cuil"],
+            "Apellido y Nombre": agente["apellido_nombre"],
+            "Ingresante": agente.get("ingresante", False)
         }])
+        
+        # Mostrar sin índice
+        edited = st.data_editor(
+            df_info,
+            hide_index=True,
+            disabled=["CUIL", "Apellido y Nombre"],
+            use_container_width=True
+        )
 
         nuevo_valor = st.data_editor(
             df_persona,
