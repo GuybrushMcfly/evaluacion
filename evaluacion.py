@@ -246,26 +246,34 @@ elif opcion == "📋 Evaluaciones":
         st.info("No hay evaluaciones registradas.")
     else:
         filas = []
+
         for e in evaluaciones:
             cuil = e["cuil"]
             agente = mapa_agentes.get(cuil, "Desconocido")
-
-            # Reconstruir claves de factor si es necesario
             factores = e.get("factor_puntaje", {})
+
+            # Armar nueva versión sin el punto al final de "Factor X."
             factores_formateados = {}
             for k, v in factores.items():
-                # Reemplaza posibles claves mal formateadas con "Factor X"
-                if not k.startswith("Factor "):
-                    partes = k.split('. ')
-                    clave = partes[0].strip()
-                    k = f"Factor {clave}"
-                factores_formateados[k] = v
+                nuevo_k = k.replace(".", "") if k.endswith(".") else k  # Quita el punto si está
+                factores_formateados[nuevo_k] = v
 
-            resumen = ", ".join([f"{k} ({v})" for k, v in factores_formateados.items()])
+            # Ordenar por valor numérico lógico (ej. 1, 2, 3.1, 3.2, 4)
+            def extraer_numero(factor):
+                clave = factor.replace("Factor ", "").strip()
+                try:
+                    return [int(p) if p.isdigit() else float(p) for p in clave.split('.')]
+                except:
+                    return [999]
+
+            factores_ordenados = sorted(factores_formateados.items(), key=lambda x: extraer_numero(x[0]))
+            resumen = ", ".join([f"{k} ({v})" for k, v in factores_ordenados])
+
             filas.append({"CUIL": cuil, "AGENTE": agente, "FACTOR/PUNTAJE": resumen})
 
         df_resumen = pd.DataFrame(filas)
         st.dataframe(df_resumen, use_container_width=True)
+
 
 
 
