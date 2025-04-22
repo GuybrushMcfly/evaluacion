@@ -5,7 +5,6 @@ st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
 from supabase import create_client, Client
 import pandas as pd
-import pandas as pd
 import time
 import yaml
 from yaml.loader import SafeLoader
@@ -93,53 +92,44 @@ elif opcion == "📄 Formulario":
     opciones_agentes = [a["apellido_nombre"] for a in agentes_data]
     seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
 
-    
-    
-    # Obtener lista de agentes desde Supabase
+    # Obtener agente seleccionado
     agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
-   
 
     if agente:
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
-        ingresante = agente.get("ingresante", False)  # Si no está, False por defecto
+        ingresante = agente.get("ingresante", False)
 
-        # Mostrar tabla con datos del agente (sin índice y con checkbox editable)
+        # Mostrar datos del agente en tabla editable (sin índice)
         df_info = pd.DataFrame([{
-            "CUIL": agente["cuil"],
-            "Apellido y Nombre": agente["apellido_nombre"],
-            "Ingresante": agente.get("ingresante", False)
+            "CUIL": cuil,
+            "Apellido y Nombre": apellido_nombre,
+            "Ingresante": ingresante
         }])
-        
-        # Mostrar sin índice
-        edited = st.data_editor(
+
+        editado = st.data_editor(
             df_info,
+            column_config={
+                "Ingresante": st.column_config.CheckboxColumn("Ingresante")
+            },
             hide_index=True,
             disabled=["CUIL", "Apellido y Nombre"],
             use_container_width=True
         )
 
-        nuevo_valor = st.data_editor(
-            df_persona,
-            column_config={
-                "Ingresante": st.column_config.CheckboxColumn("Ingresante")
-            },
-            use_container_width=True,
-            hide_index=True
-        )
-
-        nuevo_ingresante = nuevo_valor["Ingresante"].iloc[0]
+        nuevo_ingresante = editado["Ingresante"].iloc[0]
         if nuevo_ingresante != ingresante:
             supabase.table("agentes").update({"ingresante": nuevo_ingresante}).eq("cuil", cuil).execute()
             st.success("✅ Valor de ingresante actualizado.")
 
-        # Ahora sí, mostrar el tipo de formulario
+        # Selector de formulario
         tipo = st.selectbox(
             "📄 Seleccione el tipo de formulario",
             options=[""] + list(formularios.keys()),
             format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
             key="select_tipo"
         )
+
 
     if tipo != "":
         if 'previsualizado' not in st.session_state:
