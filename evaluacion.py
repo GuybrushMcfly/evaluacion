@@ -6,7 +6,7 @@ st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 st.markdown("""
     <style>
     div[data-baseweb="radio"] > div {
-        gap: 0.25rem !important; /* Espacio entre opciones, podés ajustar el valor */
+        gap: 0.75rem !important; /* Espacio entre opciones, podés ajustar el valor */
     }
     </style>
 """, unsafe_allow_html=True)
