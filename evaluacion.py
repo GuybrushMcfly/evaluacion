@@ -278,24 +278,27 @@ elif opcion == "✏️ Editar nombres":
         st.info("No hay agentes cargados.")
         st.stop()
 
-    df_agentes = pd.DataFrame(agentes)
+    df_agentes = pd.DataFrame(agentes)[["cuil", "apellido_nombre"]]
 
-    # Mostrar tabla tipo pandas SIN índice
-    st.dataframe(df_agentes[["apellido_nombre"]], use_container_width=True, hide_index=True)
+    # Mostrar tabla editable directamente
+    editado = st.data_editor(
+        df_agentes,
+        hide_index=True,
+        column_config={"apellido_nombre": "Apellido y Nombre"},
+        disabled=["cuil"],
+        use_container_width=True
+    )
 
-    # Selector simple para elegir cuál editar
-    seleccion = st.selectbox("👤 Seleccione un agente para editar", df_agentes["apellido_nombre"].tolist())
-
-    agente = next((a for a in agentes if a["apellido_nombre"] == seleccion), None)
-    if agente:
-        with st.form("form_edicion_nombre"):
-            nuevo_nombre = st.text_input("Editar nombre", value=agente["apellido_nombre"])
-            guardar = st.form_submit_button("Guardar cambios")
-            if guardar:
-                supabase.table("agentes").update({"apellido_nombre": nuevo_nombre}).eq("cuil", agente["cuil"]).execute()
-                st.success("✅ Nombre actualizado correctamente")
-                time.sleep(1)
-                st.rerun()
+    # Detectar cambios y actualizar
+    if st.button("💾 Guardar cambios"):
+        cambios = editado[editado["apellido_nombre"] != df_agentes["apellido_nombre"]]
+        for _, fila in cambios.iterrows():
+            supabase.table("agentes").update(
+                {"apellido_nombre": fila["apellido_nombre"]}
+            ).eq("cuil", fila["cuil"]).execute()
+        st.success("✅ Cambios guardados exitosamente.")
+        time.sleep(1)
+        st.rerun()
 
 
 
