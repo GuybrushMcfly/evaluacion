@@ -3,6 +3,15 @@ import streamlit as st
 ## ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
+st.markdown("""
+    <style>
+    div[data-baseweb="radio"] > div {
+        gap: 0.25rem !important; /* Espacio entre opciones, podés ajustar el valor */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 from supabase import create_client, Client
 import pandas as pd
 import time
@@ -81,15 +90,6 @@ if opcion == "📝 Instructivo":
 
 
 elif opcion == "📄 Formulario":
-
-    st.markdown("""
-        <style>
-        div[data-baseweb="radio"] > div {
-            gap: 0.75rem !important; /* Espacio entre opciones, podés ajustar el valor */
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
 
     # Obtener lista de agentes desde Supabase con campo ingresante
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, ingresante").order("apellido_nombre").execute().data
