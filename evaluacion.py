@@ -119,7 +119,7 @@ elif opcion == "📄 Formulario":
 
         nuevo_ingresante = editado["Ingresante"].iloc[0]
         if nuevo_ingresante != ingresante:
-            supabase.table("agentes").update({"ingresante": nuevo_ingresante}).eq("cuil", cuil).execute()
+            supabase.table("agentes").update({"ingresante": bool(nuevo_ingresante)}).eq("cuil", cuil).execute()
             st.success("✅ Valor de ingresante actualizado.")
 
         # Selector de formulario
