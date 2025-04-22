@@ -1,5 +1,6 @@
 import streamlit as st
 from supabase import create_client, Client
+import pandas as pd
 
 # ───── CONEXIÓN ─────
 @st.cache_resource
@@ -12,20 +13,19 @@ supabase = init_connection()
 
 # ───── CONSULTA ─────
 @st.cache_data(ttl=600)
-def get_agentes():
-    response = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute()
-    return response.data  # Convertido a lista de dicts
+def obtener_agentes():
+    response = supabase.table("agentes").select("*").limit(10).execute()
+    return response.data
 
 # ───── UI ─────
-st.title("👥 Agentes disponibles")
+st.title("👥 Primeros 10 registros de la tabla 'agentes'")
 
 try:
-    agentes = get_agentes()
-    if not agentes:
-        st.warning("No hay agentes disponibles.")
+    datos = obtener_agentes()
+    if not datos:
+        st.warning("No se encontraron registros en la tabla.")
     else:
-        nombres = [a["apellido_nombre"] for a in agentes]
-        seleccionado = st.selectbox("Seleccioná una persona", nombres)
-        st.success(f"Seleccionaste a: {seleccionado}")
+        df = pd.DataFrame(datos)
+        st.dataframe(df)
 except Exception as e:
-    st.error(f"❌ Error al cargar datos: {e}")
+    st.error(f"❌ Error al consultar Supabase: {e}")
