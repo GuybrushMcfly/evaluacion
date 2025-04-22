@@ -1,6 +1,7 @@
 import streamlit as st
 from supabase import create_client, Client
 
+# ───── CONEXIÓN ─────
 @st.cache_resource
 def init_connection():
     url = st.secrets["SUPABASE_URL"]
@@ -9,18 +10,22 @@ def init_connection():
 
 supabase = init_connection()
 
-# Prueba de consulta
+# ───── CONSULTA ─────
 @st.cache_data(ttl=600)
 def get_agentes():
-    return supabase.table("agentes").select("apellido_nombre, cuil").execute()
+    response = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute()
+    return response.data  # Convertido a lista de dicts
 
+# ───── UI ─────
 st.title("👥 Agentes disponibles")
 
 try:
-    result = get_agentes()
-    agentes = result.data
-    nombres = [a["apellido_nombre"] for a in agentes]
-    seleccionado = st.selectbox("Seleccione un agente", nombres)
-    st.success(f"Seleccionaste a: {seleccionado}")
+    agentes = get_agentes()
+    if not agentes:
+        st.warning("No hay agentes disponibles.")
+    else:
+        nombres = [a["apellido_nombre"] for a in agentes]
+        seleccionado = st.selectbox("Seleccioná una persona", nombres)
+        st.success(f"Seleccionaste a: {seleccionado}")
 except Exception as e:
-    st.error(f"Error: {e}")
+    st.error(f"❌ Error al cargar datos: {e}")
