@@ -90,15 +90,6 @@ elif opcion == "📄 Formulario":
             border-radius: 8px;  /* Opcional: bordes redondeados */
         }
         
-        /* Para el hover */
-        div[role="radiogroup"] > label:hover {
-            background-color: #f0f2f6;
-        }
-        
-        /* Para enfocar */
-        div[role="radiogroup"] > label:focus-within {
-            box-shadow: 0 0 0 2px #f0f2f6;
-        }
         </style>
     """, unsafe_allow_html=True)
 
