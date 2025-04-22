@@ -37,7 +37,7 @@ st.title("👥 Primeros 10 registros de la tabla 'agentes'")
 # Botón para limpiar caché si necesitas probar diferentes configuraciones
 if st.button("Limpiar caché"):
     st.cache_data.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 try:
     agentes = obtener_agentes()
