@@ -5,9 +5,15 @@ import pandas as pd
 # ───── CONEXIÓN ─────
 @st.cache_resource
 def init_connection():
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
-    return create_client(url, key)
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+        client = create_client(url, key)
+        st.success("✅ Conexión con Supabase establecida")
+        return client
+    except Exception as e:
+        st.error(f"❌ Error al conectar con Supabase: {e}")
+        st.stop()
 
 supabase = init_connection()
 
@@ -26,6 +32,6 @@ try:
         df = pd.DataFrame(agentes)
         st.dataframe(df)
     else:
-        st.warning("No se encontraron registros en la tabla.")
+        st.warning("⚠️ La tabla 'agentes' está vacía o no se pudo leer correctamente.")
 except Exception as e:
     st.error(f"❌ Error al consultar Supabase:\n\n{e}")
