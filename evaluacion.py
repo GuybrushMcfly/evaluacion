@@ -82,6 +82,15 @@ if opcion == "📝 Instructivo":
 
 elif opcion == "📄 Formulario":
 
+    st.markdown("""
+        <style>
+        div[data-baseweb="radio"] > div {
+            gap: 0.25rem !important; /* Espacio entre opciones, podés ajustar el valor */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
     # Obtener lista de agentes desde Supabase con campo ingresante
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, ingresante").order("apellido_nombre").execute().data
     
