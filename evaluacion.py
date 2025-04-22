@@ -30,14 +30,14 @@ def obtener_agentes():
     result = supabase.table("agentes").select("*").limit(10).execute()
     return result.data if result.data else []
 
-supabase = init_connection()
-
-
-
-
 # ---- CARGAR CONFIGURACIÓN DESDE YAML ----
-with open("config.yaml") as file:
-    config = yaml.load(file, Loader=SafeLoader)
+#with open("config.yaml") as file:
+#    config = yaml.load(file, Loader=SafeLoader)
+
+@st.cache_data
+def cargar_formularios():
+    with open("formularios.yaml", "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
