@@ -1,6 +1,10 @@
+import streamlit as st
+
+## ---- CONFIGURACIÓN DE PÁGINA ----
+st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
+
 from supabase import create_client, Client
 import pandas as pd
-import streamlit as st
 import pandas as pd
 import time
 import yaml
@@ -29,8 +33,7 @@ def obtener_agentes():
 supabase = init_connection()
 
 
-## ---- CONFIGURACIÓN DE PÁGINA ----
-st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
+
 
 # ---- CARGAR CONFIGURACIÓN DESDE YAML ----
 with open("config.yaml") as file:
