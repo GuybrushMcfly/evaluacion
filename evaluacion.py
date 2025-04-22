@@ -77,12 +77,29 @@ if opcion == "📝 Instructivo":
     """)
 
 
-
 elif opcion == "📄 Formulario":
-    previsualizar = False
+    # Obtener lista de agentes desde Supabase
+    agentes_data = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute().data
+
+    if not agentes_data:
+        st.warning("⚠️ No hay agentes cargados en la base de datos.")
+        st.stop()
+
+    opciones_agentes = [a["apellido_nombre"] for a in agentes_data]
+    seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
+
+    agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
+
+    if not agente:
+        st.error("❌ No se pudo encontrar el agente seleccionado.")
+        st.stop()
+
+    # Mostrar tabla con info del agente seleccionado
+    st.markdown("#### 📄 Datos del agente seleccionado")
+    st.table(pd.DataFrame([agente])[["cuil", "apellido_nombre"]])
 
     tipo = st.selectbox(
-        "Seleccione el tipo de formulario",
+        "📄 Seleccione el tipo de formulario",
         options=[""] + list(formularios.keys()),
         format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
         key="select_tipo"
@@ -94,22 +111,10 @@ elif opcion == "📄 Formulario":
         if 'confirmado' not in st.session_state:
             st.session_state.confirmado = False
 
-        # Obtener personas desde la tabla agentes con evaluado_2025 = FALSE
-
-        res = supabase.table("agentes").select("cuil, apellido_nombre").order("apellido_nombre").execute()
-        df_agentes = pd.DataFrame(res.data)
-
-        if df_agentes.empty:
-            st.warning("⚠️ No hay agentes disponibles para evaluar en 2025.")
-            st.stop()
+        cuil = agente["cuil"]
+        apellido_nombre = agente["apellido_nombre"]
 
         with st.form("form_eval"):
-            seleccionado = st.selectbox("Nombre del evaluado", df_agentes["apellido_nombre"].tolist())
-            agente = df_agentes[df_agentes["apellido_nombre"] == seleccionado].iloc[0]
-
-            cuil = agente["cuil"]
-            apellido_nombre = agente["apellido_nombre"]
-
             factor_puntaje = {}
             puntajes = []
             respuestas_completas = True
@@ -194,4 +199,5 @@ elif opcion == "📄 Formulario":
             st.session_state.previsualizado = False
             st.session_state.confirmado = False
         st.session_state.last_tipo = tipo
+
 
