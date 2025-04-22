@@ -24,7 +24,7 @@ def init_connection():
 supabase = init_connection()
 
 # ───── CONSULTA ─────
-@st.cache_data(ttl=600)
+#@st.cache_data(ttl=600)
 def obtener_agentes():
     result = supabase.table("agentes").select("*").limit(10).execute()
     return result.data if result.data else []
