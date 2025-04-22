@@ -11,6 +11,7 @@ from yaml.loader import SafeLoader
 from sqlalchemy import create_engine
 import streamlit_authenticator as stauth
 import psycopg2
+import datetime
 
 # ───── CONEXIÓN ─────
 @st.cache_resource
@@ -195,16 +196,23 @@ elif opcion == "📄 Formulario":
                     st.session_state.confirmado = True
                     tipo_formulario = tipo
 
-                    # Guardar evaluación en tabla evaluaciones
-                    engine.execute("""
-                        INSERT INTO evaluaciones (cuil, apellido_nombre, anio, formulario, puntaje_total, evaluacion, evaluado_2025, factor_puntaje, _timestamp)
-                        VALUES (%s, %s, %s, %s, %s, %s, TRUE, %s, now())
-                    """, (
-                        cuil, apellido_nombre, 2025, tipo_formulario, total, clasificacion, json.dumps(factor_puntaje)
-                    ))
-
-                    # Marcar como evaluado
-                    engine.execute("UPDATE agentes SET evaluado_2025 = TRUE WHERE cuil = %s", (cuil,))
+                    # Guardar evaluación en tabla 'evaluaciones'
+                    supabase.table("evaluaciones").insert({
+                        "cuil": cuil,
+                        "apellido_nombre": apellido_nombre,
+                        "anio": 2025,
+                        "formulario": tipo_formulario,
+                        "puntaje_total": total,
+                        "evaluacion": clasificacion,
+                        "evaluado": True,
+                        "factor_puntaje": factor_puntaje,
+                        "timestamp": datetime.datetime.now().isoformat()
+                    }).execute()
+                    
+                    # Marcar como evaluado en la tabla 'agentes'
+                    supabase.table("agentes").update({
+                        "evaluado_2025": True
+                    }).eq("cuil", cuil).execute()
 
                     st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                     st.balloons()
