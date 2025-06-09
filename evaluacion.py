@@ -357,6 +357,24 @@ elif opcion == "📋 Evaluaciones":
         st.dataframe(df_resumen, use_container_width=True)
 
 
+        import io
+        
+        # Crear buffer en memoria
+        buffer = io.BytesIO()
+        
+        # Guardar DataFrame como archivo .xlsx en el buffer
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df_resumen.to_excel(writer, index=False, sheet_name='Evaluaciones')
+        
+        # Preparar botón de descarga
+        st.download_button(
+            label="📥 Descargar en Excel",
+            data=buffer.getvalue(),
+            file_name="evaluaciones.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+
 elif opcion == "✏️ Editar nombres":
     st.header("✏️ Editar nombres de agentes")
 
