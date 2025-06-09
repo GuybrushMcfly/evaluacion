@@ -348,7 +348,7 @@ elif opcion == "📋 Evaluaciones":
                 "FACTOR/POSICION": resumen_posicion,
                 "FACTOR/PUNTAJE": resumen_puntaje,
                 "CALIFICACION": calificacion,
-                "PUNTAJE TOTAL": puntaje_total,
+                "PUNTAJE TOTAL": total,
                 "PUNTAJE MÁXIMO": maximo,
                 "PUNTAJE RELATIVO": relativo
             })
