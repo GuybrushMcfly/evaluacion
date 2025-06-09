@@ -248,12 +248,12 @@ elif opcion == "📄 Formulario":
                         "puntaje_maximo": puntaje_maximo,
                         "puntaje_relativo": puntaje_relativo,
                         "calificacion": clasificacion,
-                        "fecha_notificacion": date.today()
+                    #    "fecha_notificacion": date.today()
+                        "fecha_notificacion": date.today().isoformat()
+
                     }).execute()
                                         
-
-
-                    
+                   
                     
                     # Marcar como evaluado en la tabla 'agentes'
                     #supabase.table("agentes").update({
