@@ -194,6 +194,9 @@ elif opcion == "📄 Formulario":
                 st.session_state.previsualizado = True
                 st.session_state.puntajes = puntajes
                 st.session_state.respuestas_completas = True
+
+                st.session_state.factor_puntaje = factor_puntaje#verver
+                st.session_state.factor_posicion = factor_posicion#verver
             else:
                 st.error("❌ Complete todas las respuestas para previsualizar la calificación")
                 st.session_state.previsualizado = False
@@ -233,12 +236,7 @@ elif opcion == "📄 Formulario":
                     puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
                     puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
 
-                    # Mostrar los datos antes de guardar
-                    st.write("✅ Datos a guardar:", {
-                        "factor_puntaje": factor_puntaje,
-                        "factor_posicion": factor_posicion
-                    })
-                    
+                                    
                     # Insertar en Supabase
                     supabase.table("evaluaciones").insert({
                         "cuil": cuil,
@@ -251,8 +249,10 @@ elif opcion == "📄 Formulario":
                         "anio_evaluacion": 2025,
                         "evaluador": evaluador,
                         "formulario": tipo_formulario,
-                        "factor_puntaje": factor_puntaje,
-                        "factor_posicion": factor_posicion,
+                        #"factor_puntaje": factor_puntaje,
+                        #"factor_posicion": factor_posicion,
+                        "factor_puntaje": st.session_state.get("factor_puntaje", {}),
+                        "factor_posicion": st.session_state.get("factor_posicion", {}),
                         "puntaje_total": total,
                         "puntaje_maximo": puntaje_maximo,
                         "puntaje_relativo": puntaje_relativo,
