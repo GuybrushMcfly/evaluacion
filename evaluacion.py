@@ -232,6 +232,12 @@ elif opcion == "📄 Formulario":
                     # Cálculo adicional
                     puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
                     puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
+
+                    # Mostrar los datos antes de guardar
+                    st.write("✅ Datos a guardar:", {
+                        "factor_puntaje": factor_puntaje,
+                        "factor_posicion": factor_posicion
+                    })
                     
                     # Insertar en Supabase
                     supabase.table("evaluaciones").insert({
