@@ -183,7 +183,9 @@ elif opcion == "📄 Formulario":
                     puntajes.append(puntaje)
                     clave = bloque['factor'].split(' ')[0].strip()
                     factor_puntaje[f"Factor {clave}"] = puntaje
-                    factor_posicion[f"Factor {clave}"] = seleccion  
+                    #factor_posicion[f"Factor {clave}"] = seleccion 
+                    factor_posicion[f"Factor {clave}"] = ["a)", "b)", "c)", "d)"].index(seleccion[:2]) + 1
+                   
                 else:
                     respuestas_completas = False
 
