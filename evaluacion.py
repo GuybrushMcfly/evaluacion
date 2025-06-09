@@ -162,6 +162,7 @@ elif opcion == "📄 Formulario":
 
         with st.form("form_eval"):
             factor_puntaje = {}
+            factor_posicion = {}
             puntajes = []
             respuestas_completas = True
 
@@ -182,6 +183,7 @@ elif opcion == "📄 Formulario":
                     puntajes.append(puntaje)
                     clave = bloque['factor'].split(' ')[0].strip()
                     factor_puntaje[f"Factor {clave}"] = puntaje
+                    factor_posicion[f"Factor {clave}"] = seleccion  
                 else:
                     respuestas_completas = False
 
@@ -244,6 +246,7 @@ elif opcion == "📄 Formulario":
                         "evaluador": evaluador,
                         "formulario": tipo_formulario,
                         "factor_puntaje": factor_puntaje,
+                        "factor_posicion": factor_posicion,
                         "puntaje_total": total,
                         "puntaje_maximo": puntaje_maximo,
                         "puntaje_relativo": puntaje_relativo,
