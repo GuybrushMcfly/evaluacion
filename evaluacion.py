@@ -12,6 +12,8 @@ from sqlalchemy import create_engine
 import streamlit_authenticator as stauth
 import psycopg2
 import datetime
+from datetime import date
+
 
 # ───── CONEXIÓN ─────
 @st.cache_resource
@@ -213,16 +215,45 @@ elif opcion == "📄 Formulario":
                     st.session_state.confirmado = True
                     tipo_formulario = tipo
 
-                    # Guardar evaluación en tabla 'evaluaciones'
+
+                    # Extraer más datos del agente (si están en Supabase)
+                    nivel = agente.get("nivel")
+                    grado = agente.get("grado")
+                    dependencia = agente.get("dependencia")
+                    dependencia_general = agente.get("dependencia_general")
+                    unidad_evaluadora = agente.get("unidad_evaluadora")
+                    unidad_analisis = agente.get("unidad_analisis")
+                    
+                    # Evaluador desde sesión
+                    evaluador = st.session_state.get("name", "No identificado")
+                    
+                    # Cálculo adicional
+                    puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
+                    puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
+                    
+                    # Insertar en Supabase
                     supabase.table("evaluaciones").insert({
                         "cuil": cuil,
+                        "nivel": nivel,
+                        "grado": grado,
+                        "dependencia": dependencia,
+                        "dependencia_general": dependencia_general,
+                        "unidad_evaluadora": unidad_evaluadora,
+                        "unidad_analisis": unidad_analisis,
                         "anio_evaluacion": 2025,
+                        "evaluador": evaluador,
                         "formulario": tipo_formulario,
+                        "factor_puntaje": factor_puntaje,
                         "puntaje_total": total,
+                        "puntaje_maximo": puntaje_maximo,
+                        "puntaje_relativo": puntaje_relativo,
                         "calificacion": clasificacion,
-                        "factor_puntaje": factor_puntaje
+                        "fecha_notificacion": date.today()
                     }).execute()
+                                        
 
+
+                    
                     
                     # Marcar como evaluado en la tabla 'agentes'
                     #supabase.table("agentes").update({
