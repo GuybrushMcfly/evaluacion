@@ -308,21 +308,51 @@ elif opcion == "📋 Evaluaciones":
         for e in evaluaciones:
             cuil = e["cuil"]
             agente = mapa_agentes.get(cuil, "Desconocido")
-
-            # Reconstruir claves de factor si es necesario
-            factores = e.get("factor_puntaje", {})
+    
+            # FORMULARIO
+            formulario = e.get("formulario", "")
+    
+            # FACTOR PUNTAJE
+            factores_puntaje = e.get("factor_puntaje", {})
             factores_formateados = {}
-            for k, v in factores.items():
-                # Reemplaza posibles claves mal formateadas con "Factor X"
+            for k, v in factores_puntaje.items():
                 if not k.startswith("Factor "):
                     partes = k.split('. ')
                     clave = partes[0].strip()
                     k = f"Factor {clave}"
                 factores_formateados[k] = v
-
-            resumen = ", ".join([f"{k} ({v})" for k, v in factores_formateados.items()])
-            filas.append({"CUIL": cuil, "AGENTE": agente, "FACTOR/PUNTAJE": resumen})
-
+            resumen_puntaje = ", ".join([f"{k} ({v})" for k, v in factores_formateados.items()])
+    
+            # FACTOR POSICION
+            factores_posicion = e.get("factor_posicion", {})
+            posiciones_formateadas = {}
+            for k, v in factores_posicion.items():
+                if not k.startswith("Factor "):
+                    partes = k.split('. ')
+                    clave = partes[0].strip()
+                    k = f"Factor {clave}"
+                posiciones_formateadas[k] = v
+            resumen_posicion = ", ".join([f"{k} ({v})" for k, v in posiciones_formateadas.items()])
+    
+            # CALIFICACIÓN Y PUNTAJES
+            calificacion = e.get("calificacion", "")
+            total = e.get("puntaje_total", "")
+            maximo = e.get("puntaje_maximo", "")
+            relativo = e.get("puntaje_relativo", "")
+    
+            # Construir fila final
+            filas.append({
+                "CUIL": cuil,
+                "AGENTE": agente,
+                "FORMULARIO": formulario,
+                "FACTOR/POSICION": resumen_posicion,
+                "FACTOR/PUNTAJE": resumen_puntaje,
+                "CALIFICACION": calificacion,
+                "PUNTAJE TOTAL": total,
+                "PUNTAJE MÁXIMO": maximo,
+                "PUNTAJE RELATIVO": relativo
+            })
+    
         df_resumen = pd.DataFrame(filas)
         st.dataframe(df_resumen, use_container_width=True)
 
