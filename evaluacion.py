@@ -184,7 +184,9 @@ elif opcion == "📄 Formulario":
                     clave = bloque['factor'].split(' ')[0].strip()
                     factor_puntaje[f"Factor {clave}"] = puntaje
                     #factor_posicion[f"Factor {clave}"] = seleccion 
-                    factor_posicion[f"Factor {clave}"] = ["a)", "b)", "c)", "d)"].index(seleccion[:2]) + 1
+                    # Buscar la posición de la opción seleccionada en la lista
+                    posicion = opciones.index(seleccion) + 1
+                    factor_posicion[f"Factor {clave}"] = posicion
                    
                 else:
                     respuestas_completas = False
