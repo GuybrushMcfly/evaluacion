@@ -363,7 +363,7 @@ elif opcion == "📋 Evaluaciones":
         buffer = io.BytesIO()
         
         # Guardar DataFrame como archivo .xlsx en el buffer
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_resumen.to_excel(writer, index=False, sheet_name='Evaluaciones')
         
         # Preparar botón de descarga
