@@ -262,6 +262,18 @@ elif opcion == "📄 Formulario":
                     puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
                     puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
 
+
+                    
+                    # Buscar info de unidad evaluadora y de análisis desde la tabla unidades_evaluacion
+                    unidad_info = supabase.table("unidades_evaluacion")\
+                        .select("unidad_evaluadora, unidad_analisis, dependencia_general")\
+                        .eq("dependencia", dependencia)\
+                        .maybe_single().execute().data
+                    
+                    unidad_evaluadora = unidad_info.get("unidad_evaluadora") if unidad_info else None
+                    unidad_analisis = unidad_info.get("unidad_analisis") if unidad_info else None
+                    dependencia_general = unidad_info.get("dependencia_general") if unidad_info else None
+                 
                                     
                     # Insertar en Supabase
                     supabase.table("evaluaciones").insert({
