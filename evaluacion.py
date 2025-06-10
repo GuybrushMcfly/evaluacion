@@ -42,12 +42,16 @@ usuarios = supabase.table("usuarios")\
 
 credentials = {"usernames": {}}
 for u in usuarios:
-    credentials["usernames"][u["usuario"]] = {
+    usuario = u.get("usuario")
+    if not usuario:
+        continue  # Evitar usuarios sin nombre de usuario
+    credentials["usernames"][usuario] = {
         "name": u["apellido_nombre"],
         "password": u["password"],
         "email": "",
         "rol": u.get("rol", {})
     }
+
 
 
 # ---- AUTENTICACIÓN ----
