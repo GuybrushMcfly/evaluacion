@@ -300,7 +300,7 @@ elif opcion == "📄 Formulario":
                         "puntaje_relativo": puntaje_relativo,
                         "calificacion": clasificacion,
                     #    "fecha_notificacion": date.today()
-                        "fecha_notificacion": date.today().isoformat()
+                        "fecha_notificacion": date.today().isoformat(),
                         "activo": activo,
                         "motivo_inactivo": motivo_inactivo,
                         "fecha_inactivo": fecha_inactivo,
