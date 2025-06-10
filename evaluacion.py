@@ -59,9 +59,14 @@ authenticator = stauth.Authenticate(
 )
 
 
-authenticator.login()
+name, authentication_status, username = authenticator.login()
 
-if st.session_state["authentication_status"]:
+if authentication_status:
+    st.session_state["usuario"] = username  # ← ahora sí se guarda correctamente
+    st.sidebar.success(f"Hola, {name}")
+    authenticator.logout("Cerrar sesión", "sidebar")
+
+if authentication_status:
     st.session_state["usuario"] = st.session_state["username"]  # ← clave para filtros
     authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.success(f"Hola, {st.session_state['name']}")
