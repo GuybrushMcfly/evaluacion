@@ -32,21 +32,37 @@ def obtener_agentes():
     result = supabase.table("agentes").select("*").limit(10).execute()
     return result.data if result.data else []
 
-# ---- CARGAR CONFIGURACIÓN DESDE YAML ----
-with open("config.yaml") as file:
-    config = yaml.load(file, Loader=SafeLoader)
+
+
+# ---- OBTENER USUARIOS DESDE SUPABASE ----
+usuarios = supabase.table("usuarios_evaluadores")\
+    .select("usuario, password, apellido_nombre, rol")\
+    .eq("activo", True)\
+    .execute().data
+
+credentials = {"usernames": {}}
+for u in usuarios:
+    credentials["usernames"][u["usuario"]] = {
+        "name": u["apellido_nombre"],
+        "password": u["password"],
+        "email": "",
+        "rol": u.get("rol", {})
+    }
+
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
-    credentials=config['credentials'],
-    cookie_name=config['cookie']['name'],
-    cookie_key=config['cookie']['key'],
-    cookie_expiry_days=config['cookie']['expiry_days']
+    credentials=credentials,
+    cookie_name="evaluacion_app",
+    cookie_key="clave_segura_super_oculta",
+    cookie_expiry_days=1
 )
+
 
 authenticator.login()
 
 if st.session_state["authentication_status"]:
+    st.session_state["usuario"] = st.session_state["username"]  # ← clave para filtros
     authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.success(f"Hola, {st.session_state['name']}")
     st.markdown("""<h1 style='font-size: 30px; color: white;'>📊 Evaluación de Desempeño</h1>""", unsafe_allow_html=True)
@@ -102,7 +118,13 @@ elif opcion == "📄 Formulario":
 
 
     # Obtener lista de agentes desde Supabase con campo ingresante
-    agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, ingresante").order("apellido_nombre").execute().data
+    usuario_actual = st.session_state.get("usuario")
+    agentes_data = supabase.table("agentes")\
+        .select("cuil, apellido_nombre, ingresante")\
+        .eq("evaluador_2025", usuario_actual)\
+        .eq("evaluado_2025", False)\
+        .order("apellido_nombre")\
+        .execute().data
     
     if not agentes_data:
         st.warning("⚠️ No hay agentes cargados en la base de datos.")
@@ -234,7 +256,7 @@ elif opcion == "📄 Formulario":
                     unidad_analisis = agente.get("unidad_analisis")
                     
                     # Evaluador desde sesión
-                    evaluador = st.session_state.get("name", "No identificado")
+                    evaluador = st.session_state.get("usuario", "desconocido")
                     
                     # Cálculo adicional
                     puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
