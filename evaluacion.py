@@ -43,7 +43,6 @@ credentials = {
 }
 
 usuarios_validos = 0
-usuarios_result = supabase.table("usuarios").select("usuario, password, apellido_nombre").execute()
 
 for u in usuarios_result.data:
     usuario = u.get("usuario", "")
