@@ -247,13 +247,13 @@ elif opcion == "📄 Formulario":
                     tipo_formulario = tipo
 
 
-                    # Extraer más datos del agente (si están en Supabase)
-                    nivel = agente.get("nivel")
-                    grado = agente.get("grado")
-                    dependencia = agente.get("dependencia")
-                    dependencia_general = agente.get("dependencia_general")
-                    unidad_evaluadora = agente.get("unidad_evaluadora")
-                    unidad_analisis = agente.get("unidad_analisis")
+                    # Extraer más datos del agente 
+                    nivel = agentes.get("nivel")
+                    grado = agentes.get("grado")
+                    dependencia = agentes.get("dependencia")
+                    dependencia_general = agentes.get("dependencia_general")
+                    unidad_evaluadora = agentes.get("unidad_evaluadora")
+                    unidad_analisis = agentes.get("unidad_analisis")
                     
                     # Evaluador desde sesión
                     evaluador = st.session_state.get("usuario", "desconocido")
