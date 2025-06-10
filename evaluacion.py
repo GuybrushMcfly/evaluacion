@@ -50,14 +50,23 @@ credentials = {
 }
 
 for u in usuarios:
-    if not all(key in u for key in ['usuario', 'password', 'apellido_nombre']):
+    usuario = u.get("usuario", "").strip()
+    password = u.get("password", "").strip()
+    nombre = u.get("apellido_nombre", "").strip()
+    
+    if not usuario or not password or not nombre:
+        continue  # saltea si hay valores faltantes
+
+    # Verificá si el hash parece válido
+    if not password.startswith("$2b$"):
         continue
-        
-    credentials["usernames"][u['usuario']] = {
-        "name": u['apellido_nombre'],
-        "password": u['password'],
-        "email": f"{u['usuario']}@indec.gob.ar",
+
+    credentials["usernames"][usuario] = {
+        "name": nombre,
+        "password": password,
+        "email": f"{usuario}@indec.gob.ar"
     }
+
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
