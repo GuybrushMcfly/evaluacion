@@ -32,50 +32,70 @@ def obtener_agentes():
     result = supabase.table("agentes").select("*").limit(10).execute()
     return result.data if result.data else []
 
-
-
+# ---- OBTENER USUARIOS DESDE SUPABASE ----
 # ---- OBTENER USUARIOS DESDE SUPABASE ----
 usuarios = supabase.table("usuarios")\
-    .select("usuario, password, apellido_nombre, rol")\
+    .select("usuario, password, apellido_nombre, rol, activo")\
     .eq("activo", True)\
     .execute().data
 
-credentials = {"usernames": {}}
-for u in usuarios:
-    usuario = u.get("usuario")
-    apellido_nombre = u.get("apellido_nombre")
-    password = u.get("password")
-
-    # Ignorar usuarios inválidos
-    if not usuario or not apellido_nombre or not password:
-        continue
-
-    credentials["usernames"][usuario] = {
-        "name": apellido_nombre,
-        "password": password,
-        "email": "",
-        "rol": u.get("rol", {})
+# ---- CONSTRUCCIÓN DE CREDENCIALES ----
+credentials = {
+    "usernames": {},
+    "cookie": {
+        "expiry_days": 1,
+        "key": "clave_segura_super_oculta", 
+        "name": "evaluacion_app"
     }
+}
 
-
-
+for u in usuarios:
+    if not all(key in u for key in ['usuario', 'password', 'apellido_nombre']):
+        continue
+        
+    credentials["usernames"][u['usuario']] = {
+        "name": u['apellido_nombre'],
+        "password": u['password'],
+        "email": f"{u['usuario']}@indec.gob.ar",
+    }
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
     credentials=credentials,
-    cookie_name="evaluacion_app",
-    cookie_key="clave_segura_super_oculta",
-    cookie_expiry_days=1
+    cookie_name=credentials["cookie"]["name"],
+    cookie_key=credentials["cookie"]["key"],
+    cookie_expiry_days=credentials["cookie"]["expiry_days"]
 )
-
 
 name, authentication_status, username = authenticator.login()
 
+# ---- MANEJO DE SESIÓN ----
 if authentication_status:
-    st.session_state["usuario"] = username
-    st.sidebar.success(f"Hola, {name}")
+    # Obtenemos datos del usuario
+    usuario_data = supabase.table("usuarios")\
+        .select("apellido_nombre, rol")\
+        .eq("usuario", username)\
+        .execute()\
+        .data
+    
+    if usuario_data:
+        st.session_state.update({
+            "usuario": username,
+            "nombre_completo": usuario_data[0]['apellido_nombre'],
+            "rol": usuario_data[0].get("rol", {})
+        })
+    
+    # Mostramos interfaz
+    st.sidebar.success(f"Hola, {st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
     st.markdown("""<h1 style='font-size: 30px; color: white;'>📊 Evaluación de Desempeño</h1>""", unsafe_allow_html=True)
+    
+    # Control de acceso interno (sin mostrar al usuario)
+    if st.session_state.get("rol", {}).get("evaluador_general"):
+        pass  # Lógica para evaluadores generales
+    elif st.session_state.get("rol", {}).get("evaluador"):
+        pass  # Lógica para evaluadores normales
+
 elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
     st.stop()
