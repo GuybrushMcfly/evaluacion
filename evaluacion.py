@@ -62,19 +62,14 @@ authenticator = stauth.Authenticate(
 name, authentication_status, username = authenticator.login()
 
 if authentication_status:
-    st.session_state["usuario"] = username  # ← ahora sí se guarda correctamente
+    st.session_state["usuario"] = username
     st.sidebar.success(f"Hola, {name}")
     authenticator.logout("Cerrar sesión", "sidebar")
-
-if authentication_status:
-    st.session_state["usuario"] = st.session_state["username"]  # ← clave para filtros
-    authenticator.logout("Cerrar sesión", "sidebar")
-    st.sidebar.success(f"Hola, {st.session_state['name']}")
     st.markdown("""<h1 style='font-size: 30px; color: white;'>📊 Evaluación de Desempeño</h1>""", unsafe_allow_html=True)
-elif st.session_state["authentication_status"] is False:
+elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
     st.stop()
-elif st.session_state["authentication_status"] is None:
+elif authentication_status is None:
     st.warning("🔐 Ingresá tus credenciales para acceder al dashboard.")
     st.stop()
 
