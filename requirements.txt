@@ -11,7 +11,9 @@ streamlit
 pandas
 numpy
 pyyaml
-streamlit-authenticator
+#streamlit-authenticator
+streamlit-authenticator==0.3.2
+
 psycopg2-binary
 sqlalchemy
 st-supabase-connection
