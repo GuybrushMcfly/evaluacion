@@ -120,7 +120,7 @@ elif opcion == "📄 Formulario":
     # Obtener lista de agentes desde Supabase con campo ingresante
     usuario_actual = st.session_state.get("usuario")
     agentes_data = supabase.table("agentes")\
-        .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general")\
+        .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general, activo, motivo_inactivo, fecha_inactivo")
         .eq("evaluador_2025", usuario_actual)\
         .eq("evaluado_2025", False)\
         .order("apellido_nombre")\
@@ -248,12 +248,17 @@ elif opcion == "📄 Formulario":
 
 
                     # Extraer más datos del agente 
+                    apellido_nombre = agente.get("apellido_nombre")
                     nivel = agente.get("nivel")
                     grado = agente.get("grado")
                     dependencia = agente.get("dependencia")
                     dependencia_general = agente.get("dependencia_general")
                     unidad_evaluadora = agente.get("unidad_evaluadora")
                     unidad_analisis = agente.get("unidad_analisis")
+                    activo = agente.get("activo")
+                    motivo_inactivo = agente.get("motivo_inactivo")
+                    fecha_inactivo = agente.get("fecha_inactivo")
+
                     
                     # Evaluador desde sesión
                     evaluador = st.session_state.get("usuario", "desconocido")
@@ -278,6 +283,7 @@ elif opcion == "📄 Formulario":
                     # Insertar en Supabase
                     supabase.table("evaluaciones").insert({
                         "cuil": cuil,
+                        "apellido_nombre": apellido_nombre,
                         "nivel": nivel,
                         "grado": grado,
                         "dependencia": dependencia,
@@ -295,6 +301,10 @@ elif opcion == "📄 Formulario":
                         "calificacion": clasificacion,
                     #    "fecha_notificacion": date.today()
                         "fecha_notificacion": date.today().isoformat()
+                        "activo": activo,
+                        "motivo_inactivo": motivo_inactivo,
+                        "fecha_inactivo": fecha_inactivo,
+
 
                     }).execute()
                                         
