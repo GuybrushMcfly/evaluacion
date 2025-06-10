@@ -120,7 +120,7 @@ elif opcion == "📄 Formulario":
     # Obtener lista de agentes desde Supabase con campo ingresante
     usuario_actual = st.session_state.get("usuario")
     agentes_data = supabase.table("agentes")\
-        .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general, unidad_evaluadora, unidad_analisis")\
+        .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general")\
         .eq("evaluador_2025", usuario_actual)\
         .eq("evaluado_2025", False)\
         .order("apellido_nombre")\
