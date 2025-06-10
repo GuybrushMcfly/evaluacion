@@ -33,13 +33,6 @@ def obtener_agentes():
     return result.data if result.data else []
 
 # ---- OBTENER USUARIOS DESDE SUPABASE ----
-# ---- OBTENER USUARIOS DESDE SUPABASE ----
-usuarios = supabase.table("usuarios")\
-    .select("usuario, password, apellido_nombre, rol, activo")\
-    .eq("activo", True)\
-    .execute().data
-
-# ---- CONSTRUCCIÓN DE CREDENCIALES ----
 credentials = {
     "usernames": {},
     "cookie": {
@@ -49,15 +42,22 @@ credentials = {
     }
 }
 
+usuarios_validos = 0
 for u in usuarios:
-    usuario = u.get("usuario", "").strip()
-    password = u.get("password", "").strip()
-    nombre = u.get("apellido_nombre", "").strip()
+    usuario = u.get("usuario", "")
+    password = u.get("password", "")
+    nombre = u.get("apellido_nombre", "")
     
+    # Limpiar espacios
+    usuario = usuario.strip() if usuario else ""
+    password = password.strip() if password else ""
+    nombre = nombre.strip() if nombre else ""
+    
+    # Validaciones
     if not usuario or not password or not nombre:
-        continue  # saltea si hay valores faltantes
+        continue
 
-    # Verificá si el hash parece válido
+    # Verificar hash de contraseña
     if not password.startswith("$2b$"):
         continue
 
@@ -66,7 +66,12 @@ for u in usuarios:
         "password": password,
         "email": f"{usuario}@indec.gob.ar"
     }
+    usuarios_validos += 1
 
+# Verificar que tenemos usuarios válidos
+if not credentials["usernames"]:
+    st.error("❌ No se encontraron usuarios válidos en la base de datos.")
+    st.stop()
 
 # ---- AUTENTICACIÓN ----
 authenticator = stauth.Authenticate(
@@ -81,18 +86,40 @@ name, authentication_status, username = authenticator.login()
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
     # Obtenemos datos del usuario
-    usuario_data = supabase.table("usuarios")\
-        .select("apellido_nombre, rol")\
-        .eq("usuario", username)\
-        .execute()\
-        .data
-    
-    if usuario_data:
-        st.session_state.update({
-            "usuario": username,
-            "nombre_completo": usuario_data[0]['apellido_nombre'],
-            "rol": usuario_data[0].get("rol", {})
-        })
+    try:
+        usuario_data = supabase.table("usuarios")\
+            .select("apellido_nombre, rol")\
+            .eq("usuario", username)\
+            .execute()\
+            .data
+        
+        if usuario_data:
+            # Procesar el rol JSON
+            rol_data = usuario_data[0].get("rol", {})
+            
+            # Si rol_data es string, parsearlo como JSON
+            if isinstance(rol_data, str):
+                try:
+                    rol_data = json.loads(rol_data)
+                except json.JSONDecodeError:
+                    rol_data = {}
+            
+            # Si rol_data no es dict, usar dict vacío
+            if not isinstance(rol_data, dict):
+                rol_data = {}
+            
+            st.session_state.update({
+                "usuario": username,
+                "nombre_completo": usuario_data[0]['apellido_nombre'],
+                "rol": rol_data
+            })
+        else:
+            st.error("❌ No se pudieron cargar los datos del usuario.")
+            st.stop()
+            
+    except Exception as e:
+        st.error(f"❌ Error al cargar datos del usuario: {str(e)}")
+        st.stop()
     
     # Mostramos interfaz
     st.sidebar.success(f"Hola, {st.session_state['nombre_completo']}")
