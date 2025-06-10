@@ -35,7 +35,7 @@ def obtener_agentes():
 
 
 # ---- OBTENER USUARIOS DESDE SUPABASE ----
-usuarios = supabase.table("usuarios_evaluadores")\
+usuarios = supabase.table("usuarios")\
     .select("usuario, password, apellido_nombre, rol")\
     .eq("activo", True)\
     .execute().data
