@@ -50,7 +50,7 @@ credentials = {
 usuarios_validos = 0
 
 for u in usuarios_result.data:
-    usuario = u.get("usuario", "")
+    usuario = u.get("usuario", "").strip().lower()
     password = u.get("password", "")
     nombre = u.get("apellido_nombre", "")
     
@@ -87,7 +87,16 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=credentials["cookie"]["expiry_days"]
 )
 
-name, authentication_status, username = authenticator.login()
+st.write("Usuarios cargados:", list(credentials["usernames"].keys()))
+
+
+#name, authentication_status, username = authenticator.login()
+try:
+    name, authentication_status, username = authenticator.login()
+except KeyError as e:
+    st.error(f"❌ Error crítico: el usuario ingresado no está registrado ({e}).")
+    st.stop()
+
 
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
