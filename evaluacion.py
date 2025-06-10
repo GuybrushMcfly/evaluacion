@@ -43,7 +43,7 @@ credentials = {
 }
 
 usuarios_validos = 0
-for u in usuarios:
+for u in usuarios_result.data:
     usuario = u.get("usuario", "")
     password = u.get("password", "")
     nombre = u.get("apellido_nombre", "")
