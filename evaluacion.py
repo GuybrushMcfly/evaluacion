@@ -87,9 +87,9 @@ if opcion == "📝 Instructivo":
     st.title("📝 Instructivo")
     st.markdown("""
     Bienvenido al sistema de Evaluación de Desempeño.  
-    1. Seleccioná el formulario correspondiente.  
-    2. Completá todos los factores.  
-    3. Previsualizá y confirmá la evaluación.  
+    1. Seleccione el formulario correspondiente.  
+    2. Complete todos los factores.  
+    3. Previsualice y confirme la evaluación.  
     """)
 
 
