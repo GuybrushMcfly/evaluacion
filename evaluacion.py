@@ -127,7 +127,7 @@ elif opcion == "📄 Formulario":
         .execute().data
     
     if not agentes_data:
-        st.warning("⚠️ No hay agentes cargados en la base de datos.")
+        st.warning("⚠️ No hay agentes disponibles para evaluar.")
         st.stop()
     
     # Selector de agente
