@@ -43,14 +43,20 @@ usuarios = supabase.table("usuarios")\
 credentials = {"usernames": {}}
 for u in usuarios:
     usuario = u.get("usuario")
-    if not usuario:
-        continue  # Evitar usuarios sin nombre de usuario
+    apellido_nombre = u.get("apellido_nombre")
+    password = u.get("password")
+
+    # Ignorar usuarios inválidos
+    if not usuario or not apellido_nombre or not password:
+        continue
+
     credentials["usernames"][usuario] = {
-        "name": u["apellido_nombre"],
-        "password": u["password"],
+        "name": apellido_nombre,
+        "password": password,
         "email": "",
         "rol": u.get("rol", {})
     }
+
 
 
 
