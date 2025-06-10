@@ -33,6 +33,11 @@ def obtener_agentes():
     return result.data if result.data else []
 
 # ---- OBTENER USUARIOS DESDE SUPABASE ----
+usuarios_result = supabase.table("usuarios")\
+    .select("usuario, password, apellido_nombre, rol, activo")\
+    .eq("activo", True)\
+    .execute()
+
 credentials = {
     "usernames": {},
     "cookie": {
