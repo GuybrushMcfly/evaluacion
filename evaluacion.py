@@ -395,9 +395,13 @@ elif opcion == "📄 Formulario":
                         "evaluado_2025": True
                     }).eq("cuil", cuil).execute()
 
-                    st.toast(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
-                    st.balloons()
+                    #st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                    #st.balloons()
+                    #time.sleep(2)
+
+                    st.toast(f"📤 Evaluación de {apellido_nombre} enviada correctamente", icon='✅')
                     time.sleep(2)
+                    
 
                     for key in list(st.session_state.keys()):
                         if key.startswith("factor_") or key in ["select_tipo", "previsualizado", "confirmado", "puntajes", "respuestas_completas", "last_tipo"]:
