@@ -559,7 +559,7 @@ elif opcion == "✏️ Editar nombres":
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
                 for _, row in anuladas.iterrows():
-                    supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id"]).execute()
+                    supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
                     supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
 
                 st.success(f"✅ {len(anuladas)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
