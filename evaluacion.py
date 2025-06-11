@@ -531,6 +531,7 @@ elif opcion == "✏️ Editar nombres":
         st.rerun()
 
     st.markdown("---")
+
     st.subheader("📌 Anular evaluaciones realizadas")
 
     evaluaciones = supabase.table("evaluaciones")\
@@ -545,28 +546,32 @@ elif opcion == "✏️ Editar nombres":
 
         # Estado textual según si fue anulada o no
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "")
-
-        # Agregar columna de selección solo para no anuladas
         df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
 
-        # Mostrar editor con "Seleccionar" primero y "Estado" como texto
+        columnas_visibles = ["Seleccionar", "apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]
+
+        # Mostrar tabla editable con columnas visibles
         seleccion = st.data_editor(
-            df_eval[["Seleccionar", "apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]],
+            df_eval[columnas_visibles],
             use_container_width=True,
             hide_index=True,
             disabled=["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]
         )
 
-
         if st.button("❌ Anular seleccionadas"):
-            anuladas = seleccion[seleccion["Seleccionar"] == True]
-            if anuladas.empty:
+            seleccionados = seleccion["Seleccionar"] == True
+            indices = seleccionados[seleccionados].index
+
+            if len(indices) == 0:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
-                for _, row in anuladas.iterrows():
+                for idx in indices:
+                    row = df_eval.loc[idx]
+                    if row["Estado"] == "Anulada":
+                        continue
                     supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
                     supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
 
-                st.success(f"✅ {len(anuladas)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
+                st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
                 time.sleep(2)
                 st.rerun()
