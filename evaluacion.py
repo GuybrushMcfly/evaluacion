@@ -542,7 +542,7 @@ elif opcion == "✏️ Editar nombres":
         st.info("No hay evaluaciones registradas.")
     else:
         df_eval = pd.DataFrame(evaluaciones)
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"])
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"])
         df_eval["anulada"] = df_eval["anulada"].fillna(False)
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     
