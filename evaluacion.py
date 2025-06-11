@@ -576,7 +576,7 @@ elif opcion == "✏️ Editar nombres":
             use_container_width=True,
             hide_index=True,
             disabled={
-                "Seleccionar": df_eval["anulada"],  # ✅ acá está el cambio importante
+                "Seleccionar": df_eval[df_eval["anulada"]].index.tolist(),  # Solo deshabilitar las que están anuladas
                 "Apellido y Nombres": True,
                 "Nivel": True,
                 "Form.": True,
@@ -586,6 +586,7 @@ elif opcion == "✏️ Editar nombres":
                 "Fecha": True,
                 "Estado": True
             }
+        )
         )
 
 
