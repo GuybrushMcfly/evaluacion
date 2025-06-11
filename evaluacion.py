@@ -534,7 +534,7 @@ elif opcion == "✏️ Editar nombres":
     st.subheader("📌 Anular evaluaciones realizadas")
     
     evaluaciones = supabase.table("evaluaciones")\
-        .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_notificacion, anulada")\
+        .select("apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_evaluacion, anulada")\
         .order("apellido_nombre")\
         .execute().data
     
@@ -548,7 +548,7 @@ elif opcion == "✏️ Editar nombres":
     
         columnas_visibles = [
             "Seleccionar", "apellido_nombre", "nivel", "formulario",
-            "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
+            "calificacion", "puntaje_total", "evaluador", "fecha_evaluacion", "Estado"
         ]
         renombrar_columnas = {
             "Seleccionar": "Seleccionar",
@@ -558,7 +558,7 @@ elif opcion == "✏️ Editar nombres":
             "calificacion": "Calificación",
             "puntaje_total": "Puntaje",
             "evaluador": "Evaluador",
-            "Fecha": "Fecha",
+            "fecha_evaluacion": "Fecha",
             "Estado": "Estado"
         }
     
