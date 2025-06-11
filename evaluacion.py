@@ -399,8 +399,15 @@ elif opcion == "📄 Formulario":
                     #st.balloons()
                     #time.sleep(2)
 
-                    st.toast(f"📤 Evaluación de {apellido_nombre} enviada correctamente", icon='✅')
-                    time.sleep(2)
+                    @st.dialog("✅ Éxito")
+                    def show_success():
+                        st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                        st.balloons()
+                        if st.button("Cerrar"):
+                            st.rerun()
+                    
+                    # Para mostrarlo:
+                    show_success()
                     
 
                     for key in list(st.session_state.keys()):
