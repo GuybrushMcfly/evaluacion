@@ -589,7 +589,9 @@ elif opcion == "✏️ Editar nombres":
                     if row["Estado"] == "Anulada":
                         continue
                     supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
-                    supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
+                    #supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
+                    supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
+
 
                 st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
                 time.sleep(2)
