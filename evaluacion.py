@@ -542,13 +542,13 @@ elif opcion == "✏️ Editar nombres":
         st.info("No hay evaluaciones registradas.")
     else:
         df_eval = pd.DataFrame(evaluaciones)
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"]).dt.strftime("%d/%m/%Y %H:%M")
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"])
         df_eval["anulada"] = df_eval["anulada"].fillna(False)
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     
         columnas_visibles = [
             "Seleccionar", "apellido_nombre", "nivel", "formulario",
-            "calificacion", "puntaje_total", "evaluador", "fecha_evaluacion", "Estado"
+            "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
         ]
         renombrar_columnas = {
             "Seleccionar": "Seleccionar",
@@ -558,7 +558,7 @@ elif opcion == "✏️ Editar nombres":
             "calificacion": "Calificación",
             "puntaje_total": "Puntaje",
             "evaluador": "Evaluador",
-            "fecha_evaluacion": "Fecha",
+            "Fecha": "Fecha",
             "Estado": "Estado"
         }
     
@@ -568,7 +568,7 @@ elif opcion == "✏️ Editar nombres":
             st.subheader("🔄 Evaluaciones que pueden anularse:")
             df_no_anuladas["Seleccionar"] = False
             df_no_anuladas = df_no_anuladas[[
-                "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", "nivel", "formulario",
+                "Seleccionar", "apellido_nombre", "nivel", "formulario",
                 "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
             ]]
     
