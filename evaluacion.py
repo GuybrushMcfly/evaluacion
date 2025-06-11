@@ -395,7 +395,7 @@ elif opcion == "📄 Formulario":
                         "evaluado_2025": True
                     }).eq("cuil", cuil).execute()
 
-                    st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                    st.toast(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                     st.balloons()
                     time.sleep(2)
 
