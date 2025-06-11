@@ -573,11 +573,19 @@ elif opcion == "✏️ Editar nombres":
             df_eval[columnas_visibles].rename(columns=renombrar_columnas),
             use_container_width=True,
             hide_index=True,
-            disabled=[
-                "Apellido y Nombres", "Nivel", "Form.", "Calificación",
-                "Puntaje", "Evaluador", "Fecha", "Estado"
-            ]
+            disabled={
+                "Seleccionar": df_eval["anulada"],  # ✅ acá está el cambio importante
+                "Apellido y Nombres": True,
+                "Nivel": True,
+                "Form.": True,
+                "Calificación": True,
+                "Puntaje": True,
+                "Evaluador": True,
+                "Fecha": True,
+                "Estado": True
+            }
         )
+
 
         if st.button("❌ Anular seleccionadas"):
             seleccionados = seleccion["Seleccionar"] == True
