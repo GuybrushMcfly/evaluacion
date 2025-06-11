@@ -530,6 +530,42 @@ elif opcion == "✏️ Editar nombres":
         time.sleep(1)
         st.rerun()
 
+    st.markdown("---")
+    st.subheader("📌 Anular evaluaciones realizadas")
+
+    evaluaciones = supabase.table("evaluaciones")\
+        .select("id, cuil, apellido_nombre, nivel, formulario, calificacion, evaluador, anulada")\
+        .order("apellido_nombre")\
+        .execute().data
+
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        df_eval = pd.DataFrame(evaluaciones)
+        df_eval["Anulada"] = df_eval["anulada"].fillna(False)
+
+        # Checkbox para marcar qué evaluaciones anular
+        df_eval["Anular"] = False
+        seleccion = st.data_editor(
+            df_eval[["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Anulada", "Anular"]],
+            use_container_width=True,
+            hide_index=True,
+            disabled=["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Anulada"]
+        )
+
+        if st.button("❌ Anular seleccionadas"):
+            anuladas = seleccion[seleccion["Anular"] == True]
+            if anuladas.empty:
+                st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
+            else:
+                for _, row in anuladas.iterrows():
+                    supabase.table("evaluaciones").update({"anulada": True}).eq("id", row["id"]).execute()
+                    supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
+
+                st.success(f"✅ {len(anuladas)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
+                time.sleep(2)
+                st.rerun()
+
 
 
 
