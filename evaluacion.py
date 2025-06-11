@@ -594,7 +594,7 @@ elif opcion == "✏️ Editar nombres":
             )
     
             if st.button("❌ Anular seleccionadas"):
-                indices = seleccion[seleccion["Seleccionar"]].index
+                indices = seleccion[seleccion["Seleccionar"]].reset_index().index
                 if len(indices) == 0:
                     st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
                 else:
