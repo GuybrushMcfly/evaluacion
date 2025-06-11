@@ -542,16 +542,21 @@ elif opcion == "✏️ Editar nombres":
         st.info("No hay evaluaciones registradas.")
     else:
         df_eval = pd.DataFrame(evaluaciones)
-        df_eval["Anulada"] = df_eval["anulada"].fillna(False)
 
-        # Checkbox para marcar qué evaluaciones anular
-        df_eval["Anular"] = False
+        # Estado textual según si fue anulada o no
+        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "")
+
+        # Agregar columna de selección solo para no anuladas
+        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
+
+        # Mostrar editor con "Seleccionar" primero y "Estado" como texto
         seleccion = st.data_editor(
-            df_eval[["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Anulada", "Anular"]],
+            df_eval[["Seleccionar", "apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]],
             use_container_width=True,
             hide_index=True,
-            disabled=["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Anulada"]
+            disabled=["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]
         )
+
 
         if st.button("❌ Anular seleccionadas"):
             anuladas = seleccion[seleccion["Anular"] == True]
@@ -565,8 +570,3 @@ elif opcion == "✏️ Editar nombres":
                 st.success(f"✅ {len(anuladas)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
                 time.sleep(2)
                 st.rerun()
-
-
-
-
-
