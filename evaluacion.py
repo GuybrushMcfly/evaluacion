@@ -535,7 +535,7 @@ elif opcion == "✏️ Editar nombres":
     st.subheader("📌 Anular evaluaciones realizadas")
 
     evaluaciones = supabase.table("evaluaciones")\
-        .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, evaluador, anulada")\
+        .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_notificacion, anulada")\
         .order("apellido_nombre")\
         .execute().data
 
@@ -544,18 +544,38 @@ elif opcion == "✏️ Editar nombres":
     else:
         df_eval = pd.DataFrame(evaluaciones)
 
-        # Estado textual según si fue anulada o no
-        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "")
+        # Formatear fecha
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"]).dt.strftime("%d/%m/%Y %H:%M")
+
+        # Estado textual
+        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
         df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
 
-        columnas_visibles = ["Seleccionar", "apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]
+        columnas_visibles = [
+            "Seleccionar", "apellido_nombre", "nivel", "formulario",
+            "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
+        ]
 
-        # Mostrar tabla editable con columnas visibles
+        renombrar_columnas = {
+            "Seleccionar": "Seleccionar",
+            "apellido_nombre": "Apellido y Nombres",
+            "nivel": "Nivel",
+            "formulario": "Form.",
+            "calificacion": "Calificación",
+            "puntaje_total": "Puntaje",
+            "evaluador": "Evaluador",
+            "Fecha": "Fecha",
+            "Estado": "Estado"
+        }
+
         seleccion = st.data_editor(
-            df_eval[columnas_visibles],
+            df_eval[columnas_visibles].rename(columns=renombrar_columnas),
             use_container_width=True,
             hide_index=True,
-            disabled=["apellido_nombre", "nivel", "formulario", "calificacion", "evaluador", "Estado"]
+            disabled=[
+                "Apellido y Nombres", "Nivel", "Form.", "Calificación",
+                "Puntaje", "Evaluador", "Fecha", "Estado"
+            ]
         )
 
         if st.button("❌ Anular seleccionadas"):
