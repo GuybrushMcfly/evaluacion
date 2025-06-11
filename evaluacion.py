@@ -395,15 +395,10 @@ elif opcion == "📄 Formulario":
                         "evaluado_2025": True
                     }).eq("cuil", cuil).execute()
 
-                    #st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                    st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                     #st.balloons()
-                    #time.sleep(2)
-
-                    st.markdown(f"""
-                    ### ✅ ¡Éxito!
-                    #### 📤 Evaluación de {apellido_nombre} enviada correctamente
-                    """)
                     time.sleep(2)
+
                     
 
                     for key in list(st.session_state.keys()):
@@ -615,37 +610,25 @@ elif opcion == "✏️ Editar nombres":
                     )
                 }
             )
-        else:
-            st.info("No hay evaluaciones activas para anular.")
-            seleccion = pd.DataFrame()
         
-        # Mostrar las anuladas solo como información (sin checkboxes)
-        if len(df_anuladas) > 0:
-            st.subheader("❌ Evaluaciones ya anuladas:")
-            st.dataframe(
-                df_anuladas[[col for col in columnas_visibles if col != "Seleccionar"]].rename(columns={k:v for k,v in renombrar_columnas.items() if k != "Seleccionar"}),
-                use_container_width=True,
-                hide_index=True
-            )
- 
-        if st.button("❌ Anular seleccionadas"):
-            seleccionados = seleccion["Seleccionar"] == True
-            indices = seleccionados[seleccionados].index
+            # 💡 BOTÓN DENTRO DEL BLOQUE
+            if st.button("❌ Anular seleccionadas"):
+                seleccionados = seleccion["Seleccionar"] == True
+                indices = seleccionados[seleccionados].index
+        
+                if len(indices) == 0:
+                    st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
+                else:
+                    for idx in indices:
+                        row = df_eval.loc[idx]
+                        if row["Estado"] == "Anulada":
+                            continue
+                        supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+                        supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
+        
+                    st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
+                    time.sleep(2)
+                    st.rerun()
 
-            if len(indices) == 0:
-                st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
-            else:
-                for idx in indices:
-                    row = df_eval.loc[idx]
-                    if row["Estado"] == "Anulada":
-                        continue
-                    supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
-                    #supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
-                    supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
-
-
-                st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
-                time.sleep(2)
-                st.rerun()
 
 
