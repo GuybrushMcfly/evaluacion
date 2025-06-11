@@ -548,9 +548,13 @@ elif opcion == "✏️ Editar nombres":
 
         # Estado textual
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-       # df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
-       # df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: None if x else False)
-        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False)
+        
+        # Crear columna Seleccionar con valores False para todas las filas
+        df_eval["Seleccionar"] = False
+        
+        # Crear una máscara para las que deben estar deshabilitadas (anuladas)
+        seleccion_disabled_mask = df_eval["Estado"] == "Anulada"
+
 
 
 
@@ -571,12 +575,12 @@ elif opcion == "✏️ Editar nombres":
             "Estado": "Estado"
         }
 
+
         seleccion = st.data_editor(
             df_eval[columnas_visibles].rename(columns=renombrar_columnas),
             use_container_width=True,
             hide_index=True,
             disabled={
-                "Seleccionar": df_eval["anulada"],  # ✅ acá está el cambio importante
                 "Apellido y Nombres": True,
                 "Nivel": True,
                 "Form.": True,
@@ -584,9 +588,11 @@ elif opcion == "✏️ Editar nombres":
                 "Puntaje": True,
                 "Evaluador": True,
                 "Fecha": True,
-                "Estado": True
+                "Estado": True,
+                "Seleccionar": seleccion_disabled_mask  # <-- Este es el cambio clave
             }
         )
+
 
 
         if st.button("❌ Anular seleccionadas"):
