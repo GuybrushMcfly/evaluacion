@@ -548,7 +548,9 @@ elif opcion == "✏️ Editar nombres":
 
         # Estado textual
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
+       # df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
+        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: None if x else False)
+
 
         columnas_visibles = [
             "Seleccionar", "apellido_nombre", "nivel", "formulario",
