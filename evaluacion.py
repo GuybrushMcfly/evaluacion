@@ -578,22 +578,33 @@ else:
     }
 
     # Mostrar tabla editable
+
+    df_eval_ren = df_eval[columnas_visibles].rename(columns=renombrar_columnas)
+    
+    # Crear máscara de deshabilitación para la columna 'Seleccionar'
+    checkbox_disabled = df_eval["Estado"] == "Anulada"
+    
+    # Crear diccionario para disabled → por columna → lista de booleanos por fila
+    disabled_config = {
+        "Seleccionar": checkbox_disabled.tolist(),
+        "Apellido y Nombres": [True] * len(df_eval),
+        "Nivel": [True] * len(df_eval),
+        "Form.": [True] * len(df_eval),
+        "Calificación": [True] * len(df_eval),
+        "Puntaje": [True] * len(df_eval),
+        "Evaluador": [True] * len(df_eval),
+        "Fecha": [True] * len(df_eval),
+        "Estado": [True] * len(df_eval)
+    }
+    
     seleccion = st.data_editor(
-        df_eval[columnas_visibles].rename(columns=renombrar_columnas),
+        df_eval_ren,
         use_container_width=True,
         hide_index=True,
-        disabled={
-            "Seleccionar": seleccion_disabled_mask,
-            "Apellido y Nombres": True,
-            "Nivel": True,
-            "Form.": True,
-            "Calificación": True,
-            "Puntaje": True,
-            "Evaluador": True,
-            "Fecha": True,
-            "Estado": True
-        }
+        disabled=disabled_config
     )
+
+
 
     # Procesar anulaciones
     if st.button("❌ Anular seleccionadas"):
