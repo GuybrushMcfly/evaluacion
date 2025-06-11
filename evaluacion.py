@@ -90,12 +90,12 @@ authenticator = stauth.Authenticate(
 #st.write("Usuarios cargados:", list(credentials["usernames"].keys()))
 
 
-#name, authentication_status, username = authenticator.login()
-#try:
-#    name, authentication_status, username = authenticator.login()
-#except KeyError as e:
-#    st.error(f"❌ Error crítico: el usuario ingresado no está registrado ({e}).")
-#    st.stop()
+name, authentication_status, username = authenticator.login()
+try:
+    name, authentication_status, username = authenticator.login()
+except KeyError as e:
+    st.error(f"❌ Error crítico: el usuario ingresado no está registrado ({e}).")
+    st.stop()
 
 
 # ---- MANEJO DE SESIÓN ----
