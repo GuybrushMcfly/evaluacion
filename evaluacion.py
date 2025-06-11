@@ -533,6 +533,7 @@ elif opcion == "✏️ Editar nombres":
 
     st.subheader("📌 Anular evaluaciones realizadas")
     
+    # Consulta a Supabase para obtener las evaluaciones
     evaluaciones = supabase.table("evaluaciones")\
         .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_evaluacion, anulada")\
         .order("apellido_nombre")\
@@ -541,15 +542,19 @@ elif opcion == "✏️ Editar nombres":
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
     else:
+        # Convertir a DataFrame y preparar datos
         df_eval = pd.DataFrame(evaluaciones)
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"])
-        df_eval["anulada"] = df_eval["anulada"].fillna(False)
-        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"])  # Convertir fecha
+        df_eval["anulada"] = df_eval["anulada"].fillna(False)  # Rellenar valores nulos
+        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")  # Crear columna Estado
     
+        # Configuración de columnas
         columnas_visibles = [
             "Seleccionar", "apellido_nombre", "nivel", "formulario",
             "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
         ]
+        
+        # Mapeo para renombrar columnas
         renombrar_columnas = {
             "Seleccionar": "Seleccionar",
             "apellido_nombre": "Apellido y Nombres",
@@ -562,17 +567,22 @@ elif opcion == "✏️ Editar nombres":
             "Estado": "Estado"
         }
     
-        # ----------- BLOQUE DE NO ANULADAS (con checkboxes) -----------
+        # ----------- BLOQUE DE EVALUACIONES NO ANULADAS (con checkboxes) -----------
         df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
         if not df_no_anuladas.empty:
             st.subheader("🔄 Evaluaciones que pueden anularse:")
-            df_no_anuladas["Seleccionar"] = False
+            df_no_anuladas["Seleccionar"] = False  # Añadir columna de selección
+            
+            # Incluir columnas necesarias (incluyendo id_evaluacion y cuil aunque no se muestren)
             df_no_anuladas = df_no_anuladas[[
-                "Seleccionar", "apellido_nombre", "nivel", "formulario",
-                "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
+                "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", "nivel", 
+                "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
             ]]
     
+            # Renombrar columnas para visualización
             df_renombrado = df_no_anuladas.rename(columns=renombrar_columnas)
+            
+            # Mostrar editor de datos con checkboxes
             seleccion = st.data_editor(
                 df_renombrado,
                 use_container_width=True,
@@ -582,26 +592,33 @@ elif opcion == "✏️ Editar nombres":
                     "Puntaje", "Evaluador", "Fecha", "Estado"
                 ],
                 column_config={
-                    "Seleccionar": st.column_config.CheckboxColumn("Seleccionar", help="Seleccionar para anular")
+                    "Seleccionar": st.column_config.CheckboxColumn("Seleccionar", help="Seleccionar para anular"),
+                    "id_evaluacion": st.column_config.Column(disabled=True),  # Columna oculta
+                    "cuil": st.column_config.Column(disabled=True)  # Columna oculta
                 }
             )
     
+            # Botón para anular evaluaciones seleccionadas
             if st.button("❌ Anular seleccionadas"):
                 seleccionados = seleccion[seleccion["Seleccionar"] == True]
                 if seleccionados.empty:
                     st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
                 else:
                     for _, row in seleccionados.iterrows():
-                        supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
-                        supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
-    
+                        # Actualizar estado en tabla evaluaciones
+                        supabase.table("evaluaciones").update({"anulada": True})\
+                            .eq("id_evaluacion", row["id_evaluacion"]).execute()
+                        # Actualizar estado en tabla agentes
+                        supabase.table("agentes").update({"evaluado_2025": False})\
+                            .eq("cuil", str(row["cuil"]).strip()).execute()
+                    
                     st.success(f"✅ {len(seleccionados)} evaluaciones anuladas.")
                     time.sleep(2)
-                    st.rerun()
+                    st.rerun()  # Recargar la página para ver cambios
         else:
             st.info("No hay evaluaciones activas para anular.")
     
-        # ----------- BLOQUE DE ANULADAS (sin checkboxes) -----------
+        # ----------- BLOQUE DE EVALUACIONES ANULADAS (solo visualización) -----------
         df_anuladas = df_eval[df_eval["anulada"] == True].copy()
         if not df_anuladas.empty:
             st.subheader("❌ Evaluaciones ya anuladas:")
