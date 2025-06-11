@@ -90,7 +90,6 @@ authenticator = stauth.Authenticate(
 #st.write("Usuarios cargados:", list(credentials["usernames"].keys()))
 
 
-name, authentication_status, username = authenticator.login()
 try:
     name, authentication_status, username = authenticator.login()
 except KeyError as e:
