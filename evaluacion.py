@@ -571,22 +571,33 @@ elif opcion == "✏️ Editar nombres":
             "Estado": "Estado"
         }
 
-               # Limpiar valores nulos en la columna anulada
+       
+        # Limpiar valores nulos en la columna anulada
         df_eval["anulada"] = df_eval["anulada"].fillna(False)
         
-        # Crear columna Seleccionar: False para las activas, None para las anuladas
+        # Crear columna Seleccionar: False para las activas, None para las anuladas (oculta checkbox)
         df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: None if x else False)
-        
-        # Obtener índices de filas anuladas para deshabilitar solo esos checkboxes
-        indices_anuladas = df_eval[df_eval["anulada"] == True].index.tolist()
         
         seleccion = st.data_editor(
             df_eval[columnas_visibles].rename(columns=renombrar_columnas),
             use_container_width=True,
             hide_index=True,
-            disabled=["Apellido y Nombres", "Nivel", "Form.", "Calificación", "Puntaje", "Evaluador", "Fecha", "Estado"],
+            disabled=[
+                "Apellido y Nombres",
+                "Nivel", 
+                "Form.",
+                "Calificación",
+                "Puntaje",
+                "Evaluador",
+                "Fecha",
+                "Estado"
+            ],
             column_config={
-                "Seleccionar": st.column_config.CheckboxColumn("Seleccionar")
+                "Seleccionar": st.column_config.CheckboxColumn(
+                    "Seleccionar",
+                    help="Seleccionar para anular"
+                    # ← Eliminé el parámetro disabled que causaba el problema
+                )
             }
         )
  
