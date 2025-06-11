@@ -545,7 +545,7 @@ elif opcion == "✏️ Editar nombres":
         df_eval = pd.DataFrame(evaluaciones)
 
         # Formatear fecha
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"]).dt.strftime("%d/%m/%Y %H:%M")
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"])
 
         # Estado textual
         df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
