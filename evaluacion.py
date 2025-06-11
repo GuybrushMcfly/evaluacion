@@ -559,7 +559,7 @@ elif opcion == "✏️ Editar nombres":
 
 
         if st.button("❌ Anular seleccionadas"):
-            anuladas = seleccion[seleccion["Anular"] == True]
+            anuladas = seleccion[seleccion["Seleccionar"] == True]
             if anuladas.empty:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
