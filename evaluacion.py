@@ -587,9 +587,7 @@ elif opcion == "✏️ Editar nombres":
                 "Estado": True
             }
         )
-        )
-
-
+ 
         if st.button("❌ Anular seleccionadas"):
             seleccionados = seleccion["Seleccionar"] == True
             indices = seleccionados[seleccionados].index
