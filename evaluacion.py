@@ -531,97 +531,82 @@ elif opcion == "✏️ Editar nombres":
 
     st.markdown("---")
 
+    st.subheader("📌 Anular evaluaciones realizadas")
+
+    evaluaciones = supabase.table("evaluaciones")\
+        .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_notificacion, anulada")\
+        .order("apellido_nombre")\
+        .execute().data
+
+    if not evaluaciones:
+        st.info("No hay evaluaciones registradas.")
+    else:
+        df_eval = pd.DataFrame(evaluaciones)
+
+        # Formatear fecha
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"])
+
+        # Estado textual
+        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+       # df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False if not x else None)
+       # df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: None if x else False)
+        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: False)
 
 
 
-    
-st.subheader("📌 Anular evaluaciones realizadas")
+        columnas_visibles = [
+            "Seleccionar", "apellido_nombre", "nivel", "formulario",
+            "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
+        ]
 
-evaluaciones = supabase.table("evaluaciones")\
-    .select("id_evaluacion, cuil, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_notificacion, anulada")\
-    .order("apellido_nombre")\
-    .execute().data
+        renombrar_columnas = {
+            "Seleccionar": "Seleccionar",
+            "apellido_nombre": "Apellido y Nombres",
+            "nivel": "Nivel",
+            "formulario": "Form.",
+            "calificacion": "Calificación",
+            "puntaje_total": "Puntaje",
+            "evaluador": "Evaluador",
+            "Fecha": "Fecha",
+            "Estado": "Estado"
+        }
 
-if not evaluaciones:
-    st.info("No hay evaluaciones registradas.")
-else:
-    df_eval = pd.DataFrame(evaluaciones)
-
-    # Formatear fecha
-    df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_notificacion"]).dt.strftime("%d/%m/%Y %H:%M")
-
-    # Estado textual
-    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-
-    # Inicializar columna de selección
-    df_eval["Seleccionar"] = False
-
-    # Crear máscara para deshabilitar selección en anuladas
-    seleccion_disabled_mask = df_eval["Estado"] == "Anulada"
-
-    # Columnas visibles y títulos amigables
-    columnas_visibles = [
-        "Seleccionar", "apellido_nombre", "nivel", "formulario",
-        "calificacion", "puntaje_total", "evaluador", "Fecha", "Estado"
-    ]
-
-    renombrar_columnas = {
-        "Seleccionar": "Seleccionar",
-        "apellido_nombre": "Apellido y Nombres",
-        "nivel": "Nivel",
-        "formulario": "Form.",
-        "calificacion": "Calificación",
-        "puntaje_total": "Puntaje",
-        "evaluador": "Evaluador",
-        "Fecha": "Fecha",
-        "Estado": "Estado"
-    }
-
-    # Mostrar tabla editable
-
-    df_eval_ren = df_eval[columnas_visibles].rename(columns=renombrar_columnas)
-    
-    # Crear máscara de deshabilitación para la columna 'Seleccionar'
-    checkbox_disabled = df_eval["Estado"] == "Anulada"
-    
-    # Crear diccionario para disabled → por columna → lista de booleanos por fila
-    disabled_config = {
-        "Seleccionar": checkbox_disabled.tolist(),
-        "Apellido y Nombres": [True] * len(df_eval),
-        "Nivel": [True] * len(df_eval),
-        "Form.": [True] * len(df_eval),
-        "Calificación": [True] * len(df_eval),
-        "Puntaje": [True] * len(df_eval),
-        "Evaluador": [True] * len(df_eval),
-        "Fecha": [True] * len(df_eval),
-        "Estado": [True] * len(df_eval)
-    }
-    
-    seleccion = st.data_editor(
-        df_eval_ren,
-        use_container_width=True,
-        hide_index=True,
-        disabled=disabled_config
-    )
+        seleccion = st.data_editor(
+            df_eval[columnas_visibles].rename(columns=renombrar_columnas),
+            use_container_width=True,
+            hide_index=True,
+            disabled={
+                "Seleccionar": df_eval["anulada"],  # ✅ acá está el cambio importante
+                "Apellido y Nombres": True,
+                "Nivel": True,
+                "Form.": True,
+                "Calificación": True,
+                "Puntaje": True,
+                "Evaluador": True,
+                "Fecha": True,
+                "Estado": True
+            }
+        )
 
 
+        if st.button("❌ Anular seleccionadas"):
+            seleccionados = seleccion["Seleccionar"] == True
+            indices = seleccionados[seleccionados].index
 
-    # Procesar anulaciones
-    if st.button("❌ Anular seleccionadas"):
-        seleccionados = seleccion["Seleccionar"] == True
-        indices = seleccionados[seleccionados].index
+            if len(indices) == 0:
+                st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
+            else:
+                for idx in indices:
+                    row = df_eval.loc[idx]
+                    if row["Estado"] == "Anulada":
+                        continue
+                    supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+                    #supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", row["cuil"]).execute()
+                    supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
 
-        if len(indices) == 0:
-            st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
-        else:
-            for idx in indices:
-                row = df_eval.loc[idx]
-                if row["Estado"] == "Anulada":
-                    continue
-                supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
-                supabase.table("agentes").update({"evaluado_2025": False}).eq("cuil", str(row["cuil"]).strip()).execute()
 
-            st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
-            time.sleep(2)
-            st.rerun()
+                st.success(f"✅ {len(indices)} evaluaciones anuladas. Los agentes podrán ser evaluados nuevamente.")
+                time.sleep(2)
+                st.rerun()
+
 
