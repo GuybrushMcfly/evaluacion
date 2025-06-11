@@ -534,7 +534,7 @@ elif opcion == "✏️ Editar nombres":
     st.subheader("📌 Anular evaluaciones realizadas")
     
     evaluaciones = supabase.table("evaluaciones")\
-        .select("apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_evaluacion, anulada")\
+        .select("id_evaluacion, apellido_nombre, nivel, formulario, calificacion, puntaje_total, evaluador, fecha_evaluacion, anulada")\
         .order("apellido_nombre")\
         .execute().data
     
