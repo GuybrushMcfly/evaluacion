@@ -598,6 +598,7 @@ elif opcion == "✏️ Editar nombres":
                 if len(indices) == 0:
                     st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
                 else:
+                    df_no_anuladas.reset_index(drop=True, inplace=True)  # <-- esta línea evita el error
                     for idx in indices:
                         eval_sel = df_no_anuladas.iloc[idx]
                         supabase.table("evaluaciones").update({"anulada": True})\
