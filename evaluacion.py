@@ -620,7 +620,9 @@ elif opcion == "✏️ Editar nombres":
                     st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
                 else:
                     for idx in indices:
-                        row = df_eval.loc[idx]
+                     
+                        row = df_no_anuladas.loc[idx]
+
                         if row["Estado"] == "Anulada":
                             continue
                         supabase.table("evaluaciones").update({"anulada": True}).eq("id_evaluacion", row["id_evaluacion"]).execute()
