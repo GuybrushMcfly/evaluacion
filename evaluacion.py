@@ -572,34 +572,54 @@ elif opcion == "✏️ Editar nombres":
         }
 
        
+       
         # Limpiar valores nulos en la columna anulada
         df_eval["anulada"] = df_eval["anulada"].fillna(False)
         
-        # Crear columna Seleccionar: False para las activas, None para las anuladas (oculta checkbox)
-        df_eval["Seleccionar"] = df_eval["anulada"].apply(lambda x: None if x else False)
+        # Crear DataFrame solo con las evaluaciones NO anuladas para mostrar checkboxes
+        df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+        df_no_anuladas["Seleccionar"] = False
         
-        seleccion = st.data_editor(
-            df_eval[columnas_visibles].rename(columns=renombrar_columnas),
-            use_container_width=True,
-            hide_index=True,
-            disabled=[
-                "Apellido y Nombres",
-                "Nivel", 
-                "Form.",
-                "Calificación",
-                "Puntaje",
-                "Evaluador",
-                "Fecha",
-                "Estado"
-            ],
-            column_config={
-                "Seleccionar": st.column_config.CheckboxColumn(
-                    "Seleccionar",
-                    help="Seleccionar para anular"
-                    # ← Eliminé el parámetro disabled que causaba el problema
-                )
-            }
-        )
+        # Crear DataFrame con las anuladas para mostrar sin checkboxes
+        df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+        
+        # Mostrar primero las evaluaciones que SÍ se pueden anular
+        if len(df_no_anuladas) > 0:
+            st.subheader("🔄 Evaluaciones que pueden anularse:")
+            
+            seleccion = st.data_editor(
+                df_no_anuladas[["Seleccionar"] + [col for col in columnas_visibles if col != "Seleccionar"]].rename(columns=renombrar_columnas),
+                use_container_width=True,
+                hide_index=True,
+                disabled=[
+                    "Apellido y Nombres",
+                    "Nivel", 
+                    "Form.",
+                    "Calificación",
+                    "Puntaje",
+                    "Evaluador",
+                    "Fecha",
+                    "Estado"
+                ],
+                column_config={
+                    "Seleccionar": st.column_config.CheckboxColumn(
+                        "Seleccionar",
+                        help="Seleccionar para anular"
+                    )
+                }
+            )
+        else:
+            st.info("No hay evaluaciones activas para anular.")
+            seleccion = pd.DataFrame()
+        
+        # Mostrar las anuladas solo como información (sin checkboxes)
+        if len(df_anuladas) > 0:
+            st.subheader("❌ Evaluaciones ya anuladas:")
+            st.dataframe(
+                df_anuladas[[col for col in columnas_visibles if col != "Seleccionar"]].rename(columns={k:v for k,v in renombrar_columnas.items() if k != "Seleccionar"}),
+                use_container_width=True,
+                hide_index=True
+            )
  
         if st.button("❌ Anular seleccionadas"):
             seleccionados = seleccion["Seleccionar"] == True
