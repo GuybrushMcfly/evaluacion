@@ -29,31 +29,33 @@ def mostrar(supabase, formularios, clasificaciones):
     seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
     agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
 
-    if not agente:
-        return
-
-    cuil = agente["cuil"]
-    apellido_nombre = agente["apellido_nombre"]
-    ingresante = agente.get("ingresante", False)
-
-    df_info = pd.DataFrame([{
+ 
+    # Preparar datos del agente
+    datos_agente = {
         "CUIL": cuil,
         "Apellido y Nombre": apellido_nombre,
-        "Ingresante": ingresante
-    }])
+        "NIVEL": agente.get("nivel", ""),
+        "GRADO": agente.get("grado", ""),
+        "TRAMO": agente.get("tramo", ""),
+        "AGRUPAMIENTO": agente.get("agrupamiento", ""),
+        "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
+        "ULT. CALIFICACIÓN": agente.get("ultima_calificacion", ""),
+        "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
+    }
+    
+    # Agregar datos de inactividad solo si el agente está inactivo
+    if not agente.get("activo", True):
+        datos_agente.update({
+            "ACTIVO": "No",
+            "MOTIVO INACTIVIDAD": agente.get("motivo_inactivo", ""),
+            "FECHA BAJA": agente.get("fecha_inactivo", "")
+        })
+    
+    df_info = pd.DataFrame([datos_agente])
+    
+    # Mostrar tabla sin edición (solo lectura)
+    st.dataframe(df_info, use_container_width=True, hide_index=True)
 
-    editado = st.data_editor(
-        df_info,
-        column_config={"Ingresante": st.column_config.CheckboxColumn("Ingresante")},
-        hide_index=True,
-        disabled=["CUIL", "Apellido y Nombre"],
-        use_container_width=True
-    )
-
-    nuevo_ingresante = editado["Ingresante"].iloc[0]
-    if nuevo_ingresante != ingresante:
-        supabase.table("agentes").update({"ingresante": bool(nuevo_ingresante)}).eq("cuil", cuil).execute()
-        st.success("✅ Valor de ingresante actualizado.")
 
     tipo = st.selectbox(
         "📄 Seleccione el tipo de formulario",
@@ -158,7 +160,7 @@ def mostrar(supabase, formularios, clasificaciones):
                     "fecha_inactivo": agente.get("fecha_inactivo"),
                 }).execute()
 
-                supabase.table("agentes").update({"evaluado_2025": True}).eq("cuil", cuil).execute()
+                supabase.table("agentes").update({"evaluado_2024": True}).eq("cuil", cuil).execute()
 
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                 st.balloons()
