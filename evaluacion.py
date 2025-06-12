@@ -249,31 +249,26 @@ elif opcion == "📄 Formulario":
         tipo = st.selectbox(
             "📄 Seleccione el tipo de formulario",
             options=[""] + list(formularios.keys()),
-            format_func=lambda x: f"Formulario {x}" if x else "Seleccione una opción",
+            format_func=lambda x: f"Formulario {x} - {formularios[x]['titulo']}" if x else "Seleccione una opción",
             key="select_tipo"
         )
 
-
     if tipo != "":
-        # Mostrar título del formulario
-        st.subheader(f"Formulario {tipo} - {formularios[tipo]['titulo']}")
-        
         if 'previsualizado' not in st.session_state:
             st.session_state.previsualizado = False
         if 'confirmado' not in st.session_state:
             st.session_state.confirmado = False
-    
+
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
-    
+
         with st.form("form_eval"):
             factor_puntaje = {}
             factor_posicion = {}
             puntajes = []
             respuestas_completas = True
-    
-            # CAMBIO AQUÍ: acceder a ['factores']
-            for i, bloque in enumerate(formularios[tipo]['factores']):
+
+            for i, bloque in enumerate(formularios[tipo]):
                 st.subheader(bloque['factor'])
                 st.write(bloque['descripcion'])
 
