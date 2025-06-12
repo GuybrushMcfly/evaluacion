@@ -60,34 +60,40 @@ if authentication_status:
         "⚙️ Configuración"
     ])
 
-    if opcion == "📝 Instructivo":
-        instructivo.mostrar()
+if opcion == "📝 Instructivo":
+    instructivo.mostrar()
 
-    elif opcion == "📄 Formularios" and (
-        st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
-    ):
+elif opcion == "📄 Formularios":
+    if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
         formularios_data, clasificaciones_data = formularios.cargar_formularios()
         formularios.mostrar(supabase, formularios_data, clasificaciones_data)
+    else:
+        st.warning("⚠️ Esta sección está reservada para otro rol.")
 
-    elif opcion == "📋 Evaluaciones" and (
-        st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
-    ):
+elif opcion == "📋 Evaluaciones":
+    if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
         evaluaciones.mostrar(supabase)
+    else:
+        st.warning("⚠️ Esta sección está reservada para otro rol.")
 
-    elif opcion == "✏️ RRHH" and st.session_state["rol"].get("rrhh"):
+elif opcion == "✏️ RRHH":
+    if st.session_state["rol"].get("rrhh"):
         rrhh.mostrar(supabase)
     else:
-        st.error("⚠️ Esta sección está reservada para otros roles.")
+        st.warning("⚠️ Esta sección está reservada para RRHH.")
 
-    elif opcion == "📘 Capacitación" and st.session_state["rol"].get("coordinador"):
+elif opcion == "📘 Capacitación":
+    if st.session_state["rol"].get("coordinador"):
         capacitacion.mostrar(supabase)
     else:
-        st.error("⚠️ Esta sección está reservada para otros roles.")
+        st.warning("⚠️ Esta sección está reservada para otro rol.")
 
-    elif opcion == "⚙️ Configuración" and st.session_state["rol"].get("coordinador"):
+elif opcion == "⚙️ Configuración":
+    if st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
     else:
-        st.error("⚠️ Esta sección está reservada para otros roles.")
+        st.warning("⚠️ Esta sección está reservada para otro rol.")
+
 
 elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
