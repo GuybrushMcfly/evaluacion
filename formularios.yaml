@@ -1,5 +1,6 @@
 formularios:
-  1  - Personal de mayor jerarquía (Funciones ejecutivas de alta conducción):
+  1:
+    - nombre: "Personal de mayor jerarquía (Funciones ejecutivas de alta conducción)"
     - descripcion: "Capacidad para establecer planes y programas, desagregando adecuadamente objetivos y metas que contribuyan al logro de los fines de la organización."
       factor: "1. PLANIFICACIÓN"
       opciones:
@@ -113,7 +114,7 @@ formularios:
         - ["d) Bajo compromiso con los fines de la organización. A veces parecen no importarle los problemas de la institución.", 1]
         - ["e) Se compromete muy poco con los objetivos organizacionales y parece que siempre prevalecieran sus intereses o proyectos individuales.", 0]
 
-  2  - Mandos medios con conducción	(Profesionales con jefatura y título terciario o universitario):
+  2:
     - descripcion: "Aptitud para establecer planes y programas desagregando adecuadamente objetivos y metas que contribuyan al mejor desempeño de su sector."
       factor: "1. PLANIFICACIÓN"
       opciones:
