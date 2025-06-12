@@ -1,70 +1,22 @@
 import streamlit as st
 import pandas as pd
 from pytz import timezone
-import io
 
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
     st.header("📋 Evaluaciones realizadas")
 
-    # Obtener evaluaciones y agentes
-    evaluaciones = supabase.table("evaluaciones").select("*").execute().data
-    agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data
-    mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+    # Aviso: resumen de factores está en otra sección
+    st.info("📊 Para ver el resumen de factores y descargar en Excel, accedé a la sección 📘 Capacitación.")
 
+    # Obtener evaluaciones
+    evaluaciones = supabase.table("evaluaciones").select("*").execute().data
     if not evaluaciones:
         st.info("No hay evaluaciones registradas.")
         return
 
-    # Construir resumen
-    filas = []
-    for e in evaluaciones:
-        cuil = e["cuil"]
-        agente = mapa_agentes.get(cuil, "Desconocido")
-        formulario = e.get("formulario", "")
-
-        # FACTOR PUNTAJE
-        factores_puntaje = e.get("factor_puntaje", {})
-        factores_formateados = {f"Factor {k.split('. ')[0].strip()}": v for k, v in factores_puntaje.items()}
-        resumen_puntaje = ", ".join([f"{k} ({v})" for k, v in factores_formateados.items()])
-
-        # FACTOR POSICION
-        factores_posicion = e.get("factor_posicion", {})
-        posiciones_formateadas = {f"Factor {k.split('. ')[0].strip()}": v for k, v in factores_posicion.items()}
-        resumen_posicion = ", ".join([f"{k} ({v})" for k, v in posiciones_formateadas.items()])
-
-        filas.append({
-            "CUIL": cuil,
-            "AGENTE": agente,
-            "FORMULARIO": formulario,
-            "FACTOR/POSICION": resumen_posicion,
-            "FACTOR/PUNTAJE": resumen_puntaje,
-            "CALIFICACION": e.get("calificacion", ""),
-            "PUNTAJE TOTAL": e.get("puntaje_total", ""),
-            "PUNTAJE MÁXIMO": e.get("puntaje_maximo", ""),
-            "PUNTAJE RELATIVO": e.get("puntaje_relativo", "")
-        })
-
-    df_resumen = pd.DataFrame(filas)
-    st.dataframe(df_resumen, use_container_width=True)
-
-    # Botón de descarga
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        df_resumen.to_excel(writer, index=False, sheet_name='Evaluaciones')
-
-    st.download_button(
-        label="📥 Descargar en Excel",
-        data=buffer.getvalue(),
-        file_name="evaluaciones.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    # Anulación
-    st.markdown("---")
-    st.subheader("📌 Anular evaluaciones realizadas")
+    # Configurar zona horaria y preparar dataframe
     hora_arg = timezone('America/Argentina/Buenos_Aires')
-
     df_eval = pd.DataFrame(evaluaciones)
     df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
     df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
