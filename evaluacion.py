@@ -42,7 +42,8 @@ usuarios_result = supabase.table("usuarios")\
 credentials = {
     "usernames": {},
     "cookie": {
-        "expiry_days": 1,
+        #"expiry_days": 1,
+        "expiry_days": 0.0104  # equivale a 15 minutos
         "key": "clave_segura_super_oculta", 
         "name": "evaluacion_app"
     }
@@ -100,6 +101,11 @@ except KeyError as e:
 
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
+    if not st.session_state.get("usuario") or not st.session_state.get("rol"):
+        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
+        authenticator.logout("Cerrar sesión", "sidebar")
+        st.stop()
+
     # Obtenemos datos del usuario
     try:
         usuario_data = supabase.table("usuarios")\
