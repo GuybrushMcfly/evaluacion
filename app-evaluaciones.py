@@ -47,7 +47,7 @@ if authentication_status:
         st.stop()
 
     # ---- INTERFAZ ----
-    st.sidebar.success(f"Hola, {st.session_state['nombre_completo']}")
+    st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
     # SOLO MOSTRAR EL MENÚ SI ESTÁ AUTENTICADO
