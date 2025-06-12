@@ -16,8 +16,8 @@ def mostrar(supabase, formularios, clasificaciones):
 
     agentes_data = supabase.table("agentes")\
         .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general, activo, motivo_inactivo, fecha_inactivo")\
-        .eq("evaluador_2025", usuario_actual)\
-        .eq("evaluado_2025", False)\
+        .eq("evaluador_2024", usuario_actual)\
+        .eq("evaluado_2024", False)\
         .order("apellido_nombre")\
         .execute().data
 
@@ -143,7 +143,7 @@ def mostrar(supabase, formularios, clasificaciones):
                     "dependencia_general": unidad_info.get("dependencia_general") if unidad_info else None,
                     "unidad_evaluadora": unidad_info.get("unidad_evaluadora") if unidad_info else None,
                     "unidad_analisis": unidad_info.get("unidad_analisis") if unidad_info else None,
-                    "anio_evaluacion": 2025,
+                    "anio_evaluacion": 2024,
                     "evaluador": evaluador,
                     "formulario": tipo_formulario,
                     "factor_puntaje": st.session_state["factor_puntaje"],
