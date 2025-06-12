@@ -1,5 +1,5 @@
 formularios:
-  1:
+  1 "ada":
     - descripcion: "Capacidad para establecer planes y programas, desagregando adecuadamente objetivos y metas que contribuyan al logro de los fines de la organización."
       factor: "1. PLANIFICACIÓN"
       opciones:
