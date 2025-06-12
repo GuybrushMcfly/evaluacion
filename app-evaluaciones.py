@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from modules import auth
-from views import instructivo, formularios, evaluaciones, rrhh, configuracion
+from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
@@ -56,6 +56,7 @@ if authentication_status:
         "📄 Formularios",
         "📋 Evaluaciones",
         "✏️ RRHH",
+        "📘 Capacitación",
         "⚙️ Configuración"
     ])
 
@@ -76,6 +77,9 @@ if authentication_status:
 
     elif opcion == "✏️ RRHH" and st.session_state["rol"].get("rrhh"):
         rrhh.mostrar(supabase)
+
+    elif opcion == "📘 Capacitación" and st.session_state["rol"].get("coordinador"):
+    capacitacion.mostrar(supabase)
 
     elif opcion == "⚙️ Configuración" and st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
