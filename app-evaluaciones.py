@@ -51,14 +51,14 @@ if authentication_status:
     st.sidebar.success(f"Hola, {st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
-    opcion = st.sidebar.radio("📂 Navegación", [
-        "📝 Instructivo",
-        "📄 Formularios",
-        "📋 Evaluaciones",
-        "✏️ RRHH",
-        "📘 Capacitación",
-        "⚙️ Configuración"
-    ])
+opcion = st.sidebar.radio("📂 Navegación", [
+    "📝 Instructivo",
+    "📄 Formularios",
+    "📋 Evaluaciones",
+    "✏️ RRHH",
+    "📘 Capacitación",
+    "⚙️ Configuración"
+])
 
 if opcion == "📝 Instructivo":
     instructivo.mostrar()
