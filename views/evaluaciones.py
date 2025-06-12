@@ -4,7 +4,7 @@ from pytz import timezone
 import io
 
 # ---- Vista: Evaluaciones ----
-def mostrar_vista(supabase):
+def mostrar(supabase):
     st.header("📋 Evaluaciones realizadas")
 
     # Obtener evaluaciones y agentes
