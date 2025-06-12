@@ -9,7 +9,7 @@ def cargar_formularios():
         config = yaml.safe_load(f)
     return config["formularios"], config["clasificaciones"]
 
-def mostrar_formulario(supabase, formularios, clasificaciones):
+def mostrar(supabase, formularios, clasificaciones):
     st.markdown("<h1 style='font-size:24px;'>📄 Formulario de Evaluación</h1>", unsafe_allow_html=True)
 
     usuario_actual = st.session_state.get("usuario")
