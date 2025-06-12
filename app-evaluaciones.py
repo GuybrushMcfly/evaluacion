@@ -69,7 +69,6 @@ if authentication_status:
         formularios_data, clasificaciones_data = formularios.cargar_formularios()
         formularios.mostrar(supabase, formularios_data, clasificaciones_data)
 
-
     elif opcion == "📋 Evaluaciones" and (
         st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
     ):
@@ -77,12 +76,18 @@ if authentication_status:
 
     elif opcion == "✏️ RRHH" and st.session_state["rol"].get("rrhh"):
         rrhh.mostrar(supabase)
+    else:
+        st.error("⚠️ Esta sección está reservada para otros roles.")
 
     elif opcion == "📘 Capacitación" and st.session_state["rol"].get("coordinador"):
         capacitacion.mostrar(supabase)
+    else:
+        st.error("⚠️ Esta sección está reservada para otros roles.")
 
     elif opcion == "⚙️ Configuración" and st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
+    else:
+        st.error("⚠️ Esta sección está reservada para otros roles.")
 
 elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
