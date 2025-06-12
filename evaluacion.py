@@ -255,21 +255,25 @@ elif opcion == "📄 Formulario":
 
 
     if tipo != "":
+        # Mostrar título del formulario
+        st.subheader(f"Formulario {tipo} - {formularios[tipo]['titulo']}")
+        
         if 'previsualizado' not in st.session_state:
             st.session_state.previsualizado = False
         if 'confirmado' not in st.session_state:
             st.session_state.confirmado = False
-
+    
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
-
+    
         with st.form("form_eval"):
             factor_puntaje = {}
             factor_posicion = {}
             puntajes = []
             respuestas_completas = True
-
-            for i, bloque in enumerate(formularios[tipo]):
+    
+            # CAMBIO AQUÍ: acceder a ['factores']
+            for i, bloque in enumerate(formularios[tipo]['factores']):
                 st.subheader(bloque['factor'])
                 st.write(bloque['descripcion'])
 
