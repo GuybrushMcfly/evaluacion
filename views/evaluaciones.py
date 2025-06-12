@@ -6,9 +6,6 @@ from pytz import timezone
 def mostrar(supabase):
     st.header("📋 Evaluaciones realizadas")
 
-    # Aviso: resumen de factores está en otra sección
-    st.info("📊 Para ver el resumen de factores y descargar en Excel, accedé a la sección 📘 Capacitación.")
-
     # Obtener evaluaciones
     evaluaciones = supabase.table("evaluaciones").select("*").execute().data
     if not evaluaciones:
