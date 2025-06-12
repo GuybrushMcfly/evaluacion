@@ -99,13 +99,9 @@ except KeyError as e:
     st.stop()
 
 
+
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
-    if not st.session_state.get("usuario") or not st.session_state.get("rol"):
-        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
-        authenticator.logout("Cerrar sesión", "sidebar")
-        st.stop()
-
     # Obtenemos datos del usuario
     try:
         usuario_data = supabase.table("usuarios")\
@@ -142,6 +138,12 @@ if authentication_status:
         st.error(f"❌ Error al cargar datos del usuario: {str(e)}")
         st.stop()
     
+    # Validar sesión correctamente cargada
+    if not st.session_state.get("usuario") or not st.session_state.get("rol"):
+        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
+        authenticator.logout("Cerrar sesión", "sidebar")
+        st.stop()
+    
     # Mostramos interfaz
     st.sidebar.success(f"Hola, {st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
@@ -159,6 +161,7 @@ elif authentication_status is False:
 elif authentication_status is None:
     st.warning("🔐 Ingresá tus credenciales para acceder al dashboard.")
     st.stop()
+
 
 
 # ---- CARGAR FORMULARIOS ----
