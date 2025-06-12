@@ -68,31 +68,32 @@ elif opcion == "📄 Formularios":
         formularios_data, clasificaciones_data = formularios.cargar_formularios()
         formularios.mostrar(supabase, formularios_data, clasificaciones_data)
     else:
-        st.warning("⚠️ Esta sección está habilitada para otro rol.")
+        st.warning("⚠️ Esta sección está hbilitada para otro rol.")
 
 elif opcion == "📋 Evaluaciones":
     if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
         evaluaciones.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está habilitada para otro rol.")
+        st.warning("⚠️ Esta sección está hbilitada para otro rol.")
 
 elif opcion == "✏️ RRHH":
     if st.session_state["rol"].get("rrhh"):
         rrhh.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está habilitada para otro rol.")
+        st.warning("⚠️ Esta sección está hbilitada para otro rol.")
 
 elif opcion == "📘 Capacitación":
     if st.session_state["rol"].get("coordinador"):
         capacitacion.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está habilitada para otro rol.")
+        st.warning("⚠️ Esta sección está hbilitada para otro rol.")
 
 elif opcion == "⚙️ Configuración":
     if st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está habilitada para otro rol.")
+        st.warning("⚠️ Esta sección está hbilitada para otro rol.")
+
 
 
 elif authentication_status is False:
