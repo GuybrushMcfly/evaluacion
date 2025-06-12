@@ -79,7 +79,7 @@ if authentication_status:
         rrhh.mostrar(supabase)
 
     elif opcion == "📘 Capacitación" and st.session_state["rol"].get("coordinador"):
-    capacitacion.mostrar(supabase)
+        capacitacion.mostrar(supabase)
 
     elif opcion == "⚙️ Configuración" and st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
