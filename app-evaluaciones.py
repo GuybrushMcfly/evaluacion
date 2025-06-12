@@ -1,7 +1,7 @@
 import streamlit as st
-from views import instructivo
-from modules import auth
 import json
+from modules import auth
+from views import instructivo, formulario, evaluaciones, rrhh, configuracion
 
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
@@ -52,13 +52,34 @@ if authentication_status:
     authenticator.logout("Cerrar sesión", "sidebar")
 
     opcion = st.sidebar.radio("📂 Navegación", [
-        "📝 Instructivo"
+        "📝 Instructivo",
+        "📄 Formulario",
+        "📋 Evaluaciones",
+        "✏️ RRHH",
+        "⚙️ Configuración"
     ])
 
     if opcion == "📝 Instructivo":
         instructivo.mostrar()
 
+    elif opcion == "📄 Formulario" and (
+        st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
+    ):
+        formulario.mostrar(supabase)
+
+    elif opcion == "📋 Evaluaciones" and (
+        st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
+    ):
+        evaluaciones.mostrar(supabase)
+
+    elif opcion == "✏️ RRHH" and st.session_state["rol"].get("rrhh"):
+        rrhh.mostrar(supabase)
+
+    elif opcion == "⚙️ Configuración" and st.session_state["rol"].get("coordinador"):
+        configuracion.mostrar(supabase)
+
 elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
+
 elif authentication_status is None:
     st.warning("🔐 Ingresá tus credenciales para acceder al sistema.")
