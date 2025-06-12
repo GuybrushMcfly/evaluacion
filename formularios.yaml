@@ -1,6 +1,6 @@
 formularios:
   1:
-    titulo: "Personal de mayor jerarquía (Funciones ejecutivas de alta conducción)"
+    titulo: "Gerencial (Personal con funciones ejecutivas)"
     factores:
     - descripcion: "Capacidad para establecer planes y programas, desagregando adecuadamente objetivos y metas que contribuyan al logro de los fines de la organización."
       factor: "1. PLANIFICACIÓN"
@@ -116,7 +116,7 @@ formularios:
         - ["e) Se compromete muy poco con los objetivos organizacionales y parece que siempre prevalecieran sus intereses o proyectos individuales.", 0]
 
   2:
-    titulo: "Mandos medios con conducción	(Profesionales con jefatura y título terciario/universitario)"
+    titulo: "Medio profesional o técnico con personal a cargo	(Jefaturas con título terciario/universitario)"
     factores:
     - descripcion: "Aptitud para establecer planes y programas desagregando adecuadamente objetivos y metas que contribuyan al mejor desempeño de su sector."
       factor: "1. PLANIFICACIÓN"
@@ -216,7 +216,7 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptadas a ellas.", 0]
 
   3:
-    titulo: "Evaluación de Competencias Laborales"
+    titulo: "Medio con personal a cargo	(Jefaturas sin título obligatorio)"
     factores:  
     - descripcion: "Aptitud para establecer planes y programas desagregando adecuadamente objetivos y metas que contribuyan al mejor desempeño de su sector."
       factor: "1. PLANIFICACIÓN"
@@ -316,7 +316,7 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptados a ellas.", 0]
 
   4:
-    titulo: "Evaluación de Competencias Laborales"
+    titulo: "Medio sin personal a cargo	(Técnicos, profesionales o asesores)"
     factores:
     - descripcion: "Nivel de conocimiento profesional o técnico aplicado al eficaz ejercicio de la función y/o el puesto."
       factor: "1. COMPETENCIA PROFESIONAL PARA LA FUNCIÓN"
@@ -400,7 +400,7 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptados a ellas.", 0]
 
   5:
-    titulo: "Evaluación de Competencias Laborales"
+    titulo: "Operativo con personal a cargo (Jefes operativos sin título requerido)"
     factores:
     - descripcion: "Capacidad para lograr que el sector a su cargo trabaje con el máximo de eficiencia global haciendo un uso racional de los recursos asignados."
       factor: "1. ORGANIZACIÓN"
@@ -468,7 +468,7 @@ formularios:
         - ["e) Siempre tiene dificultades para cooperar con sus pares y superiores.", 0]
 
   6:
-    titulo: "Evaluación de Competencias Laborales"
+    titulo: "Operativo sin personal a cargo (Tareas básicas o de atención al público)"
     factores:
     - descripcion: "Volumen de producción de acuerdo con los requerimientos del puesto en el tiempo acordado."
       factor: "1.1. CANTIDAD DE TRABAJO"
