@@ -65,7 +65,9 @@ if authentication_status:
     elif opcion == "📄 Formularios" and (
         st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
     ):
-        formularios.mostrar(supabase)
+        formularios_data, clasificaciones_data = formularios.cargar_formularios()
+        formularios.mostrar(supabase, formularios_data, clasificaciones_data)
+
 
     elif opcion == "📋 Evaluaciones" and (
         st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general")
