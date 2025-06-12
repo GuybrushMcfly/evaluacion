@@ -116,6 +116,8 @@ formularios:
         - ["e) Se compromete muy poco con los objetivos organizacionales y parece que siempre prevalecieran sus intereses o proyectos individuales.", 0]
 
   2:
+    titulo: "Evaluación de Competencias Laborales"
+    factores:
     - descripcion: "Aptitud para establecer planes y programas desagregando adecuadamente objetivos y metas que contribuyan al mejor desempeño de su sector."
       factor: "1. PLANIFICACIÓN"
       opciones:
@@ -214,6 +216,8 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptadas a ellas.", 0]
 
   3:
+    titulo: "Evaluación de Competencias Laborales"
+    factores:  
     - descripcion: "Aptitud para establecer planes y programas desagregando adecuadamente objetivos y metas que contribuyan al mejor desempeño de su sector."
       factor: "1. PLANIFICACIÓN"
       opciones:
@@ -312,6 +316,8 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptados a ellas.", 0]
 
   4:
+    titulo: "Evaluación de Competencias Laborales"
+    factores:
     - descripcion: "Nivel de conocimiento profesional o técnico aplicado al eficaz ejercicio de la función y/o el puesto."
       factor: "1. COMPETENCIA PROFESIONAL PARA LA FUNCIÓN"
       opciones:
@@ -394,6 +400,8 @@ formularios:
         - ["e) Es poco permeable a las nuevas situaciones de trabajo y muy poco capaz de adoptar cursos de acción adaptados a ellas.", 0]
 
   5:
+    titulo: "Evaluación de Competencias Laborales"
+    factores:
     - descripcion: "Capacidad para lograr que el sector a su cargo trabaje con el máximo de eficiencia global haciendo un uso racional de los recursos asignados."
       factor: "1. ORGANIZACIÓN"
       opciones:
@@ -460,6 +468,8 @@ formularios:
         - ["e) Siempre tiene dificultades para cooperar con sus pares y superiores.", 0]
 
   6:
+    titulo: "Evaluación de Competencias Laborales"
+    factores:
     - descripcion: "Volumen de producción de acuerdo con los requerimientos del puesto en el tiempo acordado."
       factor: "1.1. CANTIDAD DE TRABAJO"
       opciones:
