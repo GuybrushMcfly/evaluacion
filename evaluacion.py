@@ -258,20 +258,21 @@ elif opcion == "📄 Formulario":
             st.session_state.previsualizado = False
         if 'confirmado' not in st.session_state:
             st.session_state.confirmado = False
-
+        
         cuil = agente["cuil"]
         apellido_nombre = agente["apellido_nombre"]
-
+        
         with st.form("form_eval"):
             factor_puntaje = {}
             factor_posicion = {}
             puntajes = []
             respuestas_completas = True
-
-            for i, bloque in enumerate(formularios[tipo]):
+            
+            # CORREGIDO: acceder a ['factores']
+            for i, bloque in enumerate(formularios[tipo]['factores']):
                 st.subheader(bloque['factor'])
                 st.write(bloque['descripcion'])
-
+                
                 opciones = [texto for texto, _ in bloque['opciones']]
                 seleccion = st.radio(
                     label="Seleccione una opción",
@@ -279,30 +280,28 @@ elif opcion == "📄 Formulario":
                     key=f"factor_{i}",
                     index=None
                 )
-
+                
                 if seleccion is not None:
                     puntaje = dict(bloque['opciones'])[seleccion]
                     puntajes.append(puntaje)
                     clave = bloque['factor'].split(' ')[0].strip()
                     factor_puntaje[f"Factor {clave}"] = puntaje
-                    #factor_posicion[f"Factor {clave}"] = seleccion 
+                    
                     # Buscar la posición de la opción seleccionada en la lista
                     posicion = opciones.index(seleccion) + 1
                     factor_posicion[f"Factor {clave}"] = posicion
-                   
                 else:
                     respuestas_completas = False
-
+            
             previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
-
+        
         if previsualizar:
             if respuestas_completas:
                 st.session_state.previsualizado = True
                 st.session_state.puntajes = puntajes
                 st.session_state.respuestas_completas = True
-
-                st.session_state.factor_puntaje = factor_puntaje#verver
-                st.session_state.factor_posicion = factor_posicion#verver
+                st.session_state.factor_puntaje = factor_puntaje
+                st.session_state.factor_posicion = factor_posicion
             else:
                 st.error("❌ Complete todas las respuestas para previsualizar la calificación")
                 st.session_state.previsualizado = False
