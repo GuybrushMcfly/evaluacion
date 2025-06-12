@@ -1,14 +1,19 @@
 import streamlit as st
 import pandas as pd
+import yaml
 from datetime import date
 import time
 
-def mostrar(supabase, formularios, clasificaciones):
+def cargar_formularios():
+    with open("formularios.yaml", "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    return config["formularios"], config["clasificaciones"]
+
+def mostrar_formulario(supabase, formularios, clasificaciones):
     st.markdown("<h1 style='font-size:24px;'>📄 Formulario de Evaluación</h1>", unsafe_allow_html=True)
 
     usuario_actual = st.session_state.get("usuario")
 
-    # Obtener agentes a evaluar
     agentes_data = supabase.table("agentes")\
         .select("cuil, apellido_nombre, ingresante, nivel, grado, dependencia, dependencia_general, activo, motivo_inactivo, fecha_inactivo")\
         .eq("evaluador_2025", usuario_actual)\
@@ -31,7 +36,6 @@ def mostrar(supabase, formularios, clasificaciones):
     apellido_nombre = agente["apellido_nombre"]
     ingresante = agente.get("ingresante", False)
 
-    # Mostrar tabla editable del agente
     df_info = pd.DataFrame([{
         "CUIL": cuil,
         "Apellido y Nombre": apellido_nombre,
@@ -40,9 +44,7 @@ def mostrar(supabase, formularios, clasificaciones):
 
     editado = st.data_editor(
         df_info,
-        column_config={
-            "Ingresante": st.column_config.CheckboxColumn("Ingresante")
-        },
+        column_config={"Ingresante": st.column_config.CheckboxColumn("Ingresante")},
         hide_index=True,
         disabled=["CUIL", "Apellido y Nombre"],
         use_container_width=True
