@@ -43,7 +43,7 @@ credentials = {
     "usernames": {},
     "cookie": {
         #"expiry_days": 1,
-        "expiry_days": 0.0104  # equivale a 15 minutos,
+        "expiry_days": 0.0104,  # equivale a 15 minutos,
         "key": "clave_segura_super_oculta", 
         "name": "evaluacion_app"
     }
