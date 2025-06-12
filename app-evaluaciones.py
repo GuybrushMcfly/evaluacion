@@ -43,7 +43,7 @@ if authentication_status:
         st.stop()
 
     if not st.session_state.get("usuario") or not st.session_state.get("rol"):
-        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, volvé a iniciar sesión.")
+        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
 
@@ -68,35 +68,35 @@ elif opcion == "📄 Formularios":
         formularios_data, clasificaciones_data = formularios.cargar_formularios()
         formularios.mostrar(supabase, formularios_data, clasificaciones_data)
     else:
-        st.warning("⚠️ Esta sección está reservada para otro rol.")
+        st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif opcion == "📋 Evaluaciones":
     if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
         evaluaciones.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está reservada para otro rol.")
+        st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif opcion == "✏️ RRHH":
     if st.session_state["rol"].get("rrhh"):
         rrhh.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está reservada para RRHH.")
+        st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif opcion == "📘 Capacitación":
     if st.session_state["rol"].get("coordinador"):
         capacitacion.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está reservada para otro rol.")
+        st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif opcion == "⚙️ Configuración":
     if st.session_state["rol"].get("coordinador"):
         configuracion.mostrar(supabase)
     else:
-        st.warning("⚠️ Esta sección está reservada para otro rol.")
+        st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 
 elif authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos.")
 
 elif authentication_status is None:
-    st.warning("🔐 Ingresá tus credenciales para acceder al sistema.")
+    st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
