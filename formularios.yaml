@@ -1,7 +1,5 @@
 formularios:
   1:
-    nombre: "Personal de mayor jerarquía (Funciones ejecutivas de alta conducción)"
-    items:
     - descripcion: "Capacidad para establecer planes y programas, desagregando adecuadamente objetivos y metas que contribuyan al logro de los fines de la organización."
       factor: "1. PLANIFICACIÓN"
       opciones:
