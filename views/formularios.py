@@ -21,15 +21,23 @@ def mostrar(supabase, formularios, clasificaciones):
         .order("apellido_nombre")\
         .execute().data
 
+    # Verificar si hay agentes para evaluar
     if not agentes_data:
         st.warning("⚠️ No hay agentes disponibles para evaluar.")
         return
-
+    
+    # Selección de agente
     opciones_agentes = [a["apellido_nombre"] for a in agentes_data]
     seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
     agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
-
- 
+    
+    if not agente:
+        return
+    
+    # Variables base
+    cuil = agente["cuil"]
+    apellido_nombre = agente["apellido_nombre"]
+    
     # Preparar datos del agente
     datos_agente = {
         "CUIL": cuil,
@@ -51,18 +59,18 @@ def mostrar(supabase, formularios, clasificaciones):
             "FECHA BAJA": agente.get("fecha_inactivo", "")
         })
     
+    # Mostrar tabla
     df_info = pd.DataFrame([datos_agente])
-    
-    # Mostrar tabla sin edición (solo lectura)
     st.dataframe(df_info, use_container_width=True, hide_index=True)
-
-
+    
+    # Selección de tipo de formulario
     tipo = st.selectbox(
         "📄 Seleccione el tipo de formulario",
         options=[""] + list(formularios.keys()),
         format_func=lambda x: f"Formulario {x} - {formularios[x]['titulo']}" if x else "Seleccione una opción",
         key="select_tipo"
     )
+
 
     if tipo == "":
         return
