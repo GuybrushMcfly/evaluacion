@@ -38,10 +38,10 @@ def mostrar(supabase, formularios, clasificaciones):
     cuil = agente["cuil"]
     apellido_nombre = agente["apellido_nombre"]
     
-    # Preparar datos del agente
+     # Preparar datos del agente (sin incluir los datos de inactividad)
     datos_agente = {
-   #     "CUIL": cuil,
-   #     "Apellido y Nombre": apellido_nombre,
+    #   "CUIL": cuil,  # si querés mostrarlo, activalo
+    #   "Apellido y Nombre": apellido_nombre,
         "NIVEL": agente.get("nivel", ""),
         "GRADO": agente.get("grado", ""),
         "TRAMO": agente.get("tramo", ""),
@@ -51,17 +51,21 @@ def mostrar(supabase, formularios, clasificaciones):
         "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
     }
     
-    # Agregar datos de inactividad solo si el agente está inactivo
-    if not agente.get("activo", True):
-        datos_agente.update({
-            "ACTIVO": "No",
-            "MOTIVO INACTIVIDAD": agente.get("motivo_inactivo", ""),
-            "FECHA BAJA": agente.get("fecha_inactivo", "")
-        })
-    
-    # Mostrar tabla
+    # Mostrar tabla principal
     df_info = pd.DataFrame([datos_agente])
     st.dataframe(df_info, use_container_width=True, hide_index=True)
+    
+    # Mostrar datos de inactividad debajo si no está activo
+    if not agente.get("activo", True):
+        st.markdown("### ⚠️ Información de inactividad")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"**Activo:** No")
+        with col2:
+            st.markdown(f"**Motivo de inactividad:** {agente.get('motivo_inactivo', '-')}")
+        with col3:
+            st.markdown(f"**Fecha de baja:** {agente.get('fecha_inactivo', '-')}")
+
 
    
     
