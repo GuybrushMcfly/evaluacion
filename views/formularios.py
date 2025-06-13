@@ -177,13 +177,10 @@ def mostrar(supabase, formularios, clasificaciones):
 
                 supabase.table("agentes").update({"evaluado_2024": True}).eq("cuil", cuil).execute()
 
-                st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente".")
+                            
+                st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
+                st.balloons()
                 time.sleep(2)
-             #   st.rerun()
-                
-              #  st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
-              #  st.balloons()
-              #  time.sleep(2)
 
                 for key in list(st.session_state.keys()):
                     if key.startswith("factor_") or key in ["select_tipo", "previsualizado", "confirmado", "puntajes", "respuestas_completas", "last_tipo"]:
