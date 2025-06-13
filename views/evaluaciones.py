@@ -3,81 +3,59 @@ import pandas as pd
 from pytz import timezone
 import time
 
+# ---- Vista: Evaluaciones ----
 def mostrar(supabase):
-    st.markdown("<a id='evaluaciones'></a>", unsafe_allow_html=True)
-    st.markdown("<div style='margin-top: 60px;'></div>", unsafe_allow_html=True)
-    st.markdown("#### 📋 Evaluaciones realizadas")
+    st.header("📋 Evaluaciones realizadas")
 
-    # Cargar datos
+    # Obtener evaluaciones
     evaluaciones = supabase.table("evaluaciones").select("*").execute().data
     if not evaluaciones:
-        st.warning("⚠️ No hay evaluaciones registradas.")
+        st.info("No hay evaluaciones registradas.")
         return
 
-    df = pd.DataFrame(evaluaciones)
-    df["anulada"] = df["anulada"].fillna(False)
-    df = df[df["anulada"] == False]  # Filtrar anuladas
+    # Configurar zona horaria y preparar dataframe
+    hora_arg = timezone('America/Argentina/Buenos_Aires')
+    df_eval = pd.DataFrame(evaluaciones)
+    df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
+    df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
+    df_eval["anulada"] = df_eval["anulada"].fillna(False)
+    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
 
-    # Filtros iniciales
-    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+    # ----------------------
+    # RESUMEN DE INDICADORES
+    # ----------------------
+    df_vigente = df_eval[df_eval["anulada"] == False].copy()
+    total = len(df_eval)
+    evaluadas = len(df_vigente)
+    porcentaje = (evaluadas / total * 100) if total else 0
+
+    st.markdown("### 📊 Indicadores")
     col1, col2, col3 = st.columns(3)
-    with col1:
-        ingresante = st.selectbox("🔹 Ingresante", ["Todos", "Sí", "No"])
-    with col2:
-        formularios = sorted(df["formulario"].dropna().unique())
-        formulario = st.selectbox("🔹 Formulario", ["Todos"] + formularios)
-    with col3:
-        calificaciones = sorted(df["calificacion"].dropna().unique())
-        calificacion = st.selectbox("🔹 Calificación", ["Todos"] + calificaciones)
-
-    # Aplicar filtros
-    df_filt = df.copy()
-    if ingresante != "Todos":
-        df_filt = df_filt[df_filt["ingresante"] == (ingresante == "Sí")]
-    if formulario != "Todos":
-        df_filt = df_filt[df_filt["formulario"] == formulario]
-    if calificacion != "Todos":
-        df_filt = df_filt[df_filt["calificacion"] == calificacion]
-
-    # Sección de métricas
-    st.divider()
-    st.subheader("📊 Indicadores")
-    total = len(df_filt)
-    porcentaje = 100 if total > 0 else 0
-
-    cols = st.columns(3)
-    with cols[0]: st.metric("Total evaluaciones", total)
-    with cols[1]: st.metric("Registradas", total)
-    with cols[2]: st.metric("% Registradas", f"{porcentaje:.1f}%")
+    with col1: st.metric("Total para evaluar", total)
+    with col2: st.metric("Total evaluados", evaluadas)
+    with col3: st.metric("% Evaluados", f"{porcentaje:.1f}%")
 
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
-    # Expandible con tabla completa
-    columnas_fijas = ["apellido_nombre", "formulario", "calificacion", "puntaje_total", "evaluador", "fecha_evaluacion"]
-    with st.expander("📋 LISTADO DE EVALUACIONES", expanded=True):
-        columnas_seleccionadas = st.multiselect(
-            "Seleccionar columnas a mostrar:",
-            options=columnas_fijas,
-            default=columnas_fijas
-        )
+    # ----------------------
+    # DETALLE USO DE FORMULARIOS
+    # ----------------------
+    st.markdown("### 📑 Uso de formularios")
+    uso_formularios = df_vigente["formulario"].value_counts().sort_index()
+    st.dataframe(uso_formularios.rename_axis("Formulario").reset_index(name="Cantidad"), use_container_width=True, hide_index=True)
 
-        hora_arg = timezone('America/Argentina/Buenos_Aires')
-        df_filt["fecha_evaluacion"] = pd.to_datetime(df_filt["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
-        df_filt["Fecha_formateada"] = df_filt["fecha_evaluacion"].dt.strftime('%d/%m/%Y %H:%M')
+    # ----------------------
+    # DETALLE POR CALIFICACIÓN
+    # ----------------------
+    st.markdown("### 🏷️ Distribución por calificación")
+    categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
+    df_vigente["calificacion"] = df_vigente["calificacion"].fillna("SIN DATOS")
+    calif = df_vigente["calificacion"].value_counts().reindex(categorias, fill_value=0)
+    st.dataframe(calif.rename_axis("Calificación").reset_index(name="Cantidad"), use_container_width=True, hide_index=True)
 
-        if columnas_seleccionadas:
-            df_mostrar = df_filt[columnas_seleccionadas].copy()
-            st.dataframe(df_mostrar, use_container_width=True, hide_index=True, height=400)
-        else:
-            st.info("Seleccioná al menos una columna para mostrar.")
-
-
-    # Bloque de anulaciones
-    st.divider()
-    st.subheader("❌ Gestión de anulaciones")
-    df_filt["anulada"] = df_filt["anulada"].fillna(False)
-    df_filt["Estado"] = df_filt["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-
+    # ----------------------
+    # BLOQUE DE NO ANULADAS
+    # ----------------------
     columnas_visibles = [
         "Seleccionar", "apellido_nombre", "formulario",
         "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
@@ -93,11 +71,12 @@ def mostrar(supabase):
         "Estado": "Estado"
     }
 
-    df_no_anuladas = df_filt[df_filt["anulada"] == False].copy()
+    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
     if not df_no_anuladas.empty:
+        st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas = df_no_anuladas[[
-            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", 
+            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre",
             "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
         ]]
 
@@ -130,9 +109,12 @@ def mostrar(supabase):
                 time.sleep(2)
                 st.rerun()
 
-    df_anuladas = df_filt[df_filt["anulada"]].copy()
+    # ----------------------
+    # BLOQUE DE ANULADAS
+    # ----------------------
+    df_anuladas = df_eval[df_eval["anulada"]].copy()
     if not df_anuladas.empty:
-        st.subheader("🗂️ Evaluaciones anuladas")
+        st.subheader("❌ Evaluaciones ya anuladas:")
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
