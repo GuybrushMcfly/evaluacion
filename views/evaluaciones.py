@@ -161,7 +161,7 @@ def mostrar(supabase):
                 st.rerun()
 
     # ---- BLOQUE DE ANULADAS ----
-    df_anuladas = df_eval[df_eval["anulada"]].copy()
+    df_anuladas = df_eval[df_eval["anulada"] == True].copy()
     if not df_anuladas.empty:
         st.subheader("❌ Evaluaciones ya anuladas:")
         st.dataframe(
