@@ -13,14 +13,6 @@ def mostrar(supabase):
     dependencia_general = st.session_state.get("dependencia_general", "")
 
     # Obtener dependencias subordinadas desde la tabla unidades_evaluacion
-    #consulta = supabase.table("unidades_evaluacion")\
-    #    .select("dependencia")\
-    #    .eq("unidad_evaluadora", dependencia_usuario)\
-    #    .neq("dependencia", dependencia_usuario)\
-    #    .execute()
-    #dependencias_subordinadas = [d["dependencia"] for d in consulta.data]
-
-
     resultado = supabase.table("unidades_evaluacion")\
         .select("dependencia")\
         .eq("dependencia_general", dependencia_general)\
@@ -28,14 +20,12 @@ def mostrar(supabase):
         .execute()
     dependencias_subordinadas = sorted({d["dependencia"] for d in resultado.data})
 
-
     # Armar opciones de filtro
     opciones_dependencia = []
     if dependencia_general:
         opciones_dependencia.append(f"{dependencia_general} (todas)")
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
-    #opciones_dependencia += [d for d in dependencias_subordinadas if d != dependencia_usuario]
     opciones_dependencia += [
         d for d in dependencias_subordinadas
         if d != dependencia_usuario and "UNIDAD RESIDUAL" not in d.upper()
@@ -43,7 +33,7 @@ def mostrar(supabase):
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
-   # Filtrar agentes por dependencia seleccionada
+    # Filtrar agentes por dependencia seleccionada
     if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_general
         agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia_general", dependencia_filtro).execute().data
@@ -72,69 +62,58 @@ def mostrar(supabase):
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # Obtener evaluaciones filtradas
-    # Obtener evaluaciones filtradas
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
     df_eval = pd.DataFrame(evaluaciones)
-    
+
     # Si está vacío, crear columnas clave vacías para evitar errores posteriores
     if df_eval.empty:
         df_eval = pd.DataFrame(columns=[
             "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
             "puntaje_total", "evaluador", "id_evaluacion", "cuil"
         ])
-    
-    # Asegurar que la columna 'anulada' exista
+
     if "anulada" not in df_eval.columns:
         df_eval["anulada"] = False
-    
-    # Si hay fechas, convertirlas
+
     if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
         hora_arg = timezone('America/Argentina/Buenos_Aires')
         df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
         df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
     else:
         df_eval["Fecha_formateada"] = ""
-    
-    # Estado calculado
+
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
 
-
-    # Tabla de formularios
-    # Tabla de formularios (horizontal)
+    # Tabla de formularios horizontal con columnas fijas
     st.subheader("📋 Uso de formularios")
+    form_labels = ["1", "2", "3", "4", "5", "6"]
+    form_columnas = {f"FORM. {f}": [0] for f in form_labels}
     if not df_eval.empty and "formulario" in df_eval.columns:
-        formulario_counts = df_eval["formulario"].value_counts().sort_index()
-        form_columnas = {f"FORM. {f}": [formulario_counts.get(f, 0)] for f in sorted(formulario_counts.index)}
-        df_form = pd.DataFrame(form_columnas)
-        st.dataframe(df_form, use_container_width=True, hide_index=True)
-    else:
-        st.info("No hay formularios registrados aún.")
-    
-    # Tabla de calificaciones (horizontal)
-    st.subheader("📋 Distribución por calificación")
-    if not df_eval.empty and "calificacion" in df_eval.columns:
-        categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
-        calif_counts = df_eval["calificacion"].value_counts()
-        calif_columnas = {cat: [calif_counts.get(cat, 0)] for cat in categorias}
-        df_calif = pd.DataFrame(calif_columnas)
-        st.dataframe(df_calif, use_container_width=True, hide_index=True)
-    else:
-        st.info("No hay calificaciones registradas aún.")
+        formulario_counts = df_eval["formulario"].value_counts()
+        for f in form_labels:
+            form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
+    df_form = pd.DataFrame(form_columnas)
+    st.dataframe(df_form, use_container_width=True, hide_index=True)
 
+    # Tabla de calificaciones horizontal con columnas fijas
+    st.subheader("📋 Distribución por calificación")
+    categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
+    calif_columnas = {cat: [0] for cat in categorias}
+    if not df_eval.empty and "calificacion" in df_eval.columns:
+        calif_counts = df_eval["calificacion"].value_counts()
+        for cat in categorias:
+            calif_columnas[cat] = [calif_counts.get(cat, 0)]
+    df_calif = pd.DataFrame(calif_columnas)
+    st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
     # ---- BLOQUE DE NO ANULADAS ----
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
-        if not df_no_anuladas.empty:
-            df_no_anuladas["Seleccionar"] = False
-        else:
-            st.info("No hay evaluaciones no anuladas para mostrar.")
-            return
+        df_no_anuladas["Seleccionar"] = False
 
-        
         df_no_anuladas = df_no_anuladas[[
-            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", 
+            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre",
             "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
         ]]
 
@@ -161,7 +140,12 @@ def mostrar(supabase):
         )
 
         if st.button("❌ Anular seleccionadas"):
-            indices = seleccion[seleccion["Seleccionar"]].reset_index().index
+            if "Seleccionar" in seleccion.columns:
+                seleccionados = seleccion[seleccion["Seleccionar"] == True]
+                indices = seleccionados.index
+            else:
+                indices = []
+
             if len(indices) == 0:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
