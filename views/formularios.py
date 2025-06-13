@@ -60,22 +60,10 @@ def mostrar(supabase, formularios, clasificaciones):
         })
     
     # Mostrar tabla
-    # df_info = pd.DataFrame([datos_agente])
-    # st.dataframe(df_info, use_container_width=True, hide_index=True)
+    df_info = pd.DataFrame([datos_agente])
+    st.dataframe(df_info, use_container_width=True, hide_index=True)
 
-    st.markdown("### 📋 Información del agente")
-    
-    df = pd.DataFrame([
-        ["CUIL", agente["cuil"], "Apellido y Nombre", agente["apellido_nombre"],
-         "Nivel", agente.get("nivel", ""), "Grado", agente.get("grado", "")],
-        ["Tramo", agente.get("tramo", ""), "Agrupamiento", agente.get("agrupamiento", ""),
-         "Ingresante", "Sí" if agente.get("ingresante") else "No", "Activo", "Sí" if agente.get("activo", True) else "No"]
-    ])
-    
-    st.dataframe(df, use_container_width=True, hide_index=True)
-
-
-
+   
     
     # Selección de tipo de formulario
     tipo = st.selectbox(
