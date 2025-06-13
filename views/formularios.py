@@ -42,7 +42,7 @@ def mostrar(supabase, formularios, clasificaciones):
     datos_agente = {
         # "CUIL": cuil,
         # "Apellido y Nombre": apellido_nombre,
-        "Nivel/Grado": f"{agente.get('nivel', '')}{agente.get('grado', '')}",
+        "NIVEL/GRADO": f"{agente.get('nivel', '')}{agente.get('grado', '')}",
         "TRAMO": agente.get("tramo", ""),
         "AGRUPAMIENTO": agente.get("agrupamiento", ""),
         "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
