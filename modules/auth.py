@@ -2,6 +2,10 @@ import streamlit as st
 from supabase import create_client
 import streamlit_authenticator as stauth
 import json
+import datetime
+
+# ---- CONFIGURACIÓN ----
+TIEMPO_MAX_SESION_MIN = 2  # Logout automático tras 2 minutos de inactividad
 
 @st.cache_resource
 def init_connection():
@@ -12,6 +16,17 @@ def init_connection():
 def cargar_usuarios_y_autenticar():
     supabase = init_connection()
 
+    # Forzar logout por inactividad
+    ahora = datetime.datetime.now()
+    if "last_activity" in st.session_state:
+        tiempo_inactivo = (ahora - st.session_state["last_activity"]).total_seconds()
+        if tiempo_inactivo > TIEMPO_MAX_SESION_MIN * 60:
+            st.session_state.clear()
+            st.warning("🔐 Sesión cerrada por inactividad.")
+            st.stop()
+    st.session_state["last_activity"] = ahora  # Actualizar tiempo de última acción
+
+    # Cargar usuarios activos
     usuarios_result = supabase.table("usuarios")\
         .select("usuario, password, apellido_nombre, rol, activo")\
         .eq("activo", True)\
@@ -20,7 +35,7 @@ def cargar_usuarios_y_autenticar():
     credentials = {
         "usernames": {},
         "cookie": {
-            "expiry_days": 0.0104,  # 15 minutos
+            "expiry_days": 0.0014,  # ~2 minutos
             "key": "clave_segura_super_oculta",
             "name": "evaluacion_app"
         }
@@ -46,6 +61,7 @@ def cargar_usuarios_y_autenticar():
         st.error("❌ No se encontraron usuarios válidos.")
         st.stop()
 
+    # Autenticación
     authenticator = stauth.Authenticate(
         credentials=credentials,
         cookie_name=credentials["cookie"]["name"],
@@ -63,15 +79,17 @@ def cargar_usuarios_y_autenticar():
         usuario_data = supabase.table("usuarios")\
             .select("dependencia, dependencia_general, apellido_nombre, rol")\
             .eq("usuario", username).maybe_single().execute().data
-    
-        if usuario_data:
-            st.session_state.update({
-                "usuario": username,
-                "nombre_completo": usuario_data.get("apellido_nombre", ""),
-                "rol": usuario_data.get("rol", {}),
-                "dependencia": usuario_data.get("dependencia", ""),
-                "dependencia_general": usuario_data.get("dependencia_general", "")
-            })
-    
-    return name, authentication_status, username, authenticator, supabase
 
+        if usuario_data:
+            # Limpiar sesión previa
+            for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
+                st.session_state.pop(key, None)
+
+            # Cargar nuevos datos de sesión
+            st.session_state["usuario"] = username
+            st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
+            st.session_state["rol"] = usuario_data.get("rol", "")
+            st.session_state["dependencia"] = usuario_data.get("dependencia", "")
+            st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
+
+    return name, authentication_status, username, authenticator, supabase
