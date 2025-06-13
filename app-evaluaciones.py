@@ -6,6 +6,9 @@ from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, co
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
+# Mostrar logo siempre, incluso antes de login
+st.sidebar.image("logo-cap.png", use_container_width=True)
+
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase = auth.cargar_usuarios_y_autenticar()
 
@@ -47,7 +50,6 @@ if authentication_status:
         st.stop()
 
     # ---- INTERFAZ DE USUARIO ----
-    st.sidebar.image("logo-cap.png", use_container_width=True)  # Logo en sidebar
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
