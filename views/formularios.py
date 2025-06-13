@@ -38,36 +38,32 @@ def mostrar(supabase, formularios, clasificaciones):
     cuil = agente["cuil"]
     apellido_nombre = agente["apellido_nombre"]
     
-def mostrar_datos_agente_dos_filas(cuil, apellido_nombre, agente):
-    # Preparar datos básicos (primera fila)
-    datos_basicos = {
+    # Preparar datos del agente
+    datos_agente = {
         "CUIL": cuil,
         "Apellido y Nombre": apellido_nombre,
         "NIVEL": agente.get("nivel", ""),
         "GRADO": agente.get("grado", ""),
-        "TRAMO": agente.get("tramo", "")
-    }
-    
-    # Preparar datos adicionales (segunda fila)
-    datos_adicionales = {
+        "TRAMO": agente.get("tramo", ""),
         "AGRUPAMIENTO": agente.get("agrupamiento", ""),
         "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
         "ULT. CALIFICACIÓN": agente.get("ultima_calificacion", ""),
-        "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", ""),
-        "": ""  # Columna vacía para balancear
+        "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
     }
     
-    # Agregar datos de inactividad si corresponde
+    # Agregar datos de inactividad solo si el agente está inactivo
     if not agente.get("activo", True):
-        datos_adicionales.update({
+        datos_agente.update({
             "ACTIVO": "No",
             "MOTIVO INACTIVIDAD": agente.get("motivo_inactivo", ""),
             "FECHA BAJA": agente.get("fecha_inactivo", "")
         })
     
-    # Crear DataFrame con dos filas
-    df_info = pd.DataFrame([datos_basicos, datos_adicionales])
+    # Mostrar tabla
+    df_info = pd.DataFrame([datos_agente])
     st.dataframe(df_info, use_container_width=True, hide_index=True)
+
+   
     
     # Selección de tipo de formulario
     tipo = st.selectbox(
