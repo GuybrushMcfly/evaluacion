@@ -89,7 +89,8 @@ def mostrar(supabase):
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_columnas = {f"FORM. {f}": [0] for f in form_labels}
     if not df_eval.empty and "formulario" in df_eval.columns:
-        formulario_counts = df_eval["formulario"].value_counts()
+        #formulario_counts = df_eval["formulario"].value_counts()
+        formulario_counts = df_no_anuladas["formulario"].value_counts()
         for f in form_labels:
             form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
     df_form = pd.DataFrame(form_columnas)
