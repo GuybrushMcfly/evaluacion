@@ -5,7 +5,7 @@ import json
 import datetime
 
 # ---- CONFIGURACIÓN ----
-TIEMPO_MAX_SESION_MIN = 2  # Logout automático tras 2 minutos de inactividad
+TIEMPO_MAX_SESION_MIN = 10  # Logout automático tras 10 minutos de inactividad
 
 @st.cache_resource
 def init_connection():
