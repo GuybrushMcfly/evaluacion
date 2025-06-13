@@ -39,7 +39,6 @@ def mostrar(supabase):
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
-    # Filtrar agentes por dependencia seleccionada
    # Filtrar agentes por dependencia seleccionada
     if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_general
@@ -69,16 +68,32 @@ def mostrar(supabase):
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # Obtener evaluaciones filtradas
+    # Obtener evaluaciones filtradas
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
     df_eval = pd.DataFrame(evaluaciones)
-    if not df_eval.empty:
+    
+    # Si está vacío, crear columnas clave vacías para evitar errores posteriores
+    if df_eval.empty:
+        df_eval = pd.DataFrame(columns=[
+            "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
+            "puntaje_total", "evaluador", "id_evaluacion", "cuil"
+        ])
+    
+    # Asegurar que la columna 'anulada' exista
+    if "anulada" not in df_eval.columns:
+        df_eval["anulada"] = False
+    
+    # Si hay fechas, convertirlas
+    if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
         hora_arg = timezone('America/Argentina/Buenos_Aires')
         df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
         df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
-        df_eval["anulada"] = df_eval["anulada"].fillna(False)
-        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     else:
-        df_eval = pd.DataFrame(columns=["formulario", "calificacion"])
+        df_eval["Fecha_formateada"] = ""
+    
+    # Estado calculado
+    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+
 
     # Tabla de formularios
     st.subheader("📋 Uso de formularios")
