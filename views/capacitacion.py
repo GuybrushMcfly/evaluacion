@@ -7,6 +7,7 @@ def mostrar(supabase):
 
     # Obtener evaluaciones y agentes
     evaluaciones = supabase.table("evaluaciones").select("*").execute().data
+    evaluaciones = [e for e in evaluaciones if not e.get("anulada", False)]
     agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data
 
     if not evaluaciones:
