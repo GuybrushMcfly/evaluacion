@@ -65,31 +65,41 @@ def mostrar(supabase, formularios, clasificaciones):
 
     st.markdown("### 📋 Información del agente")
     
-    # Fila 1
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f"**CUIL:** {datos_agente['CUIL']}")
-        st.markdown(f"**Nivel:** {datos_agente['NIVEL']}")
-    with col2:
-        st.markdown(f"**Apellido y Nombre:** {datos_agente['Apellido y Nombre']}")
-        st.markdown(f"**Grado:** {datos_agente['GRADO']}")
-    with col3:
-        st.markdown(f"**Tramo:** {datos_agente['TRAMO']}")
-        st.markdown(f"**Agrupamiento:** {datos_agente['AGRUPAMIENTO']}")
-    with col4:
-        st.markdown(f"**Ingresante:** {datos_agente['INGRESANTE']}")
-    
-    # Fila 2
-    st.markdown("----")
-    col5, col6, col7 = st.columns(3)
-    with col5:
-        st.markdown(f"**Últ. Calificación:** {datos_agente.get('ULT. CALIFICACIÓN', '-')}")
-        st.markdown(f"**Activo:** {'Sí' if agente.get('activo', True) else 'No'}")
-    with col6:
-        st.markdown(f"**Calificación para corrimiento:** {datos_agente.get('CALIFICACIÓN PARA CORRIMIENTO', '-')}")
-    with col7:
-        st.markdown(f"**Motivo Inactividad:** {datos_agente.get('MOTIVO INACTIVIDAD', '-')}")
-        st.markdown(f"**Fecha Baja:** {datos_agente.get('FECHA BAJA', '-')}")
+    # HTML simple para tabla dividida
+    st.markdown(f"""
+    <table style="width:100%; border-collapse: collapse;">
+      <tr>
+        <th align="left">CUIL</th>
+        <td>{datos_agente['CUIL']}</td>
+        <th align="left">Apellido y Nombre</th>
+        <td>{datos_agente['Apellido y Nombre']}</td>
+        <th align="left">Nivel</th>
+        <td>{datos_agente['NIVEL']}</td>
+        <th align="left">Grado</th>
+        <td>{datos_agente['GRADO']}</td>
+      </tr>
+      <tr>
+        <th align="left">Tramo</th>
+        <td>{datos_agente.get('TRAMO', '-')}</td>
+        <th align="left">Agrupamiento</th>
+        <td>{datos_agente.get('AGRUPAMIENTO', '-')}</td>
+        <th align="left">Ingresante</th>
+        <td>{datos_agente.get('INGRESANTE', '-')}</td>
+        <th align="left">Activo</th>
+        <td>{"Sí" if agente.get("activo", True) else "No"}</td>
+      </tr>
+      <tr>
+        <th align="left">Últ. Calificación</th>
+        <td>{datos_agente.get('ULT. CALIFICACIÓN', '-')}</td>
+        <th align="left">Calificación Corrimiento</th>
+        <td>{datos_agente.get('CALIFICACIÓN PARA CORRIMIENTO', '-')}</td>
+        <th align="left">Motivo Inactividad</th>
+        <td>{datos_agente.get('MOTIVO INACTIVIDAD', '-')}</td>
+        <th align="left">Fecha Baja</th>
+        <td>{datos_agente.get('FECHA BAJA', '-')}</td>
+      </tr>
+    </table>
+    """, unsafe_allow_html=True)
 
 
     
