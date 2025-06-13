@@ -11,7 +11,14 @@ def mostrar(supabase):
     usuario = st.session_state.get("usuario", "")
     dependencia_usuario = st.session_state.get("dependencia", "")
     dependencia_general = st.session_state.get("dependencia_general", "")
-    dependencias_subordinadas = st.session_state.get("dependencias_subordinadas", [])
+
+    # Obtener dependencias subordinadas desde la tabla unidades_evaluacion
+    consulta = supabase.table("unidades_evaluacion")\
+        .select("dependencia")\
+        .eq("unidad_evaluadora", dependencia_usuario)\
+        .neq("dependencia", dependencia_usuario)\
+        .execute()
+    dependencias_subordinadas = [d["dependencia"] for d in consulta.data]
 
     # Armar opciones de filtro
     opciones_dependencia = []
@@ -142,3 +149,4 @@ def mostrar(supabase):
             }),
             use_container_width=True,
             hide_index=True
+        )
