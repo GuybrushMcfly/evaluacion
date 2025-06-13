@@ -35,7 +35,11 @@ def mostrar(supabase):
         opciones_dependencia.append(f"{dependencia_general} (todas)")
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
-    opciones_dependencia += [d for d in dependencias_subordinadas if d != dependencia_usuario]
+    #opciones_dependencia += [d for d in dependencias_subordinadas if d != dependencia_usuario]
+    opciones_dependencia += [
+        d for d in dependencias_subordinadas
+        if d != dependencia_usuario and "UNIDAD RESIDUAL" not in d.upper()
+    ]
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
