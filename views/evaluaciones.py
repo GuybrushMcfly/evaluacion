@@ -100,18 +100,27 @@ def mostrar(supabase):
 
 
     # Tabla de formularios
+    # Tabla de formularios (horizontal)
     st.subheader("📋 Uso de formularios")
-    if not df_eval.empty:
-        st.dataframe(df_eval["formulario"].value_counts().rename_axis("Formulario").reset_index(name="Cantidad"), use_container_width=True, hide_index=True)
+    if not df_eval.empty and "formulario" in df_eval.columns:
+        formulario_counts = df_eval["formulario"].value_counts().sort_index()
+        form_columnas = {f"FORM. {f}": [formulario_counts.get(f, 0)] for f in sorted(formulario_counts.index)}
+        df_form = pd.DataFrame(form_columnas)
+        st.dataframe(df_form, use_container_width=True, hide_index=True)
     else:
         st.info("No hay formularios registrados aún.")
-
-    # Tabla de calificaciones
+    
+    # Tabla de calificaciones (horizontal)
     st.subheader("📋 Distribución por calificación")
-    if not df_eval.empty:
-        st.dataframe(df_eval["calificacion"].value_counts().rename_axis("Calificación").reset_index(name="Cantidad"), use_container_width=True, hide_index=True)
+    if not df_eval.empty and "calificacion" in df_eval.columns:
+        categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
+        calif_counts = df_eval["calificacion"].value_counts()
+        calif_columnas = {cat: [calif_counts.get(cat, 0)] for cat in categorias}
+        df_calif = pd.DataFrame(calif_columnas)
+        st.dataframe(df_calif, use_container_width=True, hide_index=True)
     else:
         st.info("No hay calificaciones registradas aún.")
+
 
     # ---- BLOQUE DE NO ANULADAS ----
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
