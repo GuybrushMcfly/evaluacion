@@ -83,6 +83,7 @@ def mostrar(supabase):
         df_eval["Fecha_formateada"] = ""
 
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
     # Tabla de formularios horizontal con columnas fijas
     st.subheader("📋 Uso de formularios")
@@ -96,6 +97,7 @@ def mostrar(supabase):
     df_form = pd.DataFrame(form_columnas)
     st.dataframe(df_form, use_container_width=True, hide_index=True)
 
+   
     # Tabla de calificaciones horizontal con columnas fijas
     st.subheader("📋 Distribución por calificación")
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
@@ -108,7 +110,6 @@ def mostrar(supabase):
     st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
     # ---- BLOQUE DE NO ANULADAS ----
-    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
