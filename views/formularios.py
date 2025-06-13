@@ -39,30 +39,38 @@ def mostrar(supabase, formularios, clasificaciones):
     apellido_nombre = agente["apellido_nombre"]
     
     # Preparar datos del agente
-    datos_agente = {
-        "CUIL": cuil,
-        "Apellido y Nombre": apellido_nombre,
-        "NIVEL": agente.get("nivel", ""),
-        "GRADO": agente.get("grado", ""),
-        "TRAMO": agente.get("tramo", ""),
-        "AGRUPAMIENTO": agente.get("agrupamiento", ""),
-        "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
-        "ULT. CALIFICACIÓN": agente.get("ultima_calificacion", ""),
-        "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
-    }
-    
-    # Agregar datos de inactividad solo si el agente está inactivo
-    if not agente.get("activo", True):
-        datos_agente.update({
-            "ACTIVO": "No",
-            "MOTIVO INACTIVIDAD": agente.get("motivo_inactivo", ""),
-            "FECHA BAJA": agente.get("fecha_inactivo", "")
-        })
-    
-    # Mostrar tabla
-    df_info = pd.DataFrame([datos_agente])
-    st.dataframe(df_info, use_container_width=True, hide_index=True)
-
+    # Primera fila de información
+       datos_fila1 = {
+           "CUIL": cuil,
+           "Apellido y Nombre": apellido_nombre,
+           "NIVEL": agente.get("nivel", ""),
+           "GRADO": agente.get("grado", "")
+       }
+       
+       # Segunda fila de información
+       datos_fila2 = {
+           "TRAMO": agente.get("tramo", ""),
+           "AGRUPAMIENTO": agente.get("agrupamiento", ""),
+           "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
+           "ULT. CALIFICACIÓN": agente.get("ultima_calificacion", "")
+       }
+       
+       # Tercera fila si hay inactividad
+       if not agente.get("activo", True):
+           datos_fila3 = {
+               "ACTIVO": "No",
+               "MOTIVO INACTIVIDAD": agente.get("motivo_inactivo", ""),
+               "FECHA BAJA": agente.get("fecha_inactivo", ""),
+               "CALIF. CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
+           }
+           df_info = pd.DataFrame([datos_fila1, datos_fila2, datos_fila3])
+       else:
+           # Agregar calificación de corrimiento a la segunda fila
+           datos_fila2["CALIF. CORRIMIENTO"] = agente.get("calificaciones_corrimiento", "")
+           df_info = pd.DataFrame([datos_fila1, datos_fila2])
+        
+       # Mostrar tabla
+       st.dataframe(df_info, use_container_width=True, hide_index=True)
    
     
     # Selección de tipo de formulario
