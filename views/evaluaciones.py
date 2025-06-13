@@ -31,15 +31,19 @@ def mostrar(supabase):
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
     # Filtrar agentes por dependencia seleccionada
-    if "(todas)" in dependencia_seleccionada:
+   # Filtrar agentes por dependencia seleccionada
+    if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_general
         agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia_general", dependencia_filtro).execute().data
-    elif "(individual)" in dependencia_seleccionada:
+    elif dependencia_seleccionada and "(individual)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_usuario
         agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
-    else:
+    elif dependencia_seleccionada:
         dependencia_filtro = dependencia_seleccionada
         agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
+    else:
+        st.warning("⚠️ Seleccione una dependencia válida para continuar.")
+        return
 
     cuils_asignados = [a["cuil"] for a in agentes]
 
