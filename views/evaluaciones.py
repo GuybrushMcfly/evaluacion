@@ -70,23 +70,12 @@ def mostrar(supabase):
             st.dataframe(df_mostrar, use_container_width=True, hide_index=True, height=400)
         else:
             st.info("Seleccioná al menos una columna para mostrar.")
-# ---- Vista: Evaluaciones ----
-def mostrar(supabase):
-    st.header("📋 Evaluaciones realizadas")
 
-    # Obtener evaluaciones
-    evaluaciones = supabase.table("evaluaciones").select("*").execute().data
-    if not evaluaciones:
-        st.info("No hay evaluaciones registradas.")
-        return
-
-    # Configurar zona horaria y preparar dataframe
-    hora_arg = timezone('America/Argentina/Buenos_Aires')
-    df_eval = pd.DataFrame(evaluaciones)
-    df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
-    df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
-    df_eval["anulada"] = df_eval["anulada"].fillna(False)
-    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+    # Bloque de anulaciones
+    st.divider()
+    st.subheader("❌ Gestión de anulaciones")
+    df_filt["anulada"] = df_filt["anulada"].fillna(False)
+    df_filt["Estado"] = df_filt["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
 
     columnas_visibles = [
         "Seleccionar", "apellido_nombre", "formulario",
@@ -103,10 +92,8 @@ def mostrar(supabase):
         "Estado": "Estado"
     }
 
-    # ---- BLOQUE DE NO ANULADAS ----
-    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+    df_no_anuladas = df_filt[df_filt["anulada"] == False].copy()
     if not df_no_anuladas.empty:
-        st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas = df_no_anuladas[[
             "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", 
@@ -131,7 +118,7 @@ def mostrar(supabase):
             if len(indices) == 0:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
-                df_no_anuladas.reset_index(drop=True, inplace=True)  # <-- esta línea es clave
+                df_no_anuladas.reset_index(drop=True, inplace=True)
                 for idx in indices:
                     eval_sel = df_no_anuladas.iloc[idx]
                     supabase.table("evaluaciones").update({"anulada": True})\
@@ -142,11 +129,9 @@ def mostrar(supabase):
                 time.sleep(2)
                 st.rerun()
 
-
-    # ---- BLOQUE DE ANULADAS ----
-    df_anuladas = df_eval[df_eval["anulada"]].copy()
+    df_anuladas = df_filt[df_filt["anulada"]].copy()
     if not df_anuladas.empty:
-        st.subheader("❌ Evaluaciones ya anuladas:")
+        st.subheader("🗂️ Evaluaciones anuladas")
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
