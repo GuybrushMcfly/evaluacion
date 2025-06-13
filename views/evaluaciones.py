@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from pytz import timezone
+import time
 
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
