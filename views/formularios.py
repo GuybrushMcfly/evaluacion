@@ -40,8 +40,8 @@ def mostrar(supabase, formularios, clasificaciones):
     
     # Preparar datos del agente
     datos_agente = {
-        "CUIL": cuil,
-        "Apellido y Nombre": apellido_nombre,
+   #     "CUIL": cuil,
+   #     "Apellido y Nombre": apellido_nombre,
         "NIVEL": agente.get("nivel", ""),
         "GRADO": agente.get("grado", ""),
         "TRAMO": agente.get("tramo", ""),
