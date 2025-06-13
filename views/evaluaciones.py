@@ -64,7 +64,7 @@ def mostrar(supabase):
             if len(indices) == 0:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
-                df_no_anuladas.reset_index(drop=True, inplace=True)
+                df_no_anuladas.reset_index(drop=True, inplace=True)  # <-- esta línea es clave
                 for idx in indices:
                     eval_sel = df_no_anuladas.iloc[idx]
                     supabase.table("evaluaciones").update({"anulada": True})\
@@ -72,7 +72,9 @@ def mostrar(supabase):
                     supabase.table("agentes").update({"evaluado_2025": False})\
                         .eq("cuil", str(eval_sel["cuil"]).strip()).execute()
                 st.success(f"✅ {len(indices)} evaluaciones anuladas.")
+                time.sleep(2)
                 st.rerun()
+
 
     # ---- BLOQUE DE ANULADAS ----
     df_anuladas = df_eval[df_eval["anulada"]].copy()
