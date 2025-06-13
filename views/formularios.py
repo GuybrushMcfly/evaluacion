@@ -15,7 +15,7 @@ def mostrar(supabase, formularios, clasificaciones):
     usuario_actual = st.session_state.get("usuario")
 
     agentes_data = supabase.table("agentes")\
-        .select("cuil, apellido_nombre, ingresante, nivel, grado, tramo, agrupamiento, dependencia, dependencia_general, activo, motivo_inactivo, fecha_inactivo")\
+        .select("cuil, apellido_nombre, ingresante, nivel, grado, tramo, agrupamiento, dependencia, dependencia_general, ultima_calificacion, calificaciones_corrimiento, activo, motivo_inactivo, fecha_inactivo")\
         .eq("evaluador_2024", usuario_actual)\
         .eq("evaluado_2024", False)\
         .order("apellido_nombre")\
@@ -166,6 +166,8 @@ def mostrar(supabase, formularios, clasificaciones):
                     "factor_puntaje": st.session_state["factor_puntaje"],
                     "factor_posicion": st.session_state["factor_posicion"],
                     "puntaje_total": total,
+                    "ultima_calificacion": ultima_calificacion, 
+                    "calificaciones_corrimiento": calificaciones_corrimiento,    
                     "puntaje_maximo": puntaje_maximo,
                     "puntaje_relativo": puntaje_relativo,
                     "calificacion": clasificacion,
@@ -179,7 +181,7 @@ def mostrar(supabase, formularios, clasificaciones):
 
                             
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
-                st.balloons()
+                #st.balloons()
                 time.sleep(2)
 
                 for key in list(st.session_state.keys()):
