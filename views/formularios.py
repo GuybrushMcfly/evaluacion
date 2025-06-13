@@ -155,6 +155,8 @@ def mostrar(supabase, formularios, clasificaciones):
                     "apellido_nombre": apellido_nombre,
                     "nivel": agente.get("nivel"),
                     "grado": agente.get("grado"),
+                    "tramo": agente.get("tramo"),
+                    "agrupamiento": agente.get("agrupamiento"),
                     "dependencia": agente.get("dependencia"),
                     "dependencia_general": unidad_info.get("dependencia_general") if unidad_info else None,
                     "unidad_evaluadora": unidad_info.get("unidad_evaluadora") if unidad_info else None,
