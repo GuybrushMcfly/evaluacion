@@ -65,41 +65,15 @@ def mostrar(supabase, formularios, clasificaciones):
 
     st.markdown("### 📋 Información del agente")
     
-    # HTML simple para tabla dividida
-    st.markdown(f"""
-    <table style="width:100%; border-collapse: collapse;">
-      <tr>
-        <th align="left">CUIL</th>
-        <td>{datos_agente['CUIL']}</td>
-        <th align="left">Apellido y Nombre</th>
-        <td>{datos_agente['Apellido y Nombre']}</td>
-        <th align="left">Nivel</th>
-        <td>{datos_agente['NIVEL']}</td>
-        <th align="left">Grado</th>
-        <td>{datos_agente['GRADO']}</td>
-      </tr>
-      <tr>
-        <th align="left">Tramo</th>
-        <td>{datos_agente.get('TRAMO', '-')}</td>
-        <th align="left">Agrupamiento</th>
-        <td>{datos_agente.get('AGRUPAMIENTO', '-')}</td>
-        <th align="left">Ingresante</th>
-        <td>{datos_agente.get('INGRESANTE', '-')}</td>
-        <th align="left">Activo</th>
-        <td>{"Sí" if agente.get("activo", True) else "No"}</td>
-      </tr>
-      <tr>
-        <th align="left">Últ. Calificación</th>
-        <td>{datos_agente.get('ULT. CALIFICACIÓN', '-')}</td>
-        <th align="left">Calificación Corrimiento</th>
-        <td>{datos_agente.get('CALIFICACIÓN PARA CORRIMIENTO', '-')}</td>
-        <th align="left">Motivo Inactividad</th>
-        <td>{datos_agente.get('MOTIVO INACTIVIDAD', '-')}</td>
-        <th align="left">Fecha Baja</th>
-        <td>{datos_agente.get('FECHA BAJA', '-')}</td>
-      </tr>
-    </table>
-    """, unsafe_allow_html=True)
+    df = pd.DataFrame([
+        ["CUIL", agente["cuil"], "Apellido y Nombre", agente["apellido_nombre"],
+         "Nivel", agente.get("nivel", ""), "Grado", agente.get("grado", "")],
+        ["Tramo", agente.get("tramo", ""), "Agrupamiento", agente.get("agrupamiento", ""),
+         "Ingresante", "Sí" if agente.get("ingresante") else "No", "Activo", "Sí" if agente.get("activo", True) else "No"]
+    ])
+    
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
 
 
     
