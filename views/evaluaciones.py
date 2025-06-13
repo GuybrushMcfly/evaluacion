@@ -15,6 +15,8 @@ def mostrar(supabase):
         return
 
     df = pd.DataFrame(evaluaciones)
+    df["anulada"] = df["anulada"].fillna(False)
+    df = df[df["anulada"] == False]  # Filtrar anuladas
 
     # Filtros iniciales
     st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
@@ -41,13 +43,11 @@ def mostrar(supabase):
     st.divider()
     st.subheader("📊 Indicadores")
     total = len(df_filt)
-    anuladas = df_filt["anulada"].fillna(False).sum()
-    registradas = total - anuladas
-    porcentaje = (registradas / total * 100) if total else 0
+    porcentaje = 100 if total > 0 else 0
 
     cols = st.columns(3)
     with cols[0]: st.metric("Total evaluaciones", total)
-    with cols[1]: st.metric("Registradas", registradas)
+    with cols[1]: st.metric("Registradas", total)
     with cols[2]: st.metric("% Registradas", f"{porcentaje:.1f}%")
 
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
@@ -70,6 +70,7 @@ def mostrar(supabase):
             st.dataframe(df_mostrar, use_container_width=True, hide_index=True, height=400)
         else:
             st.info("Seleccioná al menos una columna para mostrar.")
+
 
     # Bloque de anulaciones
     st.divider()
