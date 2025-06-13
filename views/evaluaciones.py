@@ -115,15 +115,18 @@ def mostrar(supabase):
     st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
     if not df_no_anuladas.empty:
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
+
         st.subheader("✅ Evaluaciones registradas:")
         st.dataframe(
             df_no_anuladas[[
-                "apellido_nombre", "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada"
+                "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
             ]].rename(columns={
                 "apellido_nombre": "Apellido y Nombres",
                 "formulario": "Form.",
-                "calificacion": "Calificación",
-                "puntaje_total": "Puntaje",
+                "calif_puntaje": "Calificación/Puntaje",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha"
             }),
@@ -134,21 +137,23 @@ def mostrar(supabase):
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
 
         df_no_anuladas = df_no_anuladas[[
             "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre",
-            "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
+            "formulario", "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
         ]]
 
         df_para_mostrar = df_no_anuladas[[
             "Seleccionar", "apellido_nombre", "formulario",
-            "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
+            "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
         ]].rename(columns={
             "Seleccionar": "Seleccionar",
             "apellido_nombre": "Apellido y Nombres",
             "formulario": "Form.",
-            "calificacion": "Calificación",
-            "puntaje_total": "Puntaje",
+            "calif_puntaje": "Calificación/Puntaje",
             "evaluador": "Evaluador",
             "Fecha_formateada": "Fecha",
             "Estado": "Estado"
@@ -158,7 +163,7 @@ def mostrar(supabase):
             df_para_mostrar,
             use_container_width=True,
             hide_index=True,
-            disabled=["Apellido y Nombres", "Form.", "Calificación", "Puntaje", "Evaluador", "Fecha", "Estado"],
+            disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado"],
             column_config={"Seleccionar": st.column_config.CheckboxColumn("Seleccionar")}
         )
 
@@ -185,17 +190,20 @@ def mostrar(supabase):
 
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
     if not df_anuladas.empty:
+        df_anuladas["calif_puntaje"] = df_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
+
         st.subheader("❌ Evaluaciones ya anuladas:")
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
-                "calificacion", "puntaje_total", "evaluador",
+                "calif_puntaje", "evaluador",
                 "Fecha_formateada", "Estado"
             ]].rename(columns={
                 "apellido_nombre": "Apellido y Nombres",
                 "formulario": "Form.",
-                "calificacion": "Calificación",
-                "puntaje_total": "Puntaje",
+                "calif_puntaje": "Calificación/Puntaje",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
                 "Estado": "Estado"
