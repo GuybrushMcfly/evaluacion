@@ -22,13 +22,12 @@ def mostrar(supabase):
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
 
     columnas_visibles = [
-        "Seleccionar", "apellido_nombre", "nivel", "formulario",
+        "Seleccionar", "apellido_nombre", "formulario",
         "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
     ]
     renombrar_columnas = {
         "Seleccionar": "Seleccionar",
         "apellido_nombre": "Apellido y Nombres",
-        "nivel": "Nivel",
         "formulario": "Form.",
         "calificacion": "Calificación",
         "puntaje_total": "Puntaje",
@@ -43,12 +42,12 @@ def mostrar(supabase):
         st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas = df_no_anuladas[[
-            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", "nivel",
+            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", 
             "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
         ]]
 
         df_para_mostrar = df_no_anuladas[[
-            "Seleccionar", "apellido_nombre", "nivel", "formulario",
+            "Seleccionar", "apellido_nombre", "formulario",
             "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
         ]].rename(columns=renombrar_columnas)
 
@@ -83,7 +82,7 @@ def mostrar(supabase):
         st.subheader("❌ Evaluaciones ya anuladas:")
         st.dataframe(
             df_anuladas[[
-                "apellido_nombre", "nivel", "formulario",
+                "apellido_nombre", "formulario",
                 "calificacion", "puntaje_total", "evaluador",
                 "Fecha_formateada", "Estado"
             ]].rename(columns={k: v for k, v in renombrar_columnas.items() if k != "Seleccionar"}),
