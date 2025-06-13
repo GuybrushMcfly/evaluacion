@@ -65,7 +65,7 @@ def mostrar(supabase):
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
     df_eval = pd.DataFrame(evaluaciones)
 
-    # Si está vacío, crear columnas clave vacías para evitar errores posteriores
+    # Inicializar estructura vacía si no hay datos
     if df_eval.empty:
         df_eval = pd.DataFrame(columns=[
             "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
@@ -74,7 +74,10 @@ def mostrar(supabase):
 
     if "anulada" not in df_eval.columns:
         df_eval["anulada"] = False
+    else:
+        df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
 
+    # Agregar fecha legible
     if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
         hora_arg = timezone('America/Argentina/Buenos_Aires')
         df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
@@ -89,18 +92,15 @@ def mostrar(supabase):
     st.subheader("📋 Uso de formularios")
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_columnas = {f"FORM. {f}": [0] for f in form_labels}
-  
-    if not df_eval.empty and "formulario" in df_eval.columns:
+
+    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
         df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
         formulario_counts = df_no_anuladas["formulario"].value_counts()
-
-
         for f in form_labels:
             form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
     df_form = pd.DataFrame(form_columnas)
     st.dataframe(df_form, use_container_width=True, hide_index=True)
 
-   
     # Tabla de calificaciones horizontal con columnas fijas
     st.subheader("📋 Distribución por calificación")
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
@@ -108,12 +108,12 @@ def mostrar(supabase):
 
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
         calif_counts = df_no_anuladas["calificacion"].value_counts()
-        
         for cat in categorias:
             calif_columnas[cat] = [calif_counts.get(cat, 0)]
     df_calif = pd.DataFrame(calif_columnas)
     st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
+    # Evaluaciones registradas
     if not df_no_anuladas.empty:
         st.subheader("✅ Evaluaciones registradas:")
         st.dataframe(
@@ -131,9 +131,6 @@ def mostrar(supabase):
             hide_index=True
         )
 
-
-
-    
     # ---- BLOQUE DE NO ANULADAS ----
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
