@@ -60,8 +60,38 @@ def mostrar(supabase, formularios, clasificaciones):
         })
     
     # Mostrar tabla
-    df_info = pd.DataFrame([datos_agente])
-    st.dataframe(df_info, use_container_width=True, hide_index=True)
+    # df_info = pd.DataFrame([datos_agente])
+    # st.dataframe(df_info, use_container_width=True, hide_index=True)
+
+    st.markdown("### 📋 Información del agente")
+    
+    # Fila 1
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"**CUIL:** {datos_agente['CUIL']}")
+        st.markdown(f"**Nivel:** {datos_agente['NIVEL']}")
+    with col2:
+        st.markdown(f"**Apellido y Nombre:** {datos_agente['Apellido y Nombre']}")
+        st.markdown(f"**Grado:** {datos_agente['GRADO']}")
+    with col3:
+        st.markdown(f"**Tramo:** {datos_agente['TRAMO']}")
+        st.markdown(f"**Agrupamiento:** {datos_agente['AGRUPAMIENTO']}")
+    with col4:
+        st.markdown(f"**Ingresante:** {datos_agente['INGRESANTE']}")
+    
+    # Fila 2
+    st.markdown("----")
+    col5, col6, col7 = st.columns(3)
+    with col5:
+        st.markdown(f"**Últ. Calificación:** {datos_agente.get('ULT. CALIFICACIÓN', '-')}")
+        st.markdown(f"**Activo:** {'Sí' if agente.get('activo', True) else 'No'}")
+    with col6:
+        st.markdown(f"**Calificación para corrimiento:** {datos_agente.get('CALIFICACIÓN PARA CORRIMIENTO', '-')}")
+    with col7:
+        st.markdown(f"**Motivo Inactividad:** {datos_agente.get('MOTIVO INACTIVIDAD', '-')}")
+        st.markdown(f"**Fecha Baja:** {datos_agente.get('FECHA BAJA', '-')}")
+
+
     
     # Selección de tipo de formulario
     tipo = st.selectbox(
