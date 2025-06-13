@@ -23,6 +23,8 @@ def cargar_usuarios_y_autenticar():
         if tiempo_inactivo > TIEMPO_MAX_SESION_MIN * 60:
             st.session_state.clear()
             st.warning("🔐 Sesión cerrada por inactividad.")
+            if st.button("🔁 Volver al login"):
+                st.rerun()
             st.stop()
     st.session_state["last_activity"] = ahora  # Actualizar tiempo de última acción
 
@@ -88,12 +90,17 @@ def cargar_usuarios_y_autenticar():
             # Cargar nuevos datos de sesión
             st.session_state["usuario"] = username
             st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
-            st.session_state["rol"] = usuario_data.get("rol", "")
             st.session_state["dependencia"] = usuario_data.get("dependencia", "")
 
-            # Solo ciertos roles pueden tener acceso a dependencia_general
-            rol = usuario_data.get("rol", "")
-            if rol in ["rrhh", "coordinador", "evaluador_general"]:
+            # Parsear el rol (de string JSON a dict)
+            rol_raw = usuario_data.get("rol", "")
+            try:
+                st.session_state["rol"] = json.loads(rol_raw) if isinstance(rol_raw, str) else rol_raw
+            except Exception:
+                st.session_state["rol"] = {}
+
+            # Solo ciertos roles acceden a dependencia_general
+            if any(st.session_state["rol"].get(r) for r in ["rrhh", "coordinador", "evaluador_general"]):
                 st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
             else:
                 st.session_state["dependencia_general"] = ""
