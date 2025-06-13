@@ -126,7 +126,13 @@ def mostrar(supabase):
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
-        df_no_anuladas["Seleccionar"] = False
+        if not df_no_anuladas.empty:
+            df_no_anuladas["Seleccionar"] = False
+        else:
+            st.info("No hay evaluaciones no anuladas para mostrar.")
+            return
+
+        
         df_no_anuladas = df_no_anuladas[[
             "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre", 
             "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada", "Estado"
