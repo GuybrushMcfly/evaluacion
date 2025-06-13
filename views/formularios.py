@@ -40,17 +40,16 @@ def mostrar(supabase, formularios, clasificaciones):
     
      # Preparar datos del agente (sin incluir los datos de inactividad)
     datos_agente = {
-    #   "CUIL": cuil,  # si querés mostrarlo, activalo
-    #   "Apellido y Nombre": apellido_nombre,
-        "NIVEL": agente.get("nivel", ""),
-        "GRADO": agente.get("grado", ""),
+        # "CUIL": cuil,
+        # "Apellido y Nombre": apellido_nombre,
+        "Nivel/Grado": f"{agente.get('nivel', '')}{agente.get('grado', '')}",
         "TRAMO": agente.get("tramo", ""),
         "AGRUPAMIENTO": agente.get("agrupamiento", ""),
         "INGRESANTE": "Sí" if agente.get("ingresante") else "No",
         "ULT. CALIFICACIÓN": agente.get("ultima_calificacion", ""),
         "CALIFICACIÓN PARA CORRIMIENTO": agente.get("calificaciones_corrimiento", "")
     }
-    
+        
     # Mostrar tabla principal
     df_info = pd.DataFrame([datos_agente])
     st.dataframe(df_info, use_container_width=True, hide_index=True)
