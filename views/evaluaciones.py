@@ -89,9 +89,11 @@ def mostrar(supabase):
     st.subheader("📋 Uso de formularios")
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_columnas = {f"FORM. {f}": [0] for f in form_labels}
+  
     if not df_eval.empty and "formulario" in df_eval.columns:
-        #formulario_counts = df_eval["formulario"].value_counts()
         formulario_counts = df_no_anuladas["formulario"].value_counts()
+
+
         for f in form_labels:
             form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
     df_form = pd.DataFrame(form_columnas)
@@ -102,13 +104,35 @@ def mostrar(supabase):
     st.subheader("📋 Distribución por calificación")
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_columnas = {cat: [0] for cat in categorias}
-    if not df_eval.empty and "calificacion" in df_eval.columns:
-        calif_counts = df_eval["calificacion"].value_counts()
+
+    if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
+        calif_counts = df_no_anuladas["calificacion"].value_counts()
+        
         for cat in categorias:
             calif_columnas[cat] = [calif_counts.get(cat, 0)]
     df_calif = pd.DataFrame(calif_columnas)
     st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
+    if not df_no_anuladas.empty:
+        st.subheader("✅ Evaluaciones registradas:")
+        st.dataframe(
+            df_no_anuladas[[
+                "apellido_nombre", "formulario", "calificacion", "puntaje_total", "evaluador", "Fecha_formateada"
+            ]].rename(columns={
+                "apellido_nombre": "Apellido y Nombres",
+                "formulario": "Form.",
+                "calificacion": "Calificación",
+                "puntaje_total": "Puntaje",
+                "evaluador": "Evaluador",
+                "Fecha_formateada": "Fecha"
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+
+    
     # ---- BLOQUE DE NO ANULADAS ----
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
