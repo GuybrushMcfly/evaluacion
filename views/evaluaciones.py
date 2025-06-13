@@ -69,7 +69,7 @@ def mostrar(supabase):
                     eval_sel = df_no_anuladas.iloc[idx]
                     supabase.table("evaluaciones").update({"anulada": True})\
                         .eq("id_evaluacion", eval_sel["id_evaluacion"]).execute()
-                    supabase.table("agentes").update({"evaluado_2025": False})\
+                    supabase.table("agentes").update({"evaluado_2024": False})\
                         .eq("cuil", str(eval_sel["cuil"]).strip()).execute()
                 st.success(f"✅ {len(indices)} evaluaciones anuladas.")
                 time.sleep(2)
