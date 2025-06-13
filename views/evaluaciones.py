@@ -7,22 +7,25 @@ import time
 def mostrar(supabase):
     st.header("📋 Evaluaciones realizadas")
 
+    # Función para verificar rol activo
+    def tiene_rol(*roles):
+        return any(st.session_state.get("rol", {}).get(r, False) for r in roles)
+
     # Rol y dependencias desde sesión
-    rol_actual = st.session_state.get("rol", "")
     dependencia_usuario = st.session_state.get("dependencia", "")
     dependencia_general = st.session_state.get("dependencia_general", "")
 
     # Construir opciones de filtro de dependencia
     opciones_dependencia = []
 
-    if rol_actual in ["rrhh", "coordinador", "evaluador_general"] and dependencia_general:
+    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         opciones_dependencia.append(f"{dependencia_general} (todas)")
 
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
 
     dependencias_subordinadas = []
-    if rol_actual in ["rrhh", "coordinador", "evaluador_general"] and dependencia_general:
+    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         resultado = supabase.table("unidades_evaluacion")\
             .select("dependencia")\
             .eq("dependencia_general", dependencia_general)\
