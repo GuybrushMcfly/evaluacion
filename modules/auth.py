@@ -58,5 +58,20 @@ def cargar_usuarios_y_autenticar():
     except KeyError as e:
         st.error(f"❌ Usuario inválido: {e}")
         st.stop()
-
+    
+    if authentication_status:
+        usuario_data = supabase.table("usuarios")\
+            .select("dependencia, dependencia_general, apellido_nombre, rol")\
+            .eq("usuario", username).maybe_single().execute().data
+    
+        if usuario_data:
+            st.session_state.update({
+                "usuario": username,
+                "nombre_completo": usuario_data.get("apellido_nombre", ""),
+                "rol": usuario_data.get("rol", {}),
+                "dependencia": usuario_data.get("dependencia", ""),
+                "dependencia_general": usuario_data.get("dependencia_general", "")
+            })
+    
     return name, authentication_status, username, authenticator, supabase
+
