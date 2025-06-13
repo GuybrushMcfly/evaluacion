@@ -90,6 +90,12 @@ def cargar_usuarios_y_autenticar():
             st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
             st.session_state["rol"] = usuario_data.get("rol", "")
             st.session_state["dependencia"] = usuario_data.get("dependencia", "")
-            st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
+
+            # Solo ciertos roles pueden tener acceso a dependencia_general
+            rol = usuario_data.get("rol", "")
+            if rol in ["rrhh", "coordinador", "evaluador_general"]:
+                st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
+            else:
+                st.session_state["dependencia_general"] = ""
 
     return name, authentication_status, username, authenticator, supabase
