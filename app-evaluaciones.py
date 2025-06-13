@@ -46,14 +46,12 @@ if authentication_status:
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
 
-    # ---- INTERFAZ ----
+    # ---- INTERFAZ DE USUARIO ----
+    st.sidebar.image("logo-cap.png", use_container_width=True)  # Logo en sidebar
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
-    nombre = st.session_state.get("nombre_completo", "")
-    #roles = ", ".join([k for k, v in st.session_state.get("rol", {}).items() if v])
-    #st.sidebar.success(f"{nombre}\n**Rol:** {roles}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
-    # SOLO MOSTRAR EL MENÚ SI ESTÁ AUTENTICADO
+    # ---- NAVEGACIÓN ----
     opcion = st.sidebar.radio("📂 Navegación", [
         "📝 Instructivo",
         "📄 Formularios",
