@@ -51,6 +51,8 @@ def mostrar(supabase):
         calificacion = e.get("calificacion", "")
         total = e.get("puntaje_total", "")
         factores_puntaje = e.get("factor_puntaje", {})
+        if factores_puntaje is None:
+            factores_puntaje = {}
         resumen_puntaje = ", ".join([f"{k} ({v})" for k, v in factores_puntaje.items()])
 
         filas_tabla.append({
@@ -67,8 +69,8 @@ def mostrar(supabase):
             "FACTOR/PUNTAJE": resumen_puntaje,
             "CALIFICACION": calificacion,
             "PUNTAJE TOTAL": total,
-            "PUNTAJE MÁXIMO": e.get("puntaje_maximo", ""),
-            "PUNTAJE RELATIVO": e.get("puntaje_relativo", ""),
+            "PUNTAJE MÁXIMO": e.get("puntaje_maximo") if e.get("puntaje_maximo") is not None else 0,
+            "PUNTAJE RELATIVO": float(e.get("puntaje_relativo")) if e.get("puntaje_relativo") is not None else 0.0,
             "DEPENDENCIA": e.get("dependencia", ""),
             "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
         })
@@ -104,11 +106,20 @@ def mostrar(supabase):
             ordenados = grupo.sort_values("puntaje_relativo", ascending=False)
             orden_puntaje = ordenados["cuil"].tolist()
             bonificados = orden_puntaje[:int(cupo)]
+            
+            # Convertir tipos no serializables:
+            anio_vals = grupo["anio_evaluacion"].dropna().astype(int)
+            anio_eval = int(anio_vals.max()) if not anio_vals.empty else None
+            
+            # Asegurar listas limpias
+            bonificados = [str(b) for b in bonificados if b is not None]
+            orden_puntaje = [str(o) for o in orden_puntaje if o is not None]
+
             registros.append({
                 "unidad_analisis": ua,
                 "unidad_evaluadora": ue,
                 "formulario": f,
-                "anio_evaluacion": grupo["anio_evaluacion"].dropna().astype(int).max(),
+                "anio_evaluacion": anio_eval,
                 "evaluados_total": evaluados_total,
                 "destacados_total": destacados_total,
                 "cupo_maximo_30": int(cupo),
@@ -116,6 +127,9 @@ def mostrar(supabase):
                 "orden_puntaje": orden_puntaje,
                 "fecha_analisis": datetime.now().isoformat()
             })
+        # Opcional: eliminar registros anteriores para no duplicar
+        supabase.table("analisis_evaluaciones").delete().neq("unidad_analisis", "").execute()
+        # Insertar todos los nuevos
         for r in registros:
             supabase.table("analisis_evaluaciones").insert(r).execute()
 
