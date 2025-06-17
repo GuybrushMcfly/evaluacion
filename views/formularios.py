@@ -25,20 +25,26 @@ def mostrar(supabase, formularios, clasificaciones):
     if not agentes_data:
         st.warning("⚠️ No hay agentes disponibles para evaluar.")
         return
-    
-    # Selección de agente
-    opciones_agentes = [a["apellido_nombre"] for a in agentes_data]
-    seleccionado = st.selectbox("👤 Seleccione un agente para evaluar", opciones_agentes)
-    agente = next((a for a in agentes_data if a["apellido_nombre"] == seleccionado), None)
-    
-    if not agente:
+
+    # Selección de agente (con placeholder)
+    opciones_agentes = [""] + [a["apellido_nombre"] for a in agentes_data]
+    seleccion_agente = st.selectbox(
+        "👤 Seleccione un agente para evaluar",
+        opciones_agentes,
+        key="select_agente",
+        format_func=lambda x: "– Seleccione agente –" if x == "" else x
+    )
+    if seleccion_agente == "":
+        st.warning("⚠️ Por favor seleccione un agente")
         return
+
+    agente = next(a for a in agentes_data if a["apellido_nombre"] == seleccion_agente)
     
     # Variables base
     cuil = agente["cuil"]
     apellido_nombre = agente["apellido_nombre"]
     
-     # Preparar datos del agente (sin incluir los datos de inactividad)
+    # Preparar datos del agente (sin incluir los datos de inactividad)
     datos_agente = {
         # "CUIL": cuil,
         # "Apellido y Nombre": apellido_nombre,
@@ -65,18 +71,13 @@ def mostrar(supabase, formularios, clasificaciones):
         with col3:
             st.markdown(f"**Fecha de baja:** {agente.get('fecha_inactivo', '-')}")
 
-
-   
-    
-    # Selección de tipo de formulario
+    # Selección de tipo de formulario (con placeholder)
     tipo = st.selectbox(
         "📄 Seleccione el tipo de formulario",
         options=[""] + list(formularios.keys()),
-        format_func=lambda x: f"Formulario {x} - {formularios[x]['titulo']}" if x else "Seleccione una opción",
-        key="select_tipo"
+        key="select_tipo",
+        format_func=lambda x: "– Seleccione formulario –" if x == "" else f"Formulario {x} – {formularios[x]['titulo']}"
     )
-
-
     if tipo == "":
         return
 
@@ -179,9 +180,7 @@ def mostrar(supabase, formularios, clasificaciones):
 
                 supabase.table("agentes").update({"evaluado_2024": True}).eq("cuil", cuil).execute()
 
-                            
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
-                #st.balloons()
                 time.sleep(2)
 
                 for key in list(st.session_state.keys()):
