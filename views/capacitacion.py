@@ -31,11 +31,13 @@ def limpiar_registro(r):
     if isinstance(r.get("fecha_analisis"), datetime):
         r["fecha_analisis"] = r["fecha_analisis"].isoformat()
 
-    # Limpia campos numéricos de NaN o None
+    # Limpia campos numéricos de NaN o None y convierte a int
     for key in ["anio_evaluacion", "evaluados_total", "destacados_total", "cupo_maximo_30"]:
         val = r.get(key)
         if val is None or (isinstance(val, float) and math.isnan(val)):
             r[key] = 0
+        else:
+            r[key] = int(val)
 
     # Limpia listas JSONB, elimina None y convierte todo a string
     for key in ["bonificados_cuils", "orden_puntaje"]:
@@ -147,7 +149,7 @@ def mostrar(supabase):
 
             registros.append(registro)
 
-        # Limpiar registros previos para evitar duplicados
+        # Eliminar registros previos para evitar duplicados
         supabase.table("analisis_evaluaciones").delete().neq("unidad_analisis", "").execute()
 
         # Insertar registros limpios
