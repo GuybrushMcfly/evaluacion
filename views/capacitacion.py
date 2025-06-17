@@ -65,41 +65,86 @@ def mostrar(supabase):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # ---------- SECCIÓN 2: Análisis por Dependencia General ----------
-    st.markdown("## 📊 Análisis por Dependencia General (Criterios de Tramo)")
+import pdfkit
+import os
 
-    unidades = supabase.table("unidades_evaluacion").select("*").execute().data
-    if not evaluaciones or not unidades:
-        st.warning("No hay datos de evaluaciones o unidades de evaluación disponibles.")
-        return
+# --- BOTÓN ANEXO II ---
+if st.button("📂 Generar ANEXO II - Listado de Apoyo"):
+    df_ordenado = df_filtrado.copy()
+    df_ordenado = df_ordenado[df_ordenado["calificacion"] == "Destacado"]
+    df_ordenado = df_ordenado.sort_values(by="puntaje_relativo", ascending=False)
+    df_ordenado["ORDEN"] = range(1, len(df_ordenado) + 1)
+    df_ordenado["BONIFICACIÓN"] = df_ordenado["ORDEN"] <= resumen["cupo_maximo_30"].sum()
 
-    df_eval = pd.DataFrame(evaluaciones)
-    df_unidades = pd.DataFrame(unidades)
+    listado = df_ordenado[[
+        "apellido_nombre", "cuil", "formulario", "calificacion", "ORDEN", "BONIFICACIÓN"
+    ]].rename(columns={
+        "apellido_nombre": "APELLIDO Y NOMBRE",
+        "formulario": "NIVEL",
+        "calificacion": "CALIFICACIÓN"
+    })
 
-    df_eval = df_eval[(df_eval["activo"] == True) & (df_eval["anulada"] != True)]
+    # Crear HTML
+    html_ii = f"""
+    <html><head><style>
+    body {{ font-family: Arial; font-size: 12pt; margin: 40px; }}
+    h2 {{ text-align: center; text-transform: uppercase; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+    th, td {{ border: 1px solid black; padding: 6px; text-align: left; }}
+    </style></head><body>
+    <h2>ANEXO II - LISTADO DE APOYO PARA BONIFICACIÓN POR DESEMPEÑO DESTACADO</h2>
+    {listado.to_html(index=False, border=0)}
+    </body></html>
+    """
 
-    residuales = df_unidades[df_unidades["residual"] == True]["unidad_analisis"].unique()
-    df_eval["residual_general"] = df_eval["unidad_analisis"].isin(residuales)
+    os.makedirs("tmp_anexos", exist_ok=True)
+    path_html = "tmp_anexos/anexo_ii.html"
+    path_pdf = "tmp_anexos/anexo_ii.pdf"
+    with open(path_html, "w", encoding="utf-8") as f:
+        f.write(html_ii)
 
-    dependencias = sorted(df_eval["dependencia_general"].dropna().unique().tolist())
-    dependencias.append("RESIDUAL GENERAL")
+    pdfkit.from_file(path_html, path_pdf)
+    with open(path_pdf, "rb") as f:
+        st.download_button("⬇️ Descargar ANEXO II en PDF", f, file_name="anexo_ii.pdf", mime="application/pdf")
 
-    seleccion = st.selectbox("Seleccioná una Dependencia General", dependencias)
 
-    if seleccion == "RESIDUAL GENERAL":
-        df_filtrado = df_eval[df_eval["residual_general"] == True]
-    else:
-        df_filtrado = df_eval[df_eval["dependencia_general"] == seleccion]
+# --- BOTÓN ANEXO III ---
+if st.button("📝 Generar ANEXO III - Acta de Veeduría"):
+    total_eval = df_filtrado.shape[0]
+    total_dest = (df_filtrado["calificacion"] == "Destacado").sum()
+    cupo_teorico = int(round(total_eval * 0.3))
 
-    if df_filtrado.empty:
-        st.info("No hay evaluaciones para esta dependencia.")
-        return
+    acta_texto = f"""
+ACTA DE VEEDURÍA GREMIAL
 
-    resumen = df_filtrado.groupby("formulario").agg(
-        evaluados_total=("cuil", "count"),
-        destacados_total=("calificacion", lambda x: (pd.Series(x) == "Destacado").sum())
-    ).reset_index()
+En la dependencia {seleccion}, con un total de {total_eval} personas evaluadas, se asignó la bonificación por desempeño destacado a {total_dest} agentes, de acuerdo al cupo máximo permitido del 30% según la normativa vigente.
 
-    resumen["cupo_maximo_30"] = (resumen["evaluados_total"] * 0.3).round().astype(int)
+La veeduría gremial constató que el procedimiento se realizó conforme a la normativa, y se firmó en señal de conformidad.
 
-    st.dataframe(resumen)
+Fecha: ........................................................
+
+Firmas:
+- Representante de la unidad de análisis
+- Veedor/a gremial
+"""
+
+    html_iii = f"""
+    <html><head><style>
+    body {{ font-family: Arial; font-size: 12pt; margin: 40px; }}
+    h2 {{ text-align: center; text-transform: uppercase; }}
+    pre {{ white-space: pre-wrap; word-wrap: break-word; }}
+    </style></head><body>
+    <h2>ANEXO III - ACTA DE VEEDURÍA GREMIAL</h2>
+    <pre>{acta_texto.strip()}</pre>
+    </body></html>
+    """
+
+    path_html = "tmp_anexos/anexo_iii.html"
+    path_pdf = "tmp_anexos/anexo_iii.pdf"
+    with open(path_html, "w", encoding="utf-8") as f:
+        f.write(html_iii)
+
+    pdfkit.from_file(path_html, path_pdf)
+    with open(path_pdf, "rb") as f:
+        st.download_button("⬇️ Descargar ANEXO III en PDF", f, file_name="anexo_iii.pdf", mime="application/pdf")
+
