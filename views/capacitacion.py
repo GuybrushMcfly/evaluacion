@@ -5,7 +5,6 @@ import pdfkit
 import os
 
 def mostrar(supabase):
-    st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")  # debe ir al inicio si este es el script principal
 
     st.markdown("<h1 style='font-size:24px;'>📘 Análisis de Capacitación</h1>", unsafe_allow_html=True)
 
