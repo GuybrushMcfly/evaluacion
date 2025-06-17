@@ -30,23 +30,20 @@ def limpiar_registro(r):
     # Convierte datetime a string ISO
     if isinstance(r.get("fecha_analisis"), datetime):
         r["fecha_analisis"] = r["fecha_analisis"].isoformat()
-
     # Limpia campos numéricos de NaN o None y convierte a int
-    for key in ["anio_evaluacion", "evaluados_total", "destacados_total", "cupo_maximo_30"]:
+    for key in ["anio_evaluacion", "evaluados_total", "destacados_total", "cupo_maximo_30", "cupo_maximo_10"]:
         val = r.get(key)
         if val is None or (isinstance(val, float) and math.isnan(val)):
             r[key] = 0
         else:
             r[key] = int(val)
-
     # Limpia listas JSONB, elimina None y convierte todo a string
-    for key in ["bonificados_cuils", "orden_puntaje"]:
+    for key in ["destacados_cuils", "bonificados_cuils", "orden_puntaje"]:
         lista = r.get(key)
         if lista is None:
             r[key] = []
         else:
             r[key] = [str(x) for x in lista if x is not None]
-
     return r
 
 def mostrar(supabase):
@@ -112,51 +109,50 @@ def mostrar(supabase):
 
     # ---- SECCION 2: ANALISIS ----
     if st.button("Ejecutar Análisis de Evaluaciones"):
-    df = pd.DataFrame(evaluaciones)
-    df_unidades = pd.DataFrame(unidades)
-    df = df[df["activo"] == True]
-    df["residual_general"] = df["unidad_analisis"].isin(
-        df_unidades[df_unidades["residual"] == True]["unidad_analisis"].unique()
-    )
+        df = pd.DataFrame(evaluaciones)
+        df_unidades = pd.DataFrame(unidades)
+        df = df[df["activo"] == True]
+        df["residual_general"] = df["unidad_analisis"].isin(
+            df_unidades[df_unidades["residual"] == True]["unidad_analisis"].unique()
+        )
 
-    # Agrupamos por UA para calcular correctamente el 10% para bonificación
-    for ua, grupo_ua in df.groupby("unidad_analisis"):
-        total_evaluados = len(grupo_ua)
-        cupo_destacados = round(total_evaluados * 0.3)
-        cupo_bonificacion = round(total_evaluados * 0.10)
-        
-        # Filtrar solo los destacados de la UA
-        destacados = grupo_ua[grupo_ua["calificacion"] == "Destacado"]
-        destacados_ordenados = destacados.sort_values("puntaje_relativo", ascending=False)
-        
-        # CUILs de destacados (para el 30%)
-        destacados_cuils = destacados_ordenados["cuil"].tolist()[:cupo_destacados]
-        # CUILs de bonificados (para el 10% - sólo entre destacados)
-        bonificados_cuils = destacados_ordenados["cuil"].tolist()[:cupo_bonificacion]
-        orden_puntaje = destacados_ordenados["cuil"].tolist()
+        registros = []
+        for ua, grupo_ua in df.groupby("unidad_analisis"):
+            total_evaluados = len(grupo_ua)
+            cupo_destacados = round(total_evaluados * 0.3)
+            cupo_bonificacion = round(total_evaluados * 0.10)
 
-        anio_vals = grupo_ua["anio_evaluacion"].dropna().astype(int)
-        anio_eval = int(anio_vals.max()) if not anio_vals.empty else 0
+            # Solo los destacados (calificación = "Destacado")
+            destacados = grupo_ua[grupo_ua["calificacion"] == "Destacado"]
+            destacados_ordenados = destacados.sort_values("puntaje_relativo", ascending=False)
 
-        registro = {
-            "unidad_analisis": ua,
-            "anio_evaluacion": anio_eval,
-            "evaluados_total": total_evaluados,
-            "destacados_total": len(destacados),
-            "cupo_maximo_30": cupo_destacados,
-            "cupo_maximo_10": cupo_bonificacion,
-            "destacados_cuils": destacados_cuils,    # (nuevo campo, si querés)
-            "bonificados_cuils": bonificados_cuils,  # (este es el oficial)
-            "orden_puntaje": orden_puntaje,
-            "fecha_analisis": datetime.now().isoformat()
-        }
-        registro = limpiar_registro(registro)
-        supabase.table("analisis_evaluaciones").insert(registro).execute()
+            # CUILs de destacados (hasta 30%)
+            destacados_cuils = destacados_ordenados["cuil"].tolist()[:cupo_destacados]
+            # CUILs de bonificados (hasta 10%, entre destacados)
+            bonificados_cuils = destacados_ordenados["cuil"].tolist()[:cupo_bonificacion]
+            orden_puntaje = destacados_ordenados["cuil"].tolist()
 
+            anio_vals = grupo_ua["anio_evaluacion"].dropna().astype(int)
+            anio_eval = int(anio_vals.max()) if not anio_vals.empty else 0
 
-        # Insertar registros limpios
+            registro = {
+                "unidad_analisis": ua,
+                "anio_evaluacion": anio_eval,
+                "evaluados_total": total_evaluados,
+                "destacados_total": len(destacados),
+                "cupo_maximo_30": cupo_destacados,
+                "cupo_maximo_10": cupo_bonificacion,
+                "destacados_cuils": destacados_cuils,
+                "bonificados_cuils": bonificados_cuils,
+                "orden_puntaje": orden_puntaje,
+                "fecha_analisis": datetime.now().isoformat()
+            }
+            registro = limpiar_registro(registro)
+            registros.append(registro)
+
+        supabase.table("analisis_evaluaciones").delete().neq("unidad_analisis", "").execute()
         for r in registros:
-            st.write("Insertando registro:", r)  # Opcional: para debug
+            st.write("Insertando registro:", r)
             supabase.table("analisis_evaluaciones").insert(r).execute()
 
         st.success("Análisis guardado en la tabla analisis_evaluaciones.")
@@ -193,8 +189,9 @@ def mostrar(supabase):
         anexos = []
         for formulario in df_filtrado["formulario"].unique():
             ua = df_filtrado["unidad_analisis"].iloc[0]
-            analisis = df_analisis[(df_analisis["unidad_analisis"] == ua) & (df_analisis["formulario"] == formulario)]
+            analisis = df_analisis[(df_analisis["unidad_analisis"] == ua)]
             if not analisis.empty:
+                # Usar el campo de bonificados_cuils (10% según análisis)
                 bonificados = analisis.iloc[0]["bonificados_cuils"]
                 orden = analisis.iloc[0]["orden_puntaje"]
                 df_form = df_filtrado[df_filtrado["formulario"] == formulario]
