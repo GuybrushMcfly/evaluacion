@@ -4,6 +4,7 @@ import io
 import os
 from datetime import datetime
 from docx import Document
+import math
 
 def generar_anexo_ii_docx(dataframe, path_docx):
     doc = Document()
@@ -24,6 +25,27 @@ def generar_anexo_iii_docx(texto, path_docx):
     doc.add_heading("ANEXO III - ACTA DE VEEDURÍA GREMIAL", level=1)
     doc.add_paragraph(texto.strip())
     doc.save(path_docx)
+
+def limpiar_registro(r):
+    # Convierte datetime a string ISO
+    if isinstance(r.get("fecha_analisis"), datetime):
+        r["fecha_analisis"] = r["fecha_analisis"].isoformat()
+
+    # Limpia campos numéricos de NaN o None
+    for key in ["anio_evaluacion", "evaluados_total", "destacados_total", "cupo_maximo_30"]:
+        val = r.get(key)
+        if val is None or (isinstance(val, float) and math.isnan(val)):
+            r[key] = 0
+
+    # Limpia listas JSONB, elimina None y convierte todo a string
+    for key in ["bonificados_cuils", "orden_puntaje"]:
+        lista = r.get(key)
+        if lista is None:
+            r[key] = []
+        else:
+            r[key] = [str(x) for x in lista if x is not None]
+
+    return r
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:24px;'>Análisis de Capacitación</h1>", unsafe_allow_html=True)
@@ -107,10 +129,6 @@ def mostrar(supabase):
             anio_vals = grupo["anio_evaluacion"].dropna().astype(int)
             anio_eval = int(anio_vals.max()) if not anio_vals.empty else 0
 
-            # Limpiar listas de None
-            bonificados = [str(b) for b in bonificados if b is not None]
-            orden_puntaje = [str(o) for o in orden_puntaje if o is not None]
-
             registro = {
                 "unidad_analisis": ua,
                 "unidad_evaluadora": ue,
@@ -124,13 +142,17 @@ def mostrar(supabase):
                 "fecha_analisis": datetime.now().isoformat()
             }
 
+            # Limpiar registro para evitar errores JSON
+            registro = limpiar_registro(registro)
+
             registros.append(registro)
 
-        # Eliminar registros anteriores para evitar duplicados
+        # Limpiar registros previos para evitar duplicados
         supabase.table("analisis_evaluaciones").delete().neq("unidad_analisis", "").execute()
 
-        # Insertar nuevos registros
+        # Insertar registros limpios
         for r in registros:
+            st.write("Insertando registro:", r)  # Opcional: para debug
             supabase.table("analisis_evaluaciones").insert(r).execute()
 
         st.success("Análisis guardado en la tabla analisis_evaluaciones.")
