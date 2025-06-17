@@ -66,13 +66,13 @@ def mostrar(supabase):
             "FACTOR/PUNTAJE": resumen_puntaje,
             "CALIFICACION": calificacion,
             "PUNTAJE TOTAL": total,
-            "PUNTAJE M\u00c1XIMO": e.get("puntaje_maximo", ""),
+            "PUNTAJE MÁXIMO": e.get("puntaje_maximo", ""),
             "PUNTAJE RELATIVO": e.get("puntaje_relativo", ""),
             "DEPENDENCIA": e.get("dependencia", ""),
             "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
         })
 
-    st.markdown("### \ud83d\udcc4 Resumen Individual")
+    st.markdown("### Resumen Individual")
     st.dataframe(pd.DataFrame(filas_tabla), use_container_width=True)
 
     df_excel = pd.DataFrame(filas_excel)
@@ -80,14 +80,14 @@ def mostrar(supabase):
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         df_excel.to_excel(writer, index=False, sheet_name="Resumen")
     st.download_button(
-        label="\ud83d\udcc5 Descargar Excel",
+        label="Descargar Excel",
         data=buffer.getvalue(),
         file_name="resumen_capacitacion.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # ---- SECCION 2: ANALISIS ----
-    if st.button("\u2699\ufe0f Ejecutar An\u00e1lisis de Evaluaciones"):
+    if st.button("Ejecutar Análisis de Evaluaciones"):
         df = pd.DataFrame(evaluaciones)
         df_unidades = pd.DataFrame(unidades)
         residuales = df_unidades[df_unidades["residual"] == True]["unidad_analisis"].unique()
@@ -117,7 +117,8 @@ def mostrar(supabase):
             })
         for r in registros:
             supabase.table("analisis_evaluaciones").insert(r).execute()
-        st.success("\u2705 An\u00e1lisis guardado en la tabla analisis_evaluaciones.")
+
+        st.success("Análisis guardado en la tabla analisis_evaluaciones.")
 
     # ---- SECCION 3: ANEXOS ----
     df_eval = pd.DataFrame(evaluaciones)
@@ -129,7 +130,7 @@ def mostrar(supabase):
 
     opciones = sorted(df_eval["dependencia_general"].dropna().unique().tolist())
     opciones.append("RESIDUAL GENERAL")
-    seleccion = st.selectbox("\ud83d\udcc2 Seleccion\u00e1 una Direcci\u00f3n General", opciones)
+    seleccion = st.selectbox("Seleccioná una Dirección General", opciones)
 
     if seleccion == "RESIDUAL GENERAL":
         df_filtrado = df_eval[df_eval["residual_general"]]
@@ -147,7 +148,7 @@ def mostrar(supabase):
     resumen["cupo_maximo_30"] = (resumen["evaluados_total"] * 0.3).round().astype(int)
     st.dataframe(resumen)
 
-    if st.button("\ud83d\udcc2 Generar ANEXO II - Listado de Apoyo"):
+    if st.button("Generar ANEXO II - Listado de Apoyo"):
         anexos = []
         for formulario in df_filtrado["formulario"].unique():
             ua = df_filtrado["unidad_analisis"].iloc[0]
@@ -158,7 +159,7 @@ def mostrar(supabase):
                 df_form = df_filtrado[df_filtrado["formulario"] == formulario]
                 df_form = df_form[df_form["cuil"].isin(orden)]
                 df_form["ORDEN"] = df_form["cuil"].apply(lambda x: orden.index(x) + 1)
-                df_form["BONIFICACI\u00d3N"] = df_form["cuil"].apply(lambda x: x in bonificados)
+                df_form["BONIFICACIÓN"] = df_form["cuil"].apply(lambda x: x in bonificados)
                 anexos.append(df_form)
 
         if anexos:
@@ -167,30 +168,30 @@ def mostrar(supabase):
             df_anexo = df_anexo.rename(columns={
                 "apellido_nombre": "APELLIDO Y NOMBRE",
                 "formulario": "NIVEL",
-                "calificacion": "CALIFICACI\u00d3N"
-            })[["APELLIDO Y NOMBRE", "cuil", "NIVEL", "CALIFICACI\u00d3N", "ORDEN", "BONIFICACI\u00d3N"]]
+                "calificacion": "CALIFICACIÓN"
+            })[["APELLIDO Y NOMBRE", "cuil", "NIVEL", "CALIFICACIÓN", "ORDEN", "BONIFICACIÓN"]]
 
             os.makedirs("tmp_anexos", exist_ok=True)
             generar_anexo_ii_docx(df_anexo, "tmp_anexos/anexo_ii.docx")
             with open("tmp_anexos/anexo_ii.docx", "rb") as f:
-                st.download_button("\u2b07\ufe0f Descargar ANEXO II en Word", f, file_name="anexo_ii.docx")
+                st.download_button("Descargar ANEXO II en Word", f, file_name="anexo_ii.docx")
 
-    if st.button("\ud83d\udcdd Generar ANEXO III - Acta de Veedur\u00eda"):
+    if st.button("Generar ANEXO III - Acta de Veeduría"):
         total_eval = df_filtrado.shape[0]
         total_dest = (df_filtrado["calificacion"] == "Destacado").sum()
 
-        acta_texto = f"""ACTA DE VEEDUR\u00cdA GREMIAL
+        acta_texto = f"""ACTA DE VEEDURÍA GREMIAL
 
-En la dependencia {seleccion}, con un total de {total_eval} personas evaluadas, se asign\u00f3 la bonificaci\u00f3n por desempe\u00f1o destacado a {total_dest} agentes, de acuerdo al cupo m\u00e1ximo permitido del 30% seg\u00fan la normativa vigente.
+En la dependencia {seleccion}, con un total de {total_eval} personas evaluadas, se asignó la bonificación por desempeño destacado a {total_dest} agentes, de acuerdo al cupo máximo permitido del 30% según la normativa vigente.
 
-La veedur\u00eda gremial constat\u00f3 que el procedimiento se realiz\u00f3 conforme a la normativa, y se firm\u00f3 en se\u00f1al de conformidad.
+La veeduría gremial constató que el procedimiento se realizó conforme a la normativa, y se firmó en señal de conformidad.
 
 Fecha: ........................................................
 
 Firmas:
-- Representante de la unidad de an\u00e1lisis
+- Representante de la unidad de análisis
 - Veedor/a gremial"""
 
         generar_anexo_iii_docx(acta_texto, "tmp_anexos/anexo_iii.docx")
         with open("tmp_anexos/anexo_iii.docx", "rb") as f:
-            st.download_button("\u2b07\ufe0f Descargar ANEXO III en Word", f, file_name="anexo_iii.docx")
+            st.download_button("Descargar ANEXO III en Word", f, file_name="anexo_iii.docx")
