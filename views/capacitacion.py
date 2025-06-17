@@ -26,7 +26,7 @@ def generar_anexo_iii_docx(texto, path_docx):
     doc.save(path_docx)
 
 def mostrar(supabase):
-    st.markdown("<h1 style='font-size:24px;'>\ud83d\udcd8\ufe0f An\u00e1lisis de Capacitaci\u00f3n</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-size:24px;'>Análisis de Capacitación</h1>", unsafe_allow_html=True)
 
     evaluaciones = supabase.table("evaluaciones").select("*").execute().data
     agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data
