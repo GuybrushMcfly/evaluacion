@@ -36,6 +36,14 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
       ['Cantidad de agentes','Bonif. otorgadas','Bonif. correspondientes','Diferencia']
       y columnas [1,2,3,4,5,6,'TOTAL']
     """
+
+     # ← Aquí, justo después de crear el documento:
+    from docx.shared import Pt
+    style = doc.styles['Normal']
+    font  = style.font
+    font.name = 'Calibri'
+    font.size = Pt(9)
+    
     doc = Document()
     doc.add_heading("Anexo I – Informe para el Comité", level=1)
     doc.add_paragraph(f"Unidad de Evaluación: {unidad_nombre}")
