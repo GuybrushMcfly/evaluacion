@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
 import io
-import pdfkit
 import os
+from weasyprint import HTML  # <- reemplazo de pdfkit
 
 def mostrar(supabase):
-
     st.markdown("<h1 style='font-size:24px;'>📘 Análisis de Capacitación</h1>", unsafe_allow_html=True)
 
     # ---------- SECCIÓN 1: Tabla resumen individual por agente ----------
@@ -110,7 +109,7 @@ def mostrar(supabase):
         with open(path_html, "w", encoding="utf-8") as f:
             f.write(html_ii)
 
-        pdfkit.from_file(path_html, path_pdf)
+        HTML(path_html).write_pdf(path_pdf)  # usando WeasyPrint
         with open(path_pdf, "rb") as f:
             st.download_button("⬇️ Descargar ANEXO II en PDF", f, file_name="anexo_ii.pdf", mime="application/pdf")
 
@@ -148,6 +147,6 @@ Firmas:
         with open(path_html, "w", encoding="utf-8") as f:
             f.write(html_iii)
 
-        pdfkit.from_file(path_html, path_pdf)
+        HTML(path_html).write_pdf(path_pdf)
         with open(path_pdf, "rb") as f:
             st.download_button("⬇️ Descargar ANEXO III en PDF", f, file_name="anexo_iii.pdf", mime="application/pdf")
