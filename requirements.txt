@@ -20,3 +20,5 @@ st-supabase-connection
 supabase==1.0.3
 xlsxwriter
 pytz
+pdfkit
+wkhtmltopdf
