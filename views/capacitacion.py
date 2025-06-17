@@ -225,6 +225,9 @@ def mostrar(supabase):
         total  = len(df_inf)
         cupo30 = round(total*0.3)
 
+        df_inf["nivel"] = df_inf["formulario"].astype(int)
+
+
         # preparar resumen_niveles
         resumen_niveles = (
             df_inf
