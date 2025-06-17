@@ -15,9 +15,9 @@ def generar_anexo_ii_docx(dataframe, path_docx):
     for i, col in enumerate(dataframe.columns):
         hdr[i].text = col
     for _, row in dataframe.iterrows():
-        row_cells = table.add_row().cells
+        cells = table.add_row().cells
         for i, val in enumerate(row):
-            row_cells[i].text = str(val)
+            cells[i].text = str(val)
     doc.save(path_docx)
 
 def generar_anexo_iii_docx(texto, path_docx):
@@ -29,7 +29,7 @@ def generar_anexo_iii_docx(texto, path_docx):
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:24px;'>📋 Listado General y Análisis de Tramos</h1>", unsafe_allow_html=True)
 
-    # 1) Cargo datos
+    # 1) Cargando datos
     evals   = supabase.table("evaluaciones").select("*").execute().data or []
     agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data or []
     unids   = supabase.table("unidades_evaluacion").select("*").execute().data or []
@@ -38,11 +38,11 @@ def mostrar(supabase):
         st.warning("No hay datos en 'evaluaciones' o 'unidades_evaluacion'.")
         return
 
-    # filtro y mapeo
+    # 2) Filtrar anuladas/inactivas y mapear nombres
     evals = [e for e in evals if not e.get("anulada", False) and e.get("activo", False)]
-    mapa = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+    mapa  = {a["cuil"]: a["apellido_nombre"] for a in agentes}
 
-    # 2) Listado general + descarga Excel
+    # 3) Listado general y descarga Excel
     filas = []
     for e in evals:
         c = str(e.get("cuil",""))
@@ -68,7 +68,7 @@ def mostrar(supabase):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # 3) Selección de Dirección General o Residual
+    # 4) Selección de Dirección General / Residual
     df_ev = pd.DataFrame(evals)
     df_un = pd.DataFrame(unids)
     resid_ids = df_un[df_un["residual"] == True]["unidad_analisis"].unique()
@@ -87,7 +87,7 @@ def mostrar(supabase):
         st.info("No hay evaluaciones para esa dependencia.")
         return
 
-    # 4) Resumen por formulario
+    # 5) Resumen por Formulario
     res_for = (
         df_fil
         .groupby("formulario")
@@ -97,57 +97,59 @@ def mostrar(supabase):
         )
         .reset_index()
     )
-    res_for["porcentaje_destacados"] = (
-        (res_for["destacados_total"] / res_for["evaluados_total"] * 100).round(2)
-    )
-    res_for["cupo_max_30"] = (res_for["evaluados_total"] * 0.3).round().astype(int)
-    st.markdown(f"#### 🗂 Resumen por Formulario - {seleccion}")
+    res_for["% Destacados"]    = (res_for["destacados_total"] / res_for["evaluados_total"] * 100).round(2)
+    res_for["Cupo 30%"]        = (res_for["evaluados_total"] * 0.3).round().astype(int)
+    res_for["Cupo 10%"]        = (res_for["evaluados_total"] * 0.1).round().astype(int)
+    st.markdown(f"#### 🗂 Resumen por Formulario — {seleccion}")
     st.dataframe(res_for, use_container_width=True)
 
-    # 5) Análisis detallado por unidad_analisis dentro de la dependencia seleccionada
+    # 6) Análisis detallado por Unidad de Análisis
     regs = []
     for ua, grp in df_fil.groupby("unidad_analisis"):
-        tot = len(grp)
-        dest = grp[grp["calificacion"]=="Destacado"]
+        tot   = len(grp)
+        dest  = grp[grp["calificacion"]=="Destacado"]
         n_dest = len(dest)
-        pct = round(n_dest / tot * 100, 2) if tot else 0
-        c30 = round(tot * 0.3)
-        c10 = round(tot * 0.1)
+        pct   = round(n_dest / tot * 100, 2) if tot else 0
+        c30   = round(tot * 0.3)
+        c10   = round(tot * 0.1)
         dest_ord = dest.sort_values("puntaje_relativo", ascending=False)
-        orden = dest_ord["cuil"].astype(str).tolist()
-        bonif = orden[:c10]
+        orden    = dest_ord["cuil"].astype(str).tolist()
+        bonif    = orden[:c10]
+
         regs.append({
             "unidad_analisis": ua,
-            "evaluados_total": tot,
-            "destacados_total": n_dest,
-            "porcentaje_destacados": pct,
-            "cupo_max_30": c30,
-            "cupo_max_10": c10,
-            "bonificados_cnt": len(bonif),
-            "fecha_analisis": datetime.now().isoformat()
+            "Evaluados": tot,
+            "Destacados": n_dest,
+            "% Destacados": pct,
+            "Cupo 30%": c30,
+            "Cupo 10%": c10,
+            "Bonificados": len(bonif),
+            "Fecha Análisis": datetime.now().isoformat(),
+            "List CUIL Bonif.": "; ".join(bonif),
+            "Orden Puntaje": "; ".join(orden)
         })
     df_det = pd.DataFrame(regs)
-    st.markdown(f"#### 🔍 Análisis por Unidad de Análisis - {seleccion}")
+    st.markdown(f"#### 🔍 Análisis por Unidad de Análisis — {seleccion}")
     st.dataframe(df_det, use_container_width=True)
 
-    # 6) Generar ANEXO II
-    if st.button("📄 Generar ANEXO II - Listado de Apoyo"):
-        ua0 = df_fil["unidad_analisis"].iloc[0]
-        reg0 = next(r for r in regs if r["unidad_analisis"] == ua0)
-        orden = [
-            str(x) for x in
-            df_fil[df_fil["calificacion"]=="Destacado"]
-                .sort_values("puntaje_relativo", ascending=False)["cuil"].tolist()
-        ]
-        bonif = orden[: reg0["cupo_max_10"] ]
+    # 7) ANEXO II - Listado de Apoyo
+    if st.button("📄 Generar ANEXO II"):
+        # Tomo la primera unidad del filtro (puede adaptarse si quieres un select adicional)
+        ua0   = df_fil["unidad_analisis"].iloc[0]
+        reg0  = next(r for r in regs if r["unidad_analisis"] == ua0)
+        c10   = reg0["Cupo 10%"]
 
-        df_a = df_fil.copy()
-        df_a["cuil"] = df_a["cuil"].astype(str)
-        df_a = df_a[df_a["cuil"].isin(orden)]
-        df_a["ORDEN"] = df_a["cuil"].apply(lambda x: orden.index(x)+1)
-        df_a["BONIFICACIÓN"] = df_a["cuil"].apply(lambda x: x in bonif)
+        # Ordenar todos y marcar bonificación solo para los cupos 10%
+        df_a  = (
+            df_fil
+            .assign(cuil=lambda d: d["cuil"].astype(str))
+            .sort_values("puntaje_relativo", ascending=False)
+            .reset_index(drop=True)
+        )
+        df_a["ORDEN"] = df_a.index + 1
+        df_a["BONIFICACIÓN"] = df_a["ORDEN"].apply(lambda x: "Sí" if x <= c10 else "")
 
-        anexo = (
+        df_anexo = (
             df_a
             .rename(columns={
                 "apellido_nombre":"APELLIDO Y NOMBRE",
@@ -155,17 +157,16 @@ def mostrar(supabase):
                 "calificacion":"CALIFICACIÓN"
             })
             [["APELLIDO Y NOMBRE","cuil","NIVEL","CALIFICACIÓN","ORDEN","BONIFICACIÓN"]]
-            .sort_values("ORDEN")
         )
 
         os.makedirs("tmp_anexos", exist_ok=True)
-        generar_anexo_ii_docx(anexo, "tmp_anexos/anexo_ii.docx")
+        generar_anexo_ii_docx(df_anexo, "tmp_anexos/anexo_ii.docx")
         with open("tmp_anexos/anexo_ii.docx","rb") as f:
             st.download_button("📥 Descargar ANEXO II", f, file_name="anexo_ii.docx")
 
-    # 7) Generar ANEXO III
-    if st.button("📄 Generar ANEXO III - Acta de Veeduría"):
-        tot = df_fil.shape[0]
+    # 8) ANEXO III - Acta de Veeduría
+    if st.button("📄 Generar ANEXO III"):
+        tot  = df_fil.shape[0]
         dest = (df_fil["calificacion"]=="Destacado").sum()
         acta = f"""ACTA DE VEEDURÍA GREMIAL
 
