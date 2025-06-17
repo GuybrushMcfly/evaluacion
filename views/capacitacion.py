@@ -2,17 +2,37 @@ import streamlit as st
 import pandas as pd
 import io
 import os
-from weasyprint import HTML  # <- reemplazo de pdfkit
+from docx import Document
+
+def generar_anexo_ii_docx(dataframe, path_docx):
+    doc = Document()
+    doc.add_heading("ANEXO II - LISTADO DE APOYO PARA BONIFICACIÓN POR DESEMPEÑO DESTACADO", level=1)
+    table = doc.add_table(rows=1, cols=len(dataframe.columns))
+    table.style = 'Table Grid'
+    hdr_cells = table.rows[0].cells
+    for i, column in enumerate(dataframe.columns):
+        hdr_cells[i].text = column
+    for _, row in dataframe.iterrows():
+        row_cells = table.add_row().cells
+        for i, item in enumerate(row):
+            row_cells[i].text = str(item)
+    doc.save(path_docx)
+
+def generar_anexo_iii_docx(texto, path_docx):
+    doc = Document()
+    doc.add_heading("ANEXO III - ACTA DE VEEDURÍA GREMIAL", level=1)
+    doc.add_paragraph(texto.strip())
+    doc.save(path_docx)
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:24px;'>📘 Análisis de Capacitación</h1>", unsafe_allow_html=True)
 
-    # ---------- SECCIÓN 1: Tabla resumen individual por agente ----------
     evaluaciones = supabase.table("evaluaciones").select("*").execute().data
     agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data
+    unidades = supabase.table("unidades_evaluacion").select("*").execute().data
 
-    if not evaluaciones:
-        st.info("No hay evaluaciones registradas.")
+    if not evaluaciones or not unidades:
+        st.warning("No hay datos disponibles.")
         return
 
     evaluaciones = [e for e in evaluaciones if not e.get("anulada", False)]
@@ -20,7 +40,6 @@ def mostrar(supabase):
 
     filas_tabla = []
     filas_excel = []
-
     for e in evaluaciones:
         cuil = e.get("cuil", "")
         agente = mapa_agentes.get(cuil, "Desconocido")
@@ -54,6 +73,7 @@ def mostrar(supabase):
             "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
         })
 
+    st.markdown("### 📄 Resumen Individual")
     st.dataframe(pd.DataFrame(filas_tabla), use_container_width=True)
 
     df_excel = pd.DataFrame(filas_excel)
@@ -67,16 +87,34 @@ def mostrar(supabase):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # ---------- SECCIÓN 2: Anexos ----------
-    st.markdown("## 📄 Generación de Anexos")
+    # ---------- SECCIÓN 2: Filtro por Dirección General ----------
+    df_eval = pd.DataFrame(evaluaciones)
+    df_unidades = pd.DataFrame(unidades)
+    df_eval = df_eval[df_eval["activo"] == True]
+    residuales = df_unidades[df_unidades["residual"] == True]["unidad_analisis"].unique()
+    df_eval["residual_general"] = df_eval["unidad_analisis"].isin(residuales)
 
-    df_filtrado = pd.DataFrame(evaluaciones)
+    opciones = sorted(df_eval["dependencia_general"].dropna().unique().tolist())
+    opciones.append("RESIDUAL GENERAL")
+    seleccion = st.selectbox("📂 Seleccioná una Dirección General", opciones)
+
+    if seleccion == "RESIDUAL GENERAL":
+        df_filtrado = df_eval[df_eval["residual_general"]]
+    else:
+        df_filtrado = df_eval[df_eval["dependencia_general"] == seleccion]
+
+    if df_filtrado.empty:
+        st.info("No hay evaluaciones para esta dependencia.")
+        return
+
     resumen = df_filtrado.groupby("formulario").agg(
         evaluados_total=("cuil", "count"),
         destacados_total=("calificacion", lambda x: (pd.Series(x) == "Destacado").sum())
     ).reset_index()
     resumen["cupo_maximo_30"] = (resumen["evaluados_total"] * 0.3).round().astype(int)
+    st.dataframe(resumen)
 
+    # ---------- SECCIÓN 3: Botones para ANEXO II y III ----------
     if st.button("📂 Generar ANEXO II - Listado de Apoyo"):
         df_ordenado = df_filtrado[df_filtrado["calificacion"] == "Destacado"]
         df_ordenado = df_ordenado.sort_values(by="puntaje_relativo", ascending=False)
@@ -91,36 +129,18 @@ def mostrar(supabase):
             "calificacion": "CALIFICACIÓN"
         })
 
-        html_ii = f"""
-        <html><head><style>
-        body {{ font-family: Arial; font-size: 12pt; margin: 40px; }}
-        h2 {{ text-align: center; text-transform: uppercase; }}
-        table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-        th, td {{ border: 1px solid black; padding: 6px; text-align: left; }}
-        </style></head><body>
-        <h2>ANEXO II - LISTADO DE APOYO PARA BONIFICACIÓN POR DESEMPEÑO DESTACADO</h2>
-        {listado.to_html(index=False, border=0)}
-        </body></html>
-        """
-
         os.makedirs("tmp_anexos", exist_ok=True)
-        path_html = "tmp_anexos/anexo_ii.html"
-        path_pdf = "tmp_anexos/anexo_ii.pdf"
-        with open(path_html, "w", encoding="utf-8") as f:
-            f.write(html_ii)
-
-        HTML(path_html).write_pdf(path_pdf)  # usando WeasyPrint
-        with open(path_pdf, "rb") as f:
-            st.download_button("⬇️ Descargar ANEXO II en PDF", f, file_name="anexo_ii.pdf", mime="application/pdf")
+        generar_anexo_ii_docx(listado, "tmp_anexos/anexo_ii.docx")
+        with open("tmp_anexos/anexo_ii.docx", "rb") as f:
+            st.download_button("⬇️ Descargar ANEXO II en Word", f, file_name="anexo_ii.docx")
 
     if st.button("📝 Generar ANEXO III - Acta de Veeduría"):
         total_eval = df_filtrado.shape[0]
         total_dest = (df_filtrado["calificacion"] == "Destacado").sum()
 
-        acta_texto = f"""
-ACTA DE VEEDURÍA GREMIAL
+        acta_texto = f"""ACTA DE VEEDURÍA GREMIAL
 
-En la dependencia seleccionada, con un total de {total_eval} personas evaluadas, se asignó la bonificación por desempeño destacado a {total_dest} agentes, de acuerdo al cupo máximo permitido del 30% según la normativa vigente.
+En la dependencia {seleccion}, con un total de {total_eval} personas evaluadas, se asignó la bonificación por desempeño destacado a {total_dest} agentes, de acuerdo al cupo máximo permitido del 30% según la normativa vigente.
 
 La veeduría gremial constató que el procedimiento se realizó conforme a la normativa, y se firmó en señal de conformidad.
 
@@ -128,25 +148,8 @@ Fecha: ........................................................
 
 Firmas:
 - Representante de la unidad de análisis
-- Veedor/a gremial
-"""
+- Veedor/a gremial"""
 
-        html_iii = f"""
-        <html><head><style>
-        body {{ font-family: Arial; font-size: 12pt; margin: 40px; }}
-        h2 {{ text-align: center; text-transform: uppercase; }}
-        pre {{ white-space: pre-wrap; word-wrap: break-word; }}
-        </style></head><body>
-        <h2>ANEXO III - ACTA DE VEEDURÍA GREMIAL</h2>
-        <pre>{acta_texto.strip()}</pre>
-        </body></html>
-        """
-
-        path_html = "tmp_anexos/anexo_iii.html"
-        path_pdf = "tmp_anexos/anexo_iii.pdf"
-        with open(path_html, "w", encoding="utf-8") as f:
-            f.write(html_iii)
-
-        HTML(path_html).write_pdf(path_pdf)
-        with open(path_pdf, "rb") as f:
-            st.download_button("⬇️ Descargar ANEXO III en PDF", f, file_name="anexo_iii.pdf", mime="application/pdf")
+        generar_anexo_iii_docx(acta_texto, "tmp_anexos/anexo_iii.docx")
+        with open("tmp_anexos/anexo_iii.docx", "rb") as f:
+            st.download_button("⬇️ Descargar ANEXO III en Word", f, file_name="anexo_iii.docx")
