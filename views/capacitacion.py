@@ -4,6 +4,7 @@ import io
 import os
 from datetime import datetime
 from docx import Document
+import json
 
 def generar_anexo_ii_docx(dataframe, path_docx):
     doc = Document()
