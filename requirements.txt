@@ -21,4 +21,4 @@ supabase==1.0.3
 xlsxwriter
 pytz
 pdfkit
-wkhtmltopdf
+weasyprint
