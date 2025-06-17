@@ -4,7 +4,6 @@ import io
 import os
 from datetime import datetime
 from docx import Document
-import json
 
 def generar_anexo_ii_docx(dataframe, path_docx):
     doc = Document()
@@ -50,9 +49,7 @@ def mostrar(supabase):
         formulario = e.get("formulario", "")
         calificacion = e.get("calificacion", "")
         total = e.get("puntaje_total", "")
-        factores_puntaje = e.get("factor_puntaje", {})
-        if factores_puntaje is None:
-            factores_puntaje = {}
+        factores_puntaje = e.get("factor_puntaje") or {}
         resumen_puntaje = ", ".join([f"{k} ({v})" for k, v in factores_puntaje.items()])
 
         filas_tabla.append({
@@ -69,8 +66,8 @@ def mostrar(supabase):
             "FACTOR/PUNTAJE": resumen_puntaje,
             "CALIFICACION": calificacion,
             "PUNTAJE TOTAL": total,
-            "PUNTAJE MÁXIMO": e.get("puntaje_maximo") if e.get("puntaje_maximo") is not None else 0,
-            "PUNTAJE RELATIVO": float(e.get("puntaje_relativo")) if e.get("puntaje_relativo") is not None else 0.0,
+            "PUNTAJE MÁXIMO": e.get("puntaje_maximo") or 0,
+            "PUNTAJE RELATIVO": float(e.get("puntaje_relativo") or 0.0),
             "DEPENDENCIA": e.get("dependencia", ""),
             "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
         })
@@ -106,16 +103,15 @@ def mostrar(supabase):
             ordenados = grupo.sort_values("puntaje_relativo", ascending=False)
             orden_puntaje = ordenados["cuil"].tolist()
             bonificados = orden_puntaje[:int(cupo)]
-            
-            # Convertir tipos no serializables:
+
             anio_vals = grupo["anio_evaluacion"].dropna().astype(int)
-            anio_eval = int(anio_vals.max()) if not anio_vals.empty else None
-            
-            # Asegurar listas limpias
+            anio_eval = int(anio_vals.max()) if not anio_vals.empty else 0
+
+            # Limpiar listas de None
             bonificados = [str(b) for b in bonificados if b is not None]
             orden_puntaje = [str(o) for o in orden_puntaje if o is not None]
 
-            registros.append({
+            registro = {
                 "unidad_analisis": ua,
                 "unidad_evaluadora": ue,
                 "formulario": f,
@@ -126,10 +122,14 @@ def mostrar(supabase):
                 "bonificados_cuils": bonificados,
                 "orden_puntaje": orden_puntaje,
                 "fecha_analisis": datetime.now().isoformat()
-            })
-        # Opcional: eliminar registros anteriores para no duplicar
+            }
+
+            registros.append(registro)
+
+        # Eliminar registros anteriores para evitar duplicados
         supabase.table("analisis_evaluaciones").delete().neq("unidad_analisis", "").execute()
-        # Insertar todos los nuevos
+
+        # Insertar nuevos registros
         for r in registros:
             supabase.table("analisis_evaluaciones").insert(r).execute()
 
