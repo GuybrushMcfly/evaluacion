@@ -10,13 +10,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-from docx import Document
-from docx.shared import Pt, RGBColor, Cm
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
-from datetime import datetime
-
-def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
+def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_niveles, path_docx):
     doc = Document()
     sec = doc.sections[0]
     # Mantener formato vertical (portrait)
@@ -117,8 +111,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     for run in h2_tot.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
-    # Recalcular cupos
-    cupo30 = max(1, round(total * 0.3))
+    # Uso del cupo30 pasado y cálculo de cupo10
     cupo10 = max(1, round(total * 0.1))
     tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
     labels = [
@@ -216,8 +209,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     footer.paragraph_format.alignment = 0
 
     doc.save(path_docx)
-
-
 
 
 
