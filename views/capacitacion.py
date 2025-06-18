@@ -31,7 +31,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         run.font.color.rgb = RGBColor(0,0,0)
 
     # --- Título principal ---
-    h1 = doc.add_heading("Anexo I – Informe para el Comité", level=1)
+    h2 = doc.add_heading("Resumen Evaluaciones", level=1)
     for run in h1.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
@@ -107,8 +107,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     cupo10 = max(1, round(total * 0.1))
     tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
     tot_labels = [
-        ("TOTAL de agentes", str(total)),
-        ("Cupo Destacados (30%)", str(round(cupo30))),
+        ("TOTAL DE AGENTES EVALUADOS", str(total)),
+        ("CUPO DESTACADOS (30%)", str(round(cupo30))),
         ("CUPO BONIFICACIÓN ESPECIAL (10%)", str(cupo10)),
     ]
     for idx, (label, value) in enumerate(tot_labels):
@@ -176,7 +176,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     doc.add_paragraph("")
 
     # --- CUADRO RESUMEN ---
-    h2c = doc.add_heading("CUADRO RESUMEN", level=2)
+    h2c = doc.add_heading("Resumen por Niveles de Evaluación", level=2)
     for run in h2c.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
