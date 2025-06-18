@@ -10,17 +10,16 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_niveles, path_docx):
+def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
     doc = Document()
     sec = doc.sections[0]
-    # Mantener formato vertical (portrait)
-    # Márgenes
+    # Mantener formato vertical
     sec.top_margin    = Cm(2)
     sec.bottom_margin = Cm(2)
     sec.left_margin   = Cm(2)
     sec.right_margin  = Cm(2)
 
-    # --- Encabezado (header) ---
+    # --- Encabezado ---
     header = sec.header
     p_head = header.paragraphs[0]
     p_head.text = "Evaluación de Desempeño 2024"
@@ -30,15 +29,20 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         run.font.color.rgb = RGBColor(0,0,0)
 
     # --- Título principal ---
-    h2 = doc.add_heading("Resumen Evaluaciones", level=1)
-    for run in h2.runs:
+    h1 = doc.add_heading("Resumen Evaluaciones", level=1)
+    for run in h1.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
 
+    # --- Título de la Unidad ---
+    p_unit = doc.add_paragraph()
+    run_u = p_unit.add_run(f"Unidad de Evaluación: {unidad_nombre}")
+    run_u.bold = True
+    run_u.font.name = "Calibri"
+
     azul = "B7E0F7"
-    # --- Determinar agrupaciones de tablas ---
     grupos = {}
-    # Unidad Residual (Nivel 1 siempre aquí)
+    # Unidad Residual (Nivel 1)
     resid = df[df['nivel'] == 1]
     if not resid.empty:
         grupos['Unidad Residual'] = resid
@@ -48,43 +52,40 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         grupos['Niveles Medios'] = df[df['nivel'].isin(medios)]
     else:
         for lvl in medios:
-            sub = df[df['nivel'] == lvl]
-            if not sub.empty:
-                grupos[f'Nivel {lvl}'] = sub
+            tmp = df[df['nivel'] == lvl]
+            if not tmp.empty:
+                grupos[f'Nivel {lvl}'] = tmp
     # Niveles Operativos (5,6)
     oper = [5,6]
     if any(df[df['nivel'] == lvl].shape[0] < 6 for lvl in oper):
         grupos['Niveles Operativos'] = df[df['nivel'].isin(oper)]
     else:
         for lvl in oper:
-            sub = df[df['nivel'] == lvl]
-            if not sub.empty:
-                grupos[f'Nivel {lvl}'] = sub
+            tmp = df[df['nivel'] == lvl]
+            if not tmp.empty:
+                grupos[f'Nivel {lvl}'] = tmp
 
-    # --- Crear tablas según agrupaciones ---
+    # --- Tablas por agrupación ---
+    cols = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
+            "Puntaje Relativo","Calificación"]
     for titulo, tabla_df in grupos.items():
-        # Encabezado de sección de tabla
-        sec_h = doc.add_heading(titulo, level=2)
-        for run in sec_h.runs:
+        h2 = doc.add_heading(titulo, level=2)
+        for run in h2.runs:
             run.font.name = "Calibri"
             run.font.color.rgb = RGBColor(0,0,0)
-        # Tablas verticales
-        cols = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
-                "Puntaje Relativo","Calificación"]
-        table = doc.add_table(rows=1 + len(tabla_df), cols=len(cols), style="Table Grid")
+        tbl = doc.add_table(rows=1 + len(tabla_df), cols=len(cols), style="Table Grid")
         # Encabezados
-        hdr_cells = table.rows[0].cells
-        for j, colname in enumerate(cols):
-            cell = hdr_cells[j]
-            p = cell.paragraphs[0].add_run(colname)
-            p.bold = True
-            p.font.name = "Calibri"
-            cell_tc = cell._tc.get_or_add_tcPr()
+        for j, c in enumerate(cols):
+            cell = tbl.rows[0].cells[j]
+            r = cell.paragraphs[0].add_run(c)
+            r.bold = True
+            r.font.name = "Calibri"
+            tc = cell._tc.get_or_add_tcPr()
             shd = OxmlElement('w:shd'); shd.set(qn('w:val'),'clear'); shd.set(qn('w:fill'),azul)
-            cell_tc.append(shd)
+            tc.append(shd)
         # Filas de datos
         for i, row in enumerate(tabla_df.itertuples(index=False), start=1):
-            cells = table.rows[i].cells
+            cells = tbl.rows[i].cells
             cells[0].text = row.apellido_nombre
             cells[1].text = str(row.cuil)
             cells[2].text = str(row.nivel)
@@ -98,197 +99,95 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     for run in p.runs:
                         run.font.name = 'Calibri'
                         run.font.size = Pt(9)
-    
+                        run.font.color.rgb = RGBColor(0,0,0)
+
+    # --- Salto de página ---
     doc.add_page_break()
 
-    # --- Mini-tabla de Totales ---
+    # --- Totales Generales ---
     h2_tot = doc.add_heading("Totales Generales", level=2)
     for run in h2_tot.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
+    # Recalcular cupos
+    cupo30 = max(1, round(total * 0.3))
     cupo10 = max(1, round(total * 0.1))
     tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
     labels = [
         ("TOTAL DE AGENTES EVALUADOS", str(total)),
-        ("CUPO DESTACADOS (30%)", str(round(cupo30))),
+        ("CUPO DESTACADOS (30%)", str(cupo30)),
         ("CUPO BONIFICACIÓN ESPECIAL (10%)", str(cupo10)),
     ]
-    for idx, (label, value) in enumerate(labels):
-        cell0 = tbl_tot.rows[idx].cells[0]; cell1 = tbl_tot.rows[idx].cells[1]
-        cell0.text = label; cell1.text = value
-        tc = cell0._tc.get_or_add_tcPr(); shd = OxmlElement('w:shd'); shd.set(qn('w:val'),'clear'); shd.set(qn('w:fill'),azul); tc.append(shd)
-        for p in cell0.paragraphs:
+    for idx, (lab, val) in enumerate(labels):
+        c0 = tbl_tot.rows[idx].cells[0]; c1 = tbl_tot.rows[idx].cells[1]
+        c0.text = lab; c1.text = val
+        tc0 = c0._tc.get_or_add_tcPr(); sh0 = OxmlElement('w:shd'); sh0.set(qn('w:val'),'clear'); sh0.set(qn('w:fill'),azul); tc0.append(sh0)
+        for p in c0.paragraphs:
             for run in p.runs:
-                run.font.bold = True; run.font.name = "Calibri"; run.font.size = Pt(9)
-        for p in cell1.paragraphs:
+                run.bold = True; run.font.name = "Calibri"; run.font.size = Pt(9)
+        for p in c1.paragraphs:
             for run in p.runs:
                 run.font.name = "Calibri"; run.font.size = Pt(9)
-    doc.add_paragraph("")
-
-    # --- Cuadro Resumen por niveles ---
-    h2_res = doc.add_heading("Resumen por Niveles de Evaluación", level=2)
-    for run in h2_res.runs:
-        run.font.name = "Calibri"; run.font.color.rgb = RGBColor(0,0,0)
-    nivs = list(resumen_niveles.columns)
-    filas = list(resumen_niveles.index)
-    tbl2 = doc.add_table(rows=len(filas)+1, cols=len(nivs)+1, style="Table Grid")
-    # Encabezados
-    hdr = tbl2.rows[0].cells
-    hdr[0].text = "Nivel"
-    for j, nv in enumerate(nivs, start=1): hdr[j].text = str(nv)
-    # Filas
-    for i, fila in enumerate(filas, start=1):
-        rc = tbl2.rows[i].cells
-        rc[0].text = fila
-        for j, nv in enumerate(nivs, start=1): rc[j].text = str(resumen_niveles.loc[fila, nv])
-    
-    # Pie de página
-    footer = sec.footer.paragraphs[0]; footer.clear()
-    left = footer.add_run("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DEL PERSONAL"); left.font.name="Calibri"
-    footer.add_run("\t");
-    fecha = datetime.today().strftime("%d/%m/%Y")
-    runp = footer.add_run(f"{fecha}  Página "); runp.font.name="Calibri"
-    fld = OxmlElement('w:fldSimple'); fld.set(qn('w:instr'), 'PAGE'); runp._r.append(fld)
-    footer.add_run(" de "); fld2 = OxmlElement('w:fldSimple'); fld2.set(qn('w:instr'), 'NUMPAGES'); footer.runs[-1]._r.append(fld2)
-    footer.paragraph_format.alignment = 0
-
-    doc.save(path_docx)
-
-    # --- Mini-tabla de Totales (solo la columna izquierda en azul, derecha blanco) ---
-    h2 = doc.add_heading("Totales Generales", level=2)
-    for run in h2.runs:
-        run.font.name = "Calibri"
-        run.font.color.rgb = RGBColor(0,0,0)
-    cupo10 = max(1, round(total * 0.1))
-    tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
-    tot_labels = [
-        ("TOTAL DE AGENTES EVALUADOS", str(total)),
-        ("CUPO DESTACADOS (30%)", str(round(cupo30))),
-        ("CUPO BONIFICACIÓN ESPECIAL (10%)", str(cupo10)),
-    ]
-    for idx, (label, value) in enumerate(tot_labels):
-        tbl_tot.rows[idx].cells[0].text = label
-        tbl_tot.rows[idx].cells[1].text = value
-        # Columna izquierda azul clarito
-        tc = tbl_tot.rows[idx].cells[0]._tc.get_or_add_tcPr()
-        shd = OxmlElement('w:shd')
-        shd.set(qn('w:val'), 'clear')
-        shd.set(qn('w:fill'), azul)
-        tc.append(shd)
-        for p in tbl_tot.rows[idx].cells[0].paragraphs:
-            for run in p.runs:
-                run.font.bold = True
-                run.font.name = "Calibri"
-                run.font.size = Pt(9)
-                run.font.color.rgb = RGBColor(0,0,0)
-        for p in tbl_tot.rows[idx].cells[1].paragraphs:
-            for run in p.runs:
-                run.font.name = "Calibri"
-                run.font.size = Pt(9)
-                run.font.color.rgb = RGBColor(0,0,0)
-    doc.add_paragraph("")
 
     # --- Evaluables para Bonificación Especial ---
-    h2b = doc.add_heading("Evaluables para Bonificación Especial", level=2)
-    for run in h2b.runs:
+    h2_ev = doc.add_heading("Evaluables para Bonificación Especial", level=2)
+    for run in h2_ev.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
-    cols_ev = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
-    # Asegurate que df tiene bonificacion_especial (puede venir de evaluaciones)
     max_rel = df[df["calificacion"].str.upper() == "DESTACADO"]["puntaje_relativo"].max()
     evaluables = df[(df["calificacion"].str.upper() == "DESTACADO") & (df["puntaje_relativo"] == max_rel)]
-    tbl_ev = doc.add_table(rows=1+len(evaluables), cols=len(cols_ev), style="Table Grid")
-    # Encabezado
+    cols_ev = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
+    tbl_ev = doc.add_table(rows=1 + len(evaluables), cols=len(cols_ev), style="Table Grid")
     for j, h in enumerate(cols_ev):
         cell = tbl_ev.rows[0].cells[j]
         cell.text = h
-        tc = cell._tc.get_or_add_tcPr()
-        shd = OxmlElement('w:shd')
-        shd.set(qn('w:val'), 'clear')
-        shd.set(qn('w:fill'), azul)
-        tc.append(shd)
+        tc = cell._tc.get_or_add_tcPr(); sh = OxmlElement('w:shd'); sh.set(qn('w:val'),'clear'); sh.set(qn('w:fill'),azul); tc.append(sh)
         for run in cell.paragraphs[0].runs:
-            run.font.name = "Calibri"
-            run.font.color.rgb = RGBColor(0,0,0)
-            run.bold = True
-    # Filas
+            run.font.name = "Calibri"; run.bold = True
     for i, row in enumerate(evaluables.itertuples(index=False), start=1):
         cells = tbl_ev.rows[i].cells
         cells[0].text = row.apellido_nombre
         cells[1].text = row.calificacion
         cells[2].text = str(row.puntaje_total)
         cells[3].text = f"{row.puntaje_relativo:.2f}"
-        bonificado = ""
-        if hasattr(row, "bonificacion_especial") and row.bonificacion_especial:
-            bonificado = "SI"
-        cells[4].text = bonificado
+        cells[4].text = "SI" if hasattr(row, "bonificacion_especial") and row.bonificacion_especial else ""
         for cell in cells:
             for p in cell.paragraphs:
                 for run in p.runs:
-                    run.font.name = 'Calibri'
-                    run.font.size = Pt(9)
-                    run.font.color.rgb = RGBColor(0,0,0)
-    doc.add_paragraph("")
+                    run.font.name = 'Calibri'; run.font.size = Pt(9); run.font.color.rgb = RGBColor(0,0,0)
 
-    # --- CUADRO RESUMEN ---
-    h2c = doc.add_heading("Resumen por Niveles de Evaluación", level=2)
-    for run in h2c.runs:
+    # --- Resumen por Niveles de Evaluación ---
+    h2_res = doc.add_heading("Resumen por Niveles de Evaluación", level=2)
+    for run in h2_res.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
-    nivs   = list(resumen_niveles.columns)
-    filas2 = list(resumen_niveles.index)
-    tbl2   = doc.add_table(rows=len(filas2)+1, cols=len(nivs)+1, style="Table Grid")
-    hdr2   = tbl2.rows[0].cells
-    hdr2[0].text = "Nivel"
-    for j, nv in enumerate(nivs, start=1):
-        hdr2[j].text = str(nv)
-        for run in hdr2[j].paragraphs[0].runs:
-            run.bold = True  # NEGRITA para encabezados de nivel
-            run.font.name = "Calibri"
-            run.font.color.rgb = RGBColor(0,0,0)
-    for run in hdr2[0].paragraphs[0].runs:
-        run.font.name = "Calibri"
-        run.font.color.rgb = RGBColor(0,0,0)
-        run.bold = True
-    for cell in hdr2:
-        tc = cell._tc.get_or_add_tcPr()
-        sh = OxmlElement('w:shd')
-        sh.set(qn('w:val'),'clear')
-        sh.set(qn('w:fill'),azul)
-        tc.append(sh)
-    # Filas con datos
-    for i, fila in enumerate(filas2, start=1):
+    nivs = list(resumen_niveles.columns)
+    filas = list(resumen_niveles.index)
+    tbl2 = doc.add_table(rows=1 + len(filas), cols=1 + len(nivs), style="Table Grid")
+    hdr = tbl2.rows[0].cells
+    hdr[0].text = "Nivel"
+    for j, nv in enumerate(nivs, start=1): hdr[j].text = str(nv)
+    for i, fila in enumerate(filas, start=1):
         rc = tbl2.rows[i].cells
-        rc[0].text = fila
-        for j, nivel in enumerate(nivs, start=1):
-            rc[j].text = str(resumen_niveles.loc[fila, nivel])
-        for cell in rc:
-            for p in cell.paragraphs:
-                for run in p.runs:
-                    run.font.name = 'Calibri'
-                    run.font.size = Pt(9)
-                    run.font.color.rgb = RGBColor(0,0,0)
+        rc[0].text = str(fila)
+        for j, nv in enumerate(nivs, start=1): rc[j].text = str(resumen_niveles.loc[fila, nv])
 
     # --- Pie de página ---
-    footer = sec.footer
-    p_foot = footer.paragraphs[0]
-    p_foot.clear()
-    left_run = p_foot.add_run("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DEL PERSONAL")
-    left_run.font.name = "Calibri"
-    left_run.font.color.rgb = RGBColor(0,0,0)
-    p_foot.add_run("\t")
-    fecha_hoy = datetime.today().strftime("%d/%m/%Y")
-    right_run = p_foot.add_run(f"{fecha_hoy}  Página ")
-    right_run.font.name = "Calibri"
-    right_run.font.color.rgb = RGBColor(0,0,0)
-    fldPage = OxmlElement('w:fldSimple'); fldPage.set(qn('w:instr'), 'PAGE')
-    right_run._r.append(fldPage)
-    p_foot.add_run(" de ")
-    fldNumPages = OxmlElement('w:fldSimple'); fldNumPages.set(qn('w:instr'), 'NUMPAGES')
-    p_foot.runs[-1]._r.append(fldNumPages)
-    p_foot.alignment = 0
+    footer = sec.footer.paragraphs[0]
+    footer.clear()
+    left = footer.add_run("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DEL PERSONAL")
+    left.font.name = "Calibri"
+    footer.add_run("\t")
+    fecha = datetime.today().strftime("%d/%m/%Y")
+    runp = footer.add_run(f"{fecha}  Página ")
+    runp.font.name = "Calibri"
+    fld = OxmlElement('w:fldSimple'); fld.set(qn('w:instr'), 'PAGE'); runp._r.append(fld)
+    footer.add_run(" de ")
+    fld2 = OxmlElement('w:fldSimple'); fld2.set(qn('w:instr'), 'NUMPAGES'); footer.runs[-1]._r.append(fld2)
+    footer.paragraph_format.alignment = 0
 
     doc.save(path_docx)
+
 
 
 
