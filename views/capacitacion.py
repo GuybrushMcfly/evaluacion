@@ -15,8 +15,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     • Márgenes: 2.5 cm arriba, 2 cm costados y abajo
     • Título
     • Tabla principal con zebra striping, encabezado fijo y espaciado reducido
-    • Mini-tabla de Totales destacada (cupo30 redondeado)
-    • Cuadro Resumen con header gris y Diferencia con signo +/−
+    • Mini-tabla de Totales destacada
+    • Cuadro Resumen con header gris (usa tu DataFrame transpuesto)
     • Pie de página numerado
     """
     doc = Document()
@@ -32,10 +32,10 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
 
     # — 1) Tabla principal de datos —
     n_cols = 7
-    n_rows = 1 + 1 + len(df)  # merge header + encabezados + filas de datos
+    n_rows = 1 + 1 + len(df)
     table = doc.add_table(rows=n_rows, cols=n_cols, style="Table Grid")
 
-    # Fila 0: merge + fondo gris
+    # Fila 0: merge + gris
     hdr0 = table.rows[0].cells
     hdr0[0].text = f"Unidad de Evaluación: {unidad_nombre}"
     for cell in hdr0[1:]:
@@ -45,7 +45,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     shd.set(qn('w:val'),   'clear')
     shd.set(qn('w:fill'), 'BFBFBF')
     tcPr.append(shd)
-    hdr0[0].paragraphs[0].alignment = 1  # centrar
+    hdr0[0].paragraphs[0].alignment = 1
 
     # Fila 1: encabezados fijos
     headers = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
@@ -76,7 +76,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                 s.set(qn('w:fill'), 'F2F2F2')
                 tc.append(s)
 
-    # Espaciado reducido + Calibri 9 pt
+    # Espaciado reducido + Calibri 9pt
     for rw in table.rows:
         for cell in rw.cells:
             for p in cell.paragraphs:
@@ -87,7 +87,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     run.font.size = Pt(9)
 
     # — 2) Mini-tabla de Totales —
-    doc.add_paragraph("")  # espacio
+    doc.add_paragraph("")  # separación
     tbl_tot = doc.add_table(rows=2, cols=2, style="Table Grid")
     tbl_tot.rows[0].cells[0].text = "TOTAL de agentes"
     tbl_tot.rows[0].cells[1].text = str(total)
@@ -108,12 +108,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
 
-    # — 3) Cuadro Resumen —
-    # Aplicar signo a la columna Diferencia
-    diff = (resumen_niveles["Bonif. otorgadas"].astype(int)
-            - resumen_niveles["Bonif. correspondientes"].astype(int))
-    resumen_niveles["Diferencia"] = diff.apply(lambda x: f"{x:+d}")
-
+    # — 3) Cuadro Resumen (usa tu resumen_niveles transpuesto) —
     doc.add_paragraph("")
     doc.add_heading("CUADRO RESUMEN", level=2)
     nivs   = list(resumen_niveles.columns)
@@ -123,19 +118,19 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     hdr2[0].text = "Nivel"
     for j, nv in enumerate(nivs, start=1):
         hdr2[j].text = str(nv)
-    # Header gris
+    # aplicar gris al header
     for cell in tbl2.rows[0].cells:
         tc = cell._tc.get_or_add_tcPr()
         sh = OxmlElement('w:shd')
         sh.set(qn('w:val'),   'clear')
         sh.set(qn('w:fill'), 'BFBFBF')
         tc.append(sh)
-    # Filas de resumen
+    # filas con datos
     for i, fila in enumerate(filas2, start=1):
         rc = tbl2.rows[i].cells
         rc[0].text = fila
-        for j, nv in enumerate(nivs, start=1):
-            rc[j].text = str(resumen_niveles.loc[fila, nv])
+        for j, nivel in enumerate(nivs, start=1):
+            rc[j].text = str(resumen_niveles.loc[fila, nivel])
         for p in rc[0].paragraphs:
             for run in p.runs:
                 run.font.name = 'Calibri'
@@ -146,17 +141,14 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     p_foot = footer.paragraphs[0]
     p_foot.text = "Página "
     r1 = p_foot.add_run()
-    fld1 = OxmlElement('w:fldSimple')
-    fld1.set(qn('w:instr'), 'PAGE')
-    r1._r.append(fld1)
+    fld1 = OxmlElement('w:fldSimple'); fld1.set(qn('w:instr'), 'PAGE'); r1._r.append(fld1)
     p_foot.add_run(" de ")
     r2 = p_foot.add_run()
-    fld2 = OxmlElement('w:fldSimple')
-    fld2.set(qn('w:instr'), 'NUMPAGES')
-    r2._r.append(fld2)
+    fld2 = OxmlElement('w:fldSimple'); fld2.set(qn('w:instr'), 'NUMPAGES'); r2._r.append(fld2)
     p_foot.alignment = 1
 
     doc.save(path_docx)
+
 
 
 def generar_anexo_ii_modelo_docx(df, unidad_analisis, unidad_evaluacion, path_docx):
