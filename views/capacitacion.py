@@ -19,20 +19,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     • Resumen final por niveles
     """
 
-    # --- AÑADIDO: Botón al inicio ---
-    if st.button("📊 ANALIZAR EVALUACIONES (Anexo I)"):
-        st.info("Generando análisis según reglas del Manual BDD...")
-        df["nivel"] = df["nivel"].astype(int)
-        df["residual"] = df["nivel"] == 1
-
-        for grupo in [(2, 3, 4), (5, 6)]:
-            subset = df[df["nivel"].isin(grupo)]
-            if len(subset) < 6:
-                df.loc[subset.index, "residual"] = True
-
-        st.success("Campo 'residual' actualizado para análisis.")
-        st.dataframe(df[["apellido_nombre", "nivel", "residual"]])
-
     doc = Document()
     sec = doc.sections[0]
     sec.top_margin    = Cm(2)
@@ -61,7 +47,20 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
 
     azul = "B7E0F7"
 
-    # Agrupar usando 'residual'
+    # --- AÑADIDO: Botón luego del bloque de descarga ---
+    if st.button("📊 ANALIZAR EVALUACIONES (Anexo I)"):
+        st.info("Generando análisis según reglas del Manual BDD...")
+        df["nivel"] = df["nivel"].astype(int)
+        df["residual"] = df["nivel"] == 1
+
+        for grupo in [(2, 3, 4), (5, 6)]:
+            subset = df[df["nivel"].isin(grupo)]
+            if len(subset) < 6:
+                df.loc[subset.index, "residual"] = True
+
+        st.success("Campo 'residual' actualizado para análisis.")
+        st.dataframe(df[["apellido_nombre", "nivel", "residual"]])
+
     grupos = {}
     resid = df[df["residual"] == True]
     if not resid.empty:
@@ -222,6 +221,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     footer.paragraph_format.alignment = 0
 
     doc.save(path_docx)
+
 
 
 
