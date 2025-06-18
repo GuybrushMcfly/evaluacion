@@ -363,7 +363,7 @@ def mostrar(supabase):
     res_for["% Destacados"] = (res_for["destacados_total"]/res_for["evaluados_total"]*100).round(2)
     res_for["Cupo 30%"]     = (res_for["evaluados_total"]*0.3).round().astype(int)
     res_for["Cupo 10%"]     = (res_for["evaluados_total"]*0.1).round().astype(int)
-    st.markdown(f"#### 🗂 Resumen por Formulario — {seleccion}")
+    st.markdown(f"#### 🗂 Resumen por Formulario")
     st.dataframe(res_for, use_container_width=True)
 
 
