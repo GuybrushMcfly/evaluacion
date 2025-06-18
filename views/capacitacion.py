@@ -354,23 +354,28 @@ def mostrar(supabase):
     total  = len(df_inf)
     cupo30 = math.floor(total*0.3)
     resumen_niveles = (df_inf.groupby("nivel")
-                       .agg(Cantidad_de_agentes=("cuil","count"),
-                            Bonif_otorgadas=("calificacion", lambda x:(pd.Series(x).str.upper()=="DESTACADO").sum()))
-                       .reindex([1,2,3,4,5,6],fill_value=0))
-    #resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"]*0.3).apply(math.floor)
+                   .agg(Cantidad_de_agentes=("cuil","count"),
+                        Bonif_otorgadas=("calificacion", lambda x:(pd.Series(x).str.upper()=="DESTACADO").sum()))
+                   .reindex([1,2,3,4,5,6], fill_value=0))
+    
     resumen_niveles["Bonif. correspondientes"] = (
         resumen_niveles["Cantidad_de_agentes"] * 0.3
     ).round().astype(int)
-    #resumen_niveles["Diferencia"]              = resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
-    resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(lambda x: f"{x:+d}")
-
+    
+    resumen_niveles["Diferencia"] = (
+        resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
+    )
+    resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(
+        lambda x: f"{x:+d}" if x != 0 else "0"
+    )
+    
     df_res = pd.DataFrame({
         "Cantidad de agentes":     resumen_niveles["Cantidad_de_agentes"],
         "Bonif. otorgadas":        resumen_niveles["Bonif_otorgadas"],
         "Bonif. correspondientes": resumen_niveles["Bonif. correspondientes"],
         "Diferencia":              resumen_niveles["Diferencia"]
     }).T
-
+    
     df_modelo = df_inf[["apellido_nombre","cuil","formulario","puntaje_total","calificacion"]]
 
     # 7) Anexo I
