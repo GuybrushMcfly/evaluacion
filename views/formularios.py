@@ -173,6 +173,7 @@ def mostrar(supabase, formularios, clasificaciones):
                     "puntaje_relativo": puntaje_relativo,
                     "calificacion": clasificacion,
                     "fecha_notificacion": date.today().isoformat(),
+                    "residual": False,
                     "activo": agente.get("activo"),
                     "motivo_inactivo": agente.get("motivo_inactivo"),
                     "fecha_inactivo": agente.get("fecha_inactivo"),
