@@ -13,25 +13,34 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     doc = Document()
     sec = doc.sections[0]
     # Apaisado (landscape)
-    new_width, new_height = sec.page_height, sec.page_width
-    sec.page_width = new_width
-    sec.page_height = new_height
+    sec.orientation = 1  # 0=portrait, 1=landscape
+    sec.page_width, sec.page_height = sec.page_height, sec.page_width
     # Márgenes
     sec.top_margin    = Cm(2.5)
     sec.bottom_margin = Cm(2)
     sec.left_margin   = Cm(2)
     sec.right_margin  = Cm(2)
 
-    # Título
-    doc.add_heading("Anexo I – Informe para el Comité", level=1)
+    # ——— ENCABEZADO (HEADER) ———
+    header = sec.header
+    p_head = header.paragraphs[0]
+    p_head.text = "Evaluación de Desempeño 2024"
+    p_head.alignment = 1  # centrado
+    for run in p_head.runs:
+        run.font.name = "Calibri"
 
-    # Tabla principal
+    # ——— TÍTULO ———
+    h1 = doc.add_heading("Anexo I – Informe para el Comité", level=1)
+    for run in h1.runs:
+        run.font.name = "Calibri"
+
+    # ——— TABLA PRINCIPAL ———
     n_cols = 7
     n_rows = 1 + 1 + len(df)
     table = doc.add_table(rows=n_rows, cols=n_cols, style="Table Grid")
 
-    # Header unificado (azul clarito)
     azul = "B7E0F7"
+    # Header unificado
     hdr0 = table.rows[0].cells
     hdr0[0].text = f"Unidad de Evaluación: {unidad_nombre}"
     for cell in hdr0[1:]:
@@ -42,6 +51,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     shd.set(qn('w:fill'), azul)
     tcPr.append(shd)
     hdr0[0].paragraphs[0].alignment = 1
+    for run in hdr0[0].paragraphs[0].runs:
+        run.font.name = "Calibri"
 
     # Encabezados de tabla (azul clarito)
     headers = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
@@ -49,6 +60,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     for j, h in enumerate(headers):
         run = table.rows[1].cells[j].paragraphs[0].add_run(h)
         run.bold = True
+        run.font.name = "Calibri"
         # Fondo azul clarito
         tc = table.rows[1].cells[j]._tc.get_or_add_tcPr()
         shd = OxmlElement('w:shd')
@@ -56,7 +68,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         shd.set(qn('w:fill'),azul)
         tc.append(shd)
 
-    # Filas de datos (todas blancas, sin zebra striping)
+    # Filas de datos (blanco, Calibri 9)
     for i, row in enumerate(df.itertuples(index=False), start=2):
         cells = table.rows[i].cells
         cells[0].text = row.apellido_nombre
@@ -66,7 +78,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         cells[4].text = f"{row.puntaje_relativo:.2f}"
         cells[5].text = row.calificacion
         cells[6].text = str(row.formulario)
-        # Espaciado y fuente
         for cell in cells:
             for p in cell.paragraphs:
                 p.paragraph_format.space_before = Pt(0)
@@ -75,17 +86,18 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
 
-    # Salto de página para separar tablas
+    # ——— SALTO DE PÁGINA ———
     doc.add_page_break()
 
-    # Mini-tabla de Totales (con título y sin fondo de color)
-    doc.add_heading("Totales Generales", level=2)
+    # ——— MINI-TABLA DE TOTALES ———
+    h2 = doc.add_heading("Totales Generales", level=2)
+    for run in h2.runs:
+        run.font.name = "Calibri"
     tbl_tot = doc.add_table(rows=2, cols=2, style="Table Grid")
     tbl_tot.rows[0].cells[0].text = "TOTAL de agentes"
     tbl_tot.rows[0].cells[1].text = str(total)
     tbl_tot.rows[1].cells[0].text = "Cupo Destacados (30%)"
     tbl_tot.rows[1].cells[1].text = str(round(cupo30))
-    # Formato fuente
     for rw in tbl_tot.rows:
         for cell in rw.cells:
             for p in cell.paragraphs:
@@ -98,8 +110,10 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     # Espacio antes del cuadro resumen
     doc.add_paragraph("")
 
-    # Cuadro Resumen (header azul clarito, el resto blanco)
-    doc.add_heading("CUADRO RESUMEN", level=2)
+    # ——— CUADRO RESUMEN ———
+    h2b = doc.add_heading("CUADRO RESUMEN", level=2)
+    for run in h2b.runs:
+        run.font.name = "Calibri"
     nivs   = list(resumen_niveles.columns)
     filas2 = list(resumen_niveles.index)
     tbl2   = doc.add_table(rows=len(filas2)+1, cols=len(nivs)+1, style="Table Grid")
@@ -113,15 +127,39 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         sh.set(qn('w:val'),'clear')
         sh.set(qn('w:fill'),azul)
         tc.append(sh)
+        for run in cell.paragraphs[0].runs:
+            run.font.name = "Calibri"
     for i, fila in enumerate(filas2, start=1):
         rc = tbl2.rows[i].cells
         rc[0].text = fila
         for j, nivel in enumerate(nivs, start=1):
             rc[j].text = str(resumen_niveles.loc[fila, nivel])
-        for p in rc[0].paragraphs:
-            for run in p.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(9)
+        for cell in rc:
+            for p in cell.paragraphs:
+                for run in p.runs:
+                    run.font.name = 'Calibri'
+                    run.font.size = Pt(9)
+
+    # ——— PIE DE PÁGINA (FOOTER) ———
+    footer = sec.footer
+    p_foot = footer.paragraphs[0]
+    p_foot.clear()
+    # Izquierda
+    left_run = p_foot.add_run("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DEL PERSONAL")
+    left_run.font.name = "Calibri"
+    # Tabulación (para separar izq/derecha; Word lo interpreta en dos extremos si usás tabs)
+    p_foot.add_run("\t")
+    # Derecha: fecha, paginación
+    fecha_hoy = datetime.today().strftime("%d/%m/%Y")
+    right_run = p_foot.add_run(f"{fecha_hoy}  Página ")
+    right_run.font.name = "Calibri"
+    # Campo para número de página
+    fldPage = OxmlElement('w:fldSimple'); fldPage.set(qn('w:instr'), 'PAGE')
+    right_run._r.append(fldPage)
+    p_foot.add_run(" de ")
+    fldNumPages = OxmlElement('w:fldSimple'); fldNumPages.set(qn('w:instr'), 'NUMPAGES')
+    p_foot.runs[-1]._r.append(fldNumPages)
+    p_foot.alignment = 0  # izquierda
 
     doc.save(path_docx)
 
