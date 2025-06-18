@@ -16,7 +16,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     sec.orientation = 1
     sec.page_width, sec.page_height = sec.page_height, sec.page_width
     # Márgenes
-    sec.top_margin    = Cm(2.5)
+    sec.top_margin    = Cm(2)
     sec.bottom_margin = Cm(2)
     sec.left_margin   = Cm(2)
     sec.right_margin  = Cm(2)
