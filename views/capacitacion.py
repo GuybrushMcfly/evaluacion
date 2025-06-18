@@ -212,7 +212,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     doc.save(path_docx)
 
 
-
 def generar_anexo_ii_modelo_docx(df, unidad_analisis, unidad_evaluacion, path_docx):
     """
     Anexo II – Modelo Listado de Apoyo con:
