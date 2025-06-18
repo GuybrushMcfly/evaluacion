@@ -20,6 +20,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     - Cuadro Resumen debajo
     """
     doc = Document()
+    # Ajuste de márgenes: 2.5 cm arriba, 2 cm abajo y a los lados
+    section = doc.sections[0]
+    section.top_margin    = Cm(2.5)
+    section.bottom_margin = Cm(2)
+    section.left_margin   = Cm(2)
+    section.right_margin  = Cm(2)
+    
     doc.add_heading("Anexo I – Informe para el Comité", level=1)
 
     # Tabla principal
