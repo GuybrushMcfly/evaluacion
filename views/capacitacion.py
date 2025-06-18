@@ -10,7 +10,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_niveles, path_docx):
+def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
     doc = Document()
     sec = doc.sections[0]
     # Mantener formato vertical (portrait)
@@ -111,8 +111,9 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     for run in h2_tot.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
-    # Uso del cupo30 pasado y cálculo de cupo10
-    cupo10 = max(1, round(total * 0.1))
+    # Cálculo de cupos con ceil para redondeo "+1 si fracción > 0.5"
+    cupo30 = max(1, math.ceil(total * 0.3))
+    cupo10 = max(1, math.ceil(total * 0.1))
     tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
     labels = [
         ("TOTAL DE AGENTES EVALUADOS", str(total)),
