@@ -10,18 +10,13 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_niveles, path_docx):
-    """
-    Anexo I – Informe para el Comité con:
-    • Márgenes: 2.5 cm arriba, 2 cm costados y abajo
-    • Título
-    • Tabla principal con zebra striping, encabezado fijo y espaciado reducido
-    • Mini-tabla de Totales destacada
-    • Cuadro Resumen con header gris (usa tu DataFrame transpuesto)
-    • Pie de página numerado
-    """
     doc = Document()
-    # Márgenes
     sec = doc.sections[0]
+    # Apaisado (landscape)
+    new_width, new_height = sec.page_height, sec.page_width
+    sec.page_width = new_width
+    sec.page_height = new_height
+    # Márgenes
     sec.top_margin    = Cm(2.5)
     sec.bottom_margin = Cm(2)
     sec.left_margin   = Cm(2)
@@ -30,32 +25,38 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     # Título
     doc.add_heading("Anexo I – Informe para el Comité", level=1)
 
-    # — 1) Tabla principal de datos —
+    # Tabla principal
     n_cols = 7
     n_rows = 1 + 1 + len(df)
     table = doc.add_table(rows=n_rows, cols=n_cols, style="Table Grid")
 
-    # Fila 0: merge + gris
+    # Header unificado (azul clarito)
+    azul = "B7E0F7"
     hdr0 = table.rows[0].cells
     hdr0[0].text = f"Unidad de Evaluación: {unidad_nombre}"
     for cell in hdr0[1:]:
         hdr0[0]._tc.merge(cell._tc)
     tcPr = hdr0[0]._tc.get_or_add_tcPr()
     shd  = OxmlElement('w:shd')
-    shd.set(qn('w:val'),   'clear')
-    shd.set(qn('w:fill'), 'BFBFBF')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:fill'), azul)
     tcPr.append(shd)
     hdr0[0].paragraphs[0].alignment = 1
 
-    # Fila 1: encabezados fijos
+    # Encabezados de tabla (azul clarito)
     headers = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
                "Puntaje Relativo","Calificación","Formulario GEDO Nº"]
     for j, h in enumerate(headers):
         run = table.rows[1].cells[j].paragraphs[0].add_run(h)
         run.bold = True
-    table.rows[1].heading = True
+        # Fondo azul clarito
+        tc = table.rows[1].cells[j]._tc.get_or_add_tcPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'),'clear')
+        shd.set(qn('w:fill'),azul)
+        tc.append(shd)
 
-    # Filas de datos
+    # Filas de datos (todas blancas, sin zebra striping)
     for i, row in enumerate(df.itertuples(index=False), start=2):
         cells = table.rows[i].cells
         cells[0].text = row.apellido_nombre
@@ -65,20 +66,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         cells[4].text = f"{row.puntaje_relativo:.2f}"
         cells[5].text = row.calificacion
         cells[6].text = str(row.formulario)
-
-    # Zebra striping
-    for idx, rw in enumerate(table.rows[2:], start=0):
-        if idx % 2 == 1:
-            for cell in rw.cells:
-                tc = cell._tc.get_or_add_tcPr()
-                s  = OxmlElement('w:shd')
-                s.set(qn('w:val'),   'clear')
-                s.set(qn('w:fill'), 'F2F2F2')
-                tc.append(s)
-
-    # Espaciado reducido + Calibri 9pt
-    for rw in table.rows:
-        for cell in rw.cells:
+        # Espaciado y fuente
+        for cell in cells:
             for p in cell.paragraphs:
                 p.paragraph_format.space_before = Pt(0)
                 p.paragraph_format.space_after  = Pt(0)
@@ -86,21 +75,19 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
 
-    # — 2) Mini-tabla de Totales —
-    doc.add_paragraph("")  # separación
+    # Salto de página para separar tablas
+    doc.add_page_break()
+
+    # Mini-tabla de Totales (con título y sin fondo de color)
+    doc.add_heading("Totales Generales", level=2)
     tbl_tot = doc.add_table(rows=2, cols=2, style="Table Grid")
     tbl_tot.rows[0].cells[0].text = "TOTAL de agentes"
     tbl_tot.rows[0].cells[1].text = str(total)
     tbl_tot.rows[1].cells[0].text = "Cupo Destacados (30%)"
     tbl_tot.rows[1].cells[1].text = str(round(cupo30))
-    fill = "D9D9D9"
+    # Formato fuente
     for rw in tbl_tot.rows:
         for cell in rw.cells:
-            tc = cell._tc.get_or_add_tcPr()
-            sh = OxmlElement('w:shd')
-            sh.set(qn('w:val'),   'clear')
-            sh.set(qn('w:fill'), fill)
-            tc.append(sh)
             for p in cell.paragraphs:
                 p.alignment = 1
                 for run in p.runs:
@@ -108,8 +95,10 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
 
-    # — 3) Cuadro Resumen (usa tu resumen_niveles transpuesto) —
+    # Espacio antes del cuadro resumen
     doc.add_paragraph("")
+
+    # Cuadro Resumen (header azul clarito, el resto blanco)
     doc.add_heading("CUADRO RESUMEN", level=2)
     nivs   = list(resumen_niveles.columns)
     filas2 = list(resumen_niveles.index)
@@ -118,167 +107,24 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     hdr2[0].text = "Nivel"
     for j, nv in enumerate(nivs, start=1):
         hdr2[j].text = str(nv)
-    # aplicar gris al header
-    for cell in tbl2.rows[0].cells:
-        tc = cell._tc.get_or_add_tcPr()
-        sh = OxmlElement('w:shd')
-        sh.set(qn('w:val'),   'clear')
-        sh.set(qn('w:fill'), 'BFBFBF')
-        tc.append(sh)
-    # filas con datos
-    for i, fila in enumerate(filas2, start=1):
-        rc = tbl2.rows[i].cells
-        rc[0].text = fila
-        for j, nivel in enumerate(nivs, start=1):
-            rc[j].text = str(resumen_niveles.loc[fila, nivel])
-        for p in rc[0].paragraphs:
-            for run in p.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(9)
-
-    # — 4) Pie de página numerado —
-    footer = sec.footer
-    p_foot = footer.paragraphs[0]
-    p_foot.text = "Página "
-    r1 = p_foot.add_run()
-    fld1 = OxmlElement('w:fldSimple'); fld1.set(qn('w:instr'), 'PAGE'); r1._r.append(fld1)
-    p_foot.add_run(" de ")
-    r2 = p_foot.add_run()
-    fld2 = OxmlElement('w:fldSimple'); fld2.set(qn('w:instr'), 'NUMPAGES'); r2._r.append(fld2)
-    p_foot.alignment = 1
-
-    doc.save(path_docx)
-
-
-
-def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_niveles, path_docx):
-    """
-    Anexo I – Informe para el Comité con:
-    • Márgenes: 2.5 cm arriba, 2 cm costados y abajo
-    • Título
-    • Tabla principal con zebra striping, encabezado fijo y espaciado reducido
-    • Mini-tabla de Totales destacada
-    • Cuadro Resumen con header gris (usa tu DataFrame transpuesto)
-    • Pie de página numerado
-    """
-    doc = Document()
-    sec = doc.sections[0]
-    sec.top_margin    = Cm(2.5)
-    sec.bottom_margin = Cm(2)
-    sec.left_margin   = Cm(2)
-    sec.right_margin  = Cm(2)
-
-    doc.add_heading("Anexo I – Informe para el Comité", level=1)
-
-    # — 1) Tabla principal de datos —
-    n_cols = 7
-    n_rows = 1 + 1 + len(df)
-    table = doc.add_table(rows=n_rows, cols=n_cols, style="Table Grid")
-
-    # Fila 0: merge + gris
-    hdr0 = table.rows[0].cells
-    hdr0[0].text = f"Unidad de Evaluación: {unidad_nombre}"
-    for cell in hdr0[1:]:
-        hdr0[0]._tc.merge(cell._tc)
-    tcPr = hdr0[0]._tc.get_or_add_tcPr()
-    shd  = OxmlElement('w:shd'); shd.set(qn('w:val'),'clear'); shd.set(qn('w:fill'),'BFBFBF'); tcPr.append(shd)
-    hdr0[0].paragraphs[0].alignment = 1
-
-    # Fila 1: encabezados fijos
-    headers = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto",
-               "Puntaje Relativo","Calificación","Formulario GEDO Nº"]
-    for j, h in enumerate(headers):
-        run = table.rows[1].cells[j].paragraphs[0].add_run(h)
-        run.bold = True
-    table.rows[1].heading = True
-
-    # Filas de datos
-    for i, row in enumerate(df.itertuples(index=False), start=2):
-        cells = table.rows[i].cells
-        cells[0].text = row.apellido_nombre
-        cells[1].text = str(row.cuil)
-        cells[2].text = str(row.nivel)
-        cells[3].text = str(row.puntaje_total)
-        cells[4].text = f"{row.puntaje_relativo:.2f}"
-        cells[5].text = row.calificacion
-        cells[6].text = str(row.formulario)
-
-    # Zebra striping
-    for idx, rw in enumerate(table.rows[2:], start=0):
-        if idx % 2 == 1:
-            for cell in rw.cells:
-                tc = cell._tc.get_or_add_tcPr()
-                s  = OxmlElement('w:shd'); s.set(qn('w:val'),'clear'); s.set(qn('w:fill'),'F2F2F2'); tc.append(s)
-
-    # Espaciado reducido + Calibri 9pt
-    for rw in table.rows:
-        for cell in rw.cells:
-            for p in cell.paragraphs:
-                p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after  = Pt(0)
-                for run in p.runs:
-                    run.font.name = 'Calibri'
-                    run.font.size = Pt(9)
-
-    # — 2) Mini-tabla de Totales —
-    doc.add_paragraph("")
-    tbl_tot = doc.add_table(rows=2, cols=2, style="Table Grid")
-    tbl_tot.rows[0].cells[0].text = "TOTAL de agentes"
-    tbl_tot.rows[0].cells[1].text = str(total)
-    tbl_tot.rows[1].cells[0].text = "Cupo Destacados (30%)"
-    tbl_tot.rows[1].cells[1].text = str(round(cupo30))
-    fill = "D9D9D9"
-    for rw in tbl_tot.rows:
-        for cell in rw.cells:
-            tc = cell._tc.get_or_add_tcPr()
-            sh = OxmlElement('w:shd'); sh.set(qn('w:val'),'clear'); sh.set(qn('w:fill'),fill); tc.append(sh)
-            for p in cell.paragraphs:
-                p.alignment = 1
-                for run in p.runs:
-                    run.bold = True
-                    run.font.name = 'Calibri'
-                    run.font.size = Pt(9)
-
-    # — 3) Cuadro Resumen —
-    doc.add_paragraph("")
-    doc.add_heading("CUADRO RESUMEN", level=2)
-    nivs   = list(resumen_niveles.columns)
-    filas2 = list(resumen_niveles.index)
-    tbl2   = doc.add_table(rows=len(filas2)+1, cols=len(nivs)+1, style="Table Grid")
-
-    # header
-    hdr2 = tbl2.rows[0].cells
-    hdr2[0].text = "Nivel"
-    for j, nv in enumerate(nivs, start=1):
-        hdr2[j].text = str(nv)
     for cell in hdr2:
         tc = cell._tc.get_or_add_tcPr()
-        sh = OxmlElement('w:shd'); sh.set(qn('w:val'),'clear'); sh.set(qn('w:fill'),'BFBFBF'); tc.append(sh)
-
-    # filas
+        sh = OxmlElement('w:shd')
+        sh.set(qn('w:val'),'clear')
+        sh.set(qn('w:fill'),azul)
+        tc.append(sh)
     for i, fila in enumerate(filas2, start=1):
         rc = tbl2.rows[i].cells
         rc[0].text = fila
         for j, nivel in enumerate(nivs, start=1):
             rc[j].text = str(resumen_niveles.loc[fila, nivel])
-        # Calibri 9
         for p in rc[0].paragraphs:
             for run in p.runs:
                 run.font.name = 'Calibri'
                 run.font.size = Pt(9)
 
-    # — 4) Pie de página numerado —
-    footer = sec.footer
-    p_foot = footer.paragraphs[0]
-    p_foot.text = "Página "
-    r1 = p_foot.add_run()
-    fld1 = OxmlElement('w:fldSimple'); fld1.set(qn('w:instr'),'PAGE'); r1._r.append(fld1)
-    p_foot.add_run(" de ")
-    r2 = p_foot.add_run()
-    fld2 = OxmlElement('w:fldSimple'); fld2.set(qn('w:instr'),'NUMPAGES'); r2._r.append(fld2)
-    p_foot.alignment = 1
-
     doc.save(path_docx)
+
 
 
 def generar_anexo_ii_modelo_docx(df, unidad_analisis, unidad_evaluacion, path_docx):
