@@ -90,22 +90,75 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     doc.add_page_break()
 
     # ——— MINI-TABLA DE TOTALES ———
+    # --- MINI-TABLA DE TOTALES ---
     h2 = doc.add_heading("Totales Generales", level=2)
     for run in h2.runs:
         run.font.name = "Calibri"
-    tbl_tot = doc.add_table(rows=2, cols=2, style="Table Grid")
-    tbl_tot.rows[0].cells[0].text = "TOTAL de agentes"
-    tbl_tot.rows[0].cells[1].text = str(total)
-    tbl_tot.rows[1].cells[0].text = "Cupo Destacados (30%)"
-    tbl_tot.rows[1].cells[1].text = str(round(cupo30))
-    for rw in tbl_tot.rows:
-        for cell in rw.cells:
+
+    cupo10 = max(1, round(total * 0.1))  # Siempre al menos 1 si hay más de 5
+    tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
+    azul = "B7E0F7"
+
+    tot_labels = [
+        ("TOTAL de agentes", str(total)),
+        ("Cupo Destacados (30%)", str(round(cupo30))),
+        ("CUPO BONIFICACIÓN ESPECIAL (10%)", str(cupo10)),
+    ]
+    for idx, (label, value) in enumerate(tot_labels):
+        tbl_tot.rows[idx].cells[0].text = label
+        tbl_tot.rows[idx].cells[1].text = value
+        # Azul clarito de fondo a la fila completa
+        for cell in tbl_tot.rows[idx].cells:
+            tc = cell._tc.get_or_add_tcPr()
+            sh = OxmlElement('w:shd')
+            sh.set(qn('w:val'), 'clear')
+            sh.set(qn('w:fill'), azul)
+            tc.append(sh)
             for p in cell.paragraphs:
                 p.alignment = 1
                 for run in p.runs:
                     run.bold = True
+                    run.font.name = "Calibri"
+                    run.font.size = Pt(9)
+
+    # --- MINI-TABLA DE EVALUABLES PARA BONIFICACIÓN ESPECIAL ---
+    doc.add_paragraph("")  # Espacio
+    h2b = doc.add_heading("Evaluables para Bonificación Especial", level=2)
+    for run in h2b.runs:
+        run.font.name = "Calibri"
+
+    # Filtrar candidatos: DESTACADO, puntaje relativo más alto
+    max_rel = df[df["calificacion"].str.upper() == "DESTACADO"]["puntaje_relativo"].max()
+    evaluables = df[(df["calificacion"].str.upper() == "DESTACADO") & (df["puntaje_relativo"] == max_rel)]
+
+    cols_ev = ["Apellido y Nombre", "Nivel", "Agrupamiento", "Tramo"]
+    tbl_ev = doc.add_table(rows=1+len(evaluables), cols=4, style="Table Grid")
+    azul = "B7E0F7"
+    # Encabezado
+    for j, h in enumerate(cols_ev):
+        cell = tbl_ev.rows[0].cells[j]
+        cell.text = h
+        tc = cell._tc.get_or_add_tcPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'), 'clear')
+        shd.set(qn('w:fill'), azul)
+        tc.append(shd)
+        for run in cell.paragraphs[0].runs:
+            run.font.name = "Calibri"
+            run.font.bold = True
+    # Filas
+    for i, row in enumerate(evaluables.itertuples(index=False), start=1):
+        cells = tbl_ev.rows[i].cells
+        cells[0].text = row.apellido_nombre
+        cells[1].text = str(row.nivel)
+        cells[2].text = getattr(row, "agrupamiento", "")
+        cells[3].text = getattr(row, "tramo", "")
+        for cell in cells:
+            for p in cell.paragraphs:
+                for run in p.runs:
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
+
 
     # Espacio antes del cuadro resumen
     doc.add_paragraph("")
