@@ -32,7 +32,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
 
     # --- Título principal ---
     h2 = doc.add_heading("Resumen Evaluaciones", level=1)
-    for run in h1.runs:
+    for run in h2.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0,0,0)
 
