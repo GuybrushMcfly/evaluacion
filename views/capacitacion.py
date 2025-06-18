@@ -126,13 +126,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     h2b = doc.add_heading("Evaluables para Bonificación Especial", level=2)
     for run in h2b.runs:
         run.font.name = "Calibri"
-
-    # Filtrar candidatos: DESTACADO, puntaje relativo más alto
+    
+    cols_ev = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
+    # Solo los DESTACADO, puntaje relativo igual al máximo (o todos si preferís el 10%)
     max_rel = df[df["calificacion"].str.upper() == "DESTACADO"]["puntaje_relativo"].max()
     evaluables = df[(df["calificacion"].str.upper() == "DESTACADO") & (df["puntaje_relativo"] == max_rel)]
-
-    cols_ev = ["Apellido y Nombre", "Nivel", "Agrupamiento", "Tramo"]
-    tbl_ev = doc.add_table(rows=1+len(evaluables), cols=4, style="Table Grid")
+    
+    tbl_ev = doc.add_table(rows=1+len(evaluables), cols=len(cols_ev), style="Table Grid")
     azul = "B7E0F7"
     # Encabezado
     for j, h in enumerate(cols_ev):
@@ -150,14 +150,19 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     for i, row in enumerate(evaluables.itertuples(index=False), start=1):
         cells = tbl_ev.rows[i].cells
         cells[0].text = row.apellido_nombre
-        cells[1].text = str(row.nivel)
-        cells[2].text = getattr(row, "agrupamiento", "")
-        cells[3].text = getattr(row, "tramo", "")
+        cells[1].text = row.calificacion
+        cells[2].text = str(row.puntaje_total)
+        cells[3].text = f"{row.puntaje_relativo:.2f}"
+        bonificado = ""
+        if hasattr(row, "bonificacion_especial") and row.bonificacion_especial:
+            bonificado = "SI"
+        cells[4].text = bonificado
         for cell in cells:
             for p in cell.paragraphs:
                 for run in p.runs:
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
+
 
 
     # Espacio antes del cuadro resumen
