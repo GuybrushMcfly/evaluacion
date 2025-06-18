@@ -10,8 +10,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-#def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
-def generar_informe_comite_docx(df_inf, seleccion, total, df_res, path1)
+def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
 
     doc = Document()
     sec = doc.sections[0]
@@ -454,7 +453,9 @@ def mostrar(supabase):
     if st.button("📄 Generar Anexo I – Informe para el Comité"):
         os.makedirs("tmp_anexos", exist_ok=True)
         path1="tmp_anexos/anexo_I_informe_comite.docx"
-        generar_informe_comite_docx(df_inf, seleccion, total, cupo30, df_res, path1)
+#        generar_informe_comite_docx(df_inf, seleccion, total, cupo30, df_res, path1)
+        generar_informe_comite_docx(df_inf, seleccion, total, df_res, path1)
+
         with open(path1,"rb") as f:
             st.download_button("📥 Descargar Anexo I", f, "anexo_I_informe_comite.docx")
 
