@@ -398,6 +398,8 @@ def mostrar(supabase):
                        .reindex([1,2,3,4,5,6],fill_value=0))
     resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"]*0.3).apply(math.floor)
     resumen_niveles["Diferencia"]              = resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
+    resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(lambda x: f"{x:+d}")
+
     df_res = pd.DataFrame({
         "Cantidad de agentes":     resumen_niveles["Cantidad_de_agentes"],
         "Bonif. otorgadas":        resumen_niveles["Bonif_otorgadas"],
