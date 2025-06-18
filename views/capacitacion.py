@@ -10,7 +10,9 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
+#def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
+def generar_informe_comite_docx(df_inf, seleccion, total, df_res, path1)
+
     doc = Document()
     sec = doc.sections[0]
     # Mantener formato vertical (portrait)
