@@ -85,13 +85,14 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     hdr2[0].text = "Nivel"
     for j, nv in enumerate(nivs, start=1):
         hdr2[j].text = str(nv)
-    from docx.oxml import OxmlElement
-    from docx.oxml.ns import qn
+    # sombrear la fila de encabezado (con val="clear" + fill)
     for cell in tbl2.rows[0].cells:
         tcPr = cell._tc.get_or_add_tcPr()
         shd  = OxmlElement('w:shd')
-        shd.set(qn('w:fill'), "BFBFBF")
+        shd.set(qn('w:val'),  'clear')       # necesario para que Word aplique el fill
+        shd.set(qn('w:fill'),'BFBFBF')       # color gris claro
         tcPr.append(shd)
+
     for i, fila in enumerate(filas2, start=1):
         cells = tbl2.rows[i].cells
         cells[0].text = fila
