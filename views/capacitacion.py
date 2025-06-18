@@ -141,10 +141,13 @@ def generar_anexo_ii_modelo_docx(df, unidad_analisis, unidad_evaluacion, path_do
     doc.add_paragraph("")
     doc.add_heading("CUADRO RESUMEN", level=2)
     df["nivel_int"] = df["formulario"].astype(int)
-    tot_n = df.groupby("nivel_int")["cuil"].count().reindex(range(1,7), 0)
-    dest_n= df[df["calificacion"].str.upper()=="DESTACADO"]\
-                .groupby("nivel_int")["cuil"].count()\
-                .reindex(range(1,7), 0)
+    #tot_n = df.groupby("nivel_int")["cuil"].count().reindex(range(1,7), 0)
+    tot_n = df.groupby("nivel_int")["cuil"].count().reindex(range(1,7), fill_value=0)
+
+ 
+    dest_n = (df[df["calificacion"].str.upper()=="DESTACADO"]
+                .groupby("nivel_int")["cuil"].count()
+                .reindex(range(1,7), fill_value=0))
     corr_n= (tot_n * 0.3).apply(math.floor)
     diff_n= dest_n - corr_n
     sums = [tot_n.sum(), dest_n.sum(), corr_n.sum(), diff_n.sum()]
