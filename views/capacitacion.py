@@ -84,6 +84,17 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         for j, nv in enumerate(nivs, start=1):
             cells[j].text = str(resumen_niveles.loc[fila, nv])
 
+    # Ajustar Calibri 9pt en todas las celdas de las tablas
+    from docx.shared import Pt
+    for tbl in (table, tbl2):
+        for row in tbl.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.name = 'Calibri'
+                        run.font.size = Pt(9)
+
+
     doc.save(path_docx)
 
 
