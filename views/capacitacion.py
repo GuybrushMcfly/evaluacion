@@ -4,7 +4,6 @@ import io
 import os
 from datetime import datetime
 from docx import Document
-from docx.shared import Pt
 import math
 
 # —————————— Funciones auxiliares para Word ——————————
@@ -37,21 +36,12 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
       ['Cantidad de agentes','Bonif. otorgadas','Bonif. correspondientes','Diferencia']
       y columnas [1,2,3,4,5,6,'TOTAL']
     """
-    # 1) Crear el documento
     doc = Document()
-
-    # 2) Ajustar fuente de estilo Normal (afecta solo tablas/celdas, no títulos)
-    style = doc.styles['Normal']
-    font  = style.font
-    font.name = 'Calibri'
-    font.size = Pt(9)
-
-    # 3) Títulos con estilo por defecto
     doc.add_heading("Anexo I – Informe para el Comité", level=1)
     doc.add_paragraph(f"Unidad de Evaluación: {unidad_nombre}")
     doc.add_paragraph("")
 
-    # 4) Tabla de detalle
+    # — Tabla de detalle
     cols = ["Apellido y Nombre","CUIL","Nivel","Puntaje Absoluto","Puntaje Relativo","Calificación","Formulario GEDO Nº"]
     table = doc.add_table(rows=1 + len(df) + 2, cols=len(cols))
     table.style = "Table Grid"
@@ -80,13 +70,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
     cupo_cells[2].text = "Cupo Destacados (30%)"
     cupo_cells[3].text = str(cupo30)
 
-    # 5) Cuadro resumen debajo
+    # — Cuadro resumen debajo
     doc.add_paragraph("")
     doc.add_heading("CUADRO RESUMEN", level=2)
 
-    nivs   = list(resumen_niveles.columns)
-    filas  = list(resumen_niveles.index)
-    tbl2   = doc.add_table(rows=len(filas) + 1, cols=len(nivs) + 1)
+    nivs = list(resumen_niveles.columns)
+    filas = list(resumen_niveles.index)
+    tbl2 = doc.add_table(rows=len(filas) + 1, cols=len(nivs) + 1)
     tbl2.style = "Table Grid"
     hdr2 = tbl2.rows[0].cells
     hdr2[0].text = "Nivel"
@@ -99,7 +89,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, cupo30, resumen_nivele
         for j, n in enumerate(nivs, start=1):
             cells[j].text = str(resumen_niveles.loc[fila, n])
 
-    # 6) Guardar
     doc.save(path_docx)
 
 def generar_cuadro_resumen_docx(df_resumen, path_docx):
@@ -107,8 +96,8 @@ def generar_cuadro_resumen_docx(df_resumen, path_docx):
     doc.add_heading("Cuadro Resumen de Niveles", level=1)
 
     niveles = list(df_resumen.columns)
-    filas   = list(df_resumen.index)
-    table   = doc.add_table(rows=len(filas) + 1, cols=len(niveles) + 1)
+    filas = list(df_resumen.index)
+    table = doc.add_table(rows=len(filas) + 1, cols=len(niveles) + 1)
     table.style = "Table Grid"
     hdr = table.rows[0].cells
     hdr[0].text = "Nivel"
@@ -164,9 +153,9 @@ def mostrar(supabase):
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     # 4) Filtrado por Dependencia General / Residual
-    df_ev     = pd.DataFrame(evals)
-    df_un     = pd.DataFrame(unids)
-    resid_ids = df_un[df_un["residual"] == True]["unidad_analisis"].unique()
+    df_ev = pd.DataFrame(evals)
+    df_un = pd.DataFrame(unids)
+    resid_ids = df_un[df_un["residual"]==True]["unidad_analisis"].unique()
     df_ev["residual_general"] = df_ev["unidad_analisis"].isin(resid_ids)
 
     opts = sorted(df_ev["dependencia_general"].dropna().unique())
@@ -200,11 +189,11 @@ def mostrar(supabase):
     regs = []
     for ua, grp in df_fil.groupby("unidad_analisis"):
         tot      = len(grp)
-        dest     = grp[grp["calificacion"] == "Destacado"]
+        dest     = grp[grp["calificacion"]=="Destacado"]
         n_dest   = len(dest)
-        pct      = round(n_dest / tot * 100, 2) if tot else 0
-        c30      = round(tot * 0.3)
-        c10      = round(tot * 0.1)
+        pct      = round(n_dest/tot*100,2) if tot else 0
+        c30      = round(tot*0.3)
+        c10      = round(tot*0.1)
         dest_ord = dest.sort_values("puntaje_relativo", ascending=False)
         orden    = dest_ord["cuil"].astype(str).tolist()
         bonif    = orden[:c10]
@@ -228,25 +217,26 @@ def mostrar(supabase):
     if st.button("📄 Generar Anexo I – Informe para el Comité"):
         unidad_nombre = seleccion
         df_inf = df_fil.sort_values("puntaje_total", ascending=False).copy()
-        df_inf["nivel"] = df_inf["formulario"].astype(int)
+        df_inf["nivel"] = df_inf["formulario"]
         df_inf = df_inf[[
             "apellido_nombre","cuil","nivel",
             "puntaje_total","puntaje_relativo","calificacion","formulario"
         ]]
         total  = len(df_inf)
-        cupo30 = round(total * 0.3)
+        cupo30 = round(total*0.3)
 
+        df_inf["nivel"] = df_inf["formulario"].astype(int)
         # preparar resumen_niveles
         resumen_niveles = (
             df_inf
             .groupby("nivel")
             .agg(
                 Cantidad_de_agentes=("cuil","count"),
-                Bonif_otorgadas=("calificacion", lambda x: (pd.Series(x)=="Destacado").sum())
+                Bonif_otorgadas=("calificacion", lambda x:(pd.Series(x)=="Destacado").sum())
             )
             .reindex([1,2,3,4,5,6], fill_value=0)
         )
-        resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"] * 0.3).round().astype(int)
+        resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"]*0.3).round().astype(int)
         resumen_niveles["Diferencia"]             = resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
         resumen_niveles["TOTAL"]                  = resumen_niveles.sum(axis=1)
 
@@ -308,7 +298,7 @@ def mostrar(supabase):
     if st.button("📄 Generar Anexo III"):
         tot  = df_fil.shape[0]
         dest = (df_fil["calificacion"]=="Destacado").sum()
-        acta = f\"\"\"ACTA DE VEEDURÍA GREMIAL
+        acta = f"""ACTA DE VEEDURÍA GREMIAL
 
 En la dependencia {seleccion}, con un total de {tot} personas evaluadas, se asignó la bonificación por desempeño destacado a {dest} agentes, de acuerdo al cupo máximo permitido del 30% según la normativa vigente.
 
@@ -318,9 +308,10 @@ Fecha: ........................................................
 
 Firmas:
 - Representante de la unidad de análisis
-- Veedor/a gremial\"\"\"
+- Veedor/a gremial"""
         os.makedirs("tmp_anexos", exist_ok=True)
         path4 = "tmp_anexos/anexo_iii.docx"
         generar_anexo_iii_docx(acta, path4)
         with open(path4, "rb") as f:
             st.download_button("📥 Descargar ANEXO III", f, file_name="anexo_iii.docx")
+
