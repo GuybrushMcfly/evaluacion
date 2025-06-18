@@ -422,8 +422,11 @@ def mostrar(supabase):
 
     # PREPARAR datos para Anexos I & II
     df_inf = df_fil.sort_values("puntaje_total", ascending=False).copy()
-    df_inf["nivel"]  = df_inf["formulario"].astype(int)
-    df_inf = df_inf[["apellido_nombre","cuil","nivel","puntaje_total","puntaje_relativo","calificacion","formulario"]]
+    df_inf["nivel"] = df_inf["formulario"].astype(int)
+    
+    # Si tu tabla evaluaciones tiene "agrupamiento" y "tramo", incluí esas columnas acá:
+    df_inf = df_inf[["apellido_nombre", "cuil", "nivel", "puntaje_total", "puntaje_relativo",
+                     "calificacion", "formulario", "agrupamiento", "tramo"]]
     total  = len(df_inf)
     cupo30 = math.floor(total*0.3)
     resumen_niveles = (df_inf.groupby("nivel")
