@@ -310,7 +310,7 @@ def generar_cuadro_resumen_docx(df_resumen, path_docx):
 # —————————— Streamlit ——————————
 
 def mostrar(supabase):
-    st.markdown("<h1 style='font-size:24px;'>📋 Listado General y Análisis de Tramos</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-size:24px;'>📋 Análisis de Evaluaciones</h1>", unsafe_allow_html=True)
 
     # 1) Carga
     evals   = supabase.table("evaluaciones").select("*").execute().data or []
@@ -366,24 +366,6 @@ def mostrar(supabase):
     st.markdown(f"#### 🗂 Resumen por Formulario — {seleccion}")
     st.dataframe(res_for, use_container_width=True)
 
-    # 6) Análisis detallado por UA
-    regs=[] 
-    for ua, grp in df_fil.groupby("unidad_analisis"):
-        tot=len(grp)
-        dest=grp[grp["calificacion"].str.upper()=="DESTACADO"]
-        n_dest=len(dest)
-        pct=round(n_dest/tot*100,2) if tot else 0
-        c30=math.floor(tot*0.3); c10=math.floor(tot*0.1)
-        ords=dest.sort_values("puntaje_relativo",ascending=False)["cuil"].astype(str).tolist()
-        regs.append({"unidad_analisis":ua,"Evaluados":tot,"Destacados":n_dest,
-                     "% Destacados":pct,"Cupo 30%":c30,"Cupo 10%":c10,
-                     "Bonificados":len(ords[:c10]),
-                     "Fecha Análisis":datetime.now().isoformat(),
-                     "List CUIL Bonif.":"; ".join(ords[:c10]),
-                     "Orden Puntaje":"; ".join(ords)})
-    df_det=pd.DataFrame(regs)
-    st.markdown(f"#### 🔍 Análisis por Unidad de Análisis — {seleccion}")
-    st.dataframe(df_det, use_container_width=True)
 
     # PREPARAR datos para Anexos I & II
     df_inf = df_fil.sort_values("puntaje_total", ascending=False).copy()
