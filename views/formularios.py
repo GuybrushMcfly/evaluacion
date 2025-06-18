@@ -15,7 +15,7 @@ def mostrar(supabase, formularios, clasificaciones):
     usuario_actual = st.session_state.get("usuario")
 
     agentes_data = supabase.table("agentes")\
-        .select("cuil, apellido_nombre, ingresante, nivel, grado, tramo, agrupamiento, dependencia, dependencia_general, ultima_calificacion, calificaciones_corrimiento, activo, motivo_inactivo, fecha_inactivo")\
+        .select("cuil, apellido_nombre, ingresante, nivel, grado, tramo, agrupamiento, dependencia, dependencia_general, ultima_calificacion, calificaciones_corrimiento, activo, motivo_inactivo, fecha_inactivo, residual")\
         .eq("evaluador_2024", usuario_actual)\
         .eq("evaluado_2024", False)\
         .order("apellido_nombre")\
