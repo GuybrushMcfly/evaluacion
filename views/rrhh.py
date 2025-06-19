@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def mostrar(supabase):
-    st.markdown("## 🧮 Estado General de Evaluación de Desempeño 2025")
+    st.markdown("## 🧮 Estado General de Evaluación de Desempeño 2024")
 
     # Cargar agentes
     agentes = supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
@@ -11,7 +11,7 @@ def mostrar(supabase):
     # Cargar evaluaciones válidas
     evaluaciones = supabase.table("evaluaciones")\
         .select("cuil, anulada, anio_evaluacion")\
-        .eq("anio_evaluacion", 2025).execute().data
+        .eq("anio_evaluacion", 2024).execute().data
 
     # Convertir a DataFrame solo si hay datos
     if evaluaciones:
