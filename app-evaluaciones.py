@@ -54,11 +54,14 @@ if authentication_status:
     authenticator.logout("Cerrar sesión", "sidebar")
 
     # ---- NAVEGACIÓN ----
+
+
+    
     opcion = st.sidebar.radio("📂 Navegación", [
         "📝 Instructivo",
         "📄 Formularios",
         "📋 Evaluaciones",
-        "✏️ RRHH",
+        "👥 RRHH",
         "📘 Capacitación",
         "⚙️ Configuración"
     ])
