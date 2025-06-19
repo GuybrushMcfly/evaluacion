@@ -95,6 +95,7 @@ def mostrar(supabase):
 
     #st.subheader("📋 Uso de formularios")
     # ---- INDICADORES DE USO DE FORMULARIOS ----
+     # ---- INDICADORES DE USO DE FORMULARIOS ----
     st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_counts = {f: 0 for f in form_labels}
@@ -107,8 +108,7 @@ def mostrar(supabase):
     cols = st.columns(len(form_labels))
     for i, f in enumerate(form_labels):
         cols[i].metric(f"Formulario {f}", form_counts[f])
-
-#    st.subheader("📋 Distribución por calificación")
+    
     # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
     st.markdown("<h2 style='font-size:24px;'>📋 Distribución por calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
@@ -122,22 +122,32 @@ def mostrar(supabase):
     emojis = ["🌟", "👍", "🟡", "🔴"]
     for i, cat in enumerate(categorias):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
-
-
-        st.subheader("✅ Evaluaciones registradas:")
-        st.dataframe(
-            df_no_anuladas[[
-                "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
-            ]].rename(columns={
-                "apellido_nombre": "Apellido y Nombres",
-                "formulario": "Form.",
-                "calif_puntaje": "Calificación/Puntaje",
-                "evaluador": "Evaluador",
-                "Fecha_formateada": "Fecha"
-            }),
-            use_container_width=True,
-            hide_index=True
+    
+    # ---- CREAR calif_puntaje SIEMPRE ANTES DE USARLA EN LA TABLA ----
+    if "calif_puntaje" not in df_no_anuladas.columns:
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
+            if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
+            else "",
+            axis=1
         )
+    
+    # ---- TABLA DE EVALUACIONES REGISTRADAS ----
+    st.subheader("✅ Evaluaciones registradas:")
+    st.dataframe(
+        df_no_anuladas[[
+            "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
+        ]].rename(columns={
+            "apellido_nombre": "Apellido y Nombres",
+            "formulario": "Form.",
+            "calif_puntaje": "Calificación/Puntaje",
+            "evaluador": "Evaluador",
+            "Fecha_formateada": "Fecha"
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
+
 
     
     if not df_no_anuladas.empty:
