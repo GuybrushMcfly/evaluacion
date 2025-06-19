@@ -61,7 +61,7 @@ def mostrar(supabase):
 
     st.divider()
     #st.subheader("📊 Indicadores")
-    st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
     Indicadores
     cols = st.columns(3)
     with cols[0]: st.metric("Total para evaluar", total_asignados)
@@ -95,7 +95,7 @@ def mostrar(supabase):
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
     #st.subheader("📋 Uso de formularios")
-    st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_columnas = {f"FORM. {f}": [0] for f in form_labels}
 
