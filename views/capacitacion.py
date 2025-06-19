@@ -13,12 +13,6 @@ from docx.oxml.ns import qn
 
 
 def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
-    from docx import Document
-    from docx.shared import Pt, RGBColor, Cm
-    from docx.oxml import OxmlElement
-    from docx.oxml.ns import qn
-    import math
-    from datetime import datetime
 
     doc = Document()
     sec = doc.sections[0]
@@ -67,15 +61,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                         grupos[f'Nivel {lvl}'] = tmp
 
         oper_df = df[df['nivel'].isin([5, 6])]
-        tiene_unidad_analisis = "unidad_analisis" in df.columns
         if not oper_df.empty:
-            if tiene_unidad_analisis and any(oper_df.groupby("unidad_analisis").size() < 6):
-                grupos['Niveles Operativos'] = oper_df
-            else:
-                for lvl in [5, 6]:
-                    tmp = oper_df[oper_df['nivel'] == lvl]
-                    if not tmp.empty:
-                        grupos[f'Nivel {lvl}'] = tmp
+           grupos['Niveles Operativos'] = oper_df
 
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
     for titulo, tabla_df in grupos.items():
@@ -201,7 +188,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
         cells[1].text = row.calificacion
         cells[2].text = str(row.puntaje_total)
         cells[3].text = f"{row.puntaje_relativo:.2f}"
-        cells[4].text = "SI"
+        cells[4].text = "SI" if getattr(row, "bonificacion_asignada", False) else ""
         for cell in cells:
             for p in cell.paragraphs:
                 for run in p.runs:
