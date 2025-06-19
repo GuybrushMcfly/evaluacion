@@ -6,6 +6,13 @@ from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, co
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
+
+try:
+    st.sidebar.image("logo-cap.png", use_container_width=True)
+except Exception as e:
+    st.sidebar.error(f"Error cargando logo: {type(e).__name__}: {e}")
+    st.stop()
+
 # ---- SIDEBAR: LOGO SIEMPRE ----
 st.sidebar.image("logo-cap.png", use_container_width=True)
 
