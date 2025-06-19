@@ -54,29 +54,35 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
 
     # --- Agrupar datos por reglas de BDD ---
+       # --- Agrupar datos por reglas de BDD ---
     grupos = {}
+    
     # Unidad Residual (Nivel 1)
     resid = df[df['nivel'] == 1]
     if not resid.empty:
         grupos['Unidad Residual'] = resid
+    
     # Niveles Medios (2, 3, 4)
-    medios = [2, 3, 4]
-    if any(df[df['nivel'] == lvl].shape[0] < 6 for lvl in medios):
-        grupos['Niveles Medios'] = df[df['nivel'].isin(medios)]
-    else:
-        for lvl in medios:
-            tmp = df[df['nivel'] == lvl]
-            if not tmp.empty:
-                grupos[f'Nivel {lvl}'] = tmp
+    medios_df = df[df['nivel'].isin([2, 3, 4])]
+    if not medios_df.empty:
+        if any(medios_df.groupby("unidad_analisis").size() < 6):
+            grupos['Niveles Medios'] = medios_df
+        else:
+            for lvl in [2, 3, 4]:
+                tmp = medios_df[medios_df['nivel'] == lvl]
+                if not tmp.empty:
+                    grupos[f'Nivel {lvl}'] = tmp
+    
     # Niveles Operativos (5, 6)
-    oper = [5, 6]
-    if any(df[df['nivel'] == lvl].shape[0] < 6 for lvl in oper):
-        grupos['Niveles Operativos'] = df[df['nivel'].isin(oper)]
-    else:
-        for lvl in oper:
-            tmp = df[df['nivel'] == lvl]
-            if not tmp.empty:
-                grupos[f'Nivel {lvl}'] = tmp
+    oper_df = df[df['nivel'].isin([5, 6])]
+    if not oper_df.empty:
+        if any(oper_df.groupby("unidad_analisis").size() < 6):
+            grupos['Niveles Operativos'] = oper_df
+        else:
+            for lvl in [5, 6]:
+                tmp = oper_df[oper_df['nivel'] == lvl]
+                if not tmp.empty:
+                    grupos[f'Nivel {lvl}'] = tmp
 
     # --- Listados + mini-cuadros resumen por bloque ---
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
