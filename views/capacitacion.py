@@ -42,17 +42,24 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
 
     azul = "B7E0F7"
     grupos = {}
-    
-    # ✅ Agrupar todos los residual=True juntos
-    if "residual" in df.columns:
-        residuales_df = df[df["residual"] == True]
-        if not residuales_df.empty:
-            grupos["Unidad Residual"] = residuales_df
+      
+    # Asegurar que 'residual' exista
+    if "residual" not in df.columns:
+        df["residual"] = False
 
-    df = df[df["residual"] != True]  # filtrar solo los no residuales
-    
-    # Agrupamiento habitual de no residuales
-    medios_df = df[df["nivel"].isin([2, 3, 4])]
+    # Asegurar que 'nivel' exista
+    if "nivel" not in df.columns:
+        df["nivel"] = df["formulario"].astype(int)
+
+    # ✅ Agrupar todos los residual=True juntos
+    residuales_df = df[df["residual"] == True]
+    if not residuales_df.empty:
+        grupos["Unidad Residual"] = residuales_df
+
+    # 🔁 Filtrar y procesar no residuales
+    df_nores = df[df["residual"] != True]
+
+    medios_df = df_nores[df_nores["nivel"].isin([2, 3, 4])]
     if not medios_df.empty:
         if len(medios_df) < 6:
             grupos["Niveles Medios"] = medios_df
@@ -61,10 +68,11 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                 tmp = medios_df[medios_df["nivel"] == lvl]
                 if not tmp.empty:
                     grupos[f"Nivel {lvl}"] = tmp
-    
-    oper_df = df[df["nivel"].isin([5, 6])]
+
+    oper_df = df_nores[df_nores["nivel"].isin([5, 6])]
     if not oper_df.empty:
         grupos["Niveles Operativos"] = oper_df
+
 
 
 
