@@ -6,75 +6,79 @@ from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, co
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
-# Mostrar contenido visible desde el inicio para evitar colapso de la sidebar
+# Mostrar logo siempre
 st.sidebar.image("logo-cap.png", use_container_width=True)
-st.sidebar.markdown("---")
-st.sidebar.markdown("#### Bienvenido/a")
-st.sidebar.markdown("🔐 Inicie sesión para continuar.")
-st.sidebar.selectbox("Modo:", ["Usuario"], index=0, disabled=True)  # Elemento visual, no funcional
-
 
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase = auth.cargar_usuarios_y_autenticar()
 
-# Mostrar algo en la barra lateral antes del login (clave para que no se colapse)
+# ---- SIDEBAR PRE-LOGIN ----
 if authentication_status is None:
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("#### Bienvenido/a")
+    st.sidebar.markdown("🔐 Inicie sesión para continuar.")
+    # Widget “dummy” para mantener la barra abierta
+    st.sidebar.selectbox(" ", [" "], index=0, disabled=True)
+    # Información adicional
     st.sidebar.info("🔐 Ingrese sus credenciales para acceder al sistema.")
-
 
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
+    # Cargar datos del usuario
     try:
-        usuario_data = supabase.table("usuarios")\
-            .select("apellido_nombre, rol")\
-            .eq("usuario", username)\
-            .execute()\
+        usuario_data = (
+            supabase
+            .table("usuarios")
+            .select("apellido_nombre, rol")
+            .eq("usuario", username)
+            .execute()
             .data
-
-        if usuario_data:
-            rol_data = usuario_data[0].get("rol", {})
-            if isinstance(rol_data, str):
-                try:
-                    rol_data = json.loads(rol_data)
-                except json.JSONDecodeError:
-                    rol_data = {}
-            if not isinstance(rol_data, dict):
-                rol_data = {}
-
-            st.session_state.update({
-                "usuario": username,
-                "nombre_completo": usuario_data[0]['apellido_nombre'],
-                "rol": rol_data
-            })
-        else:
+        )
+        if not usuario_data:
             st.error("❌ No se pudieron cargar los datos del usuario.")
             st.stop()
 
+        rol_data = usuario_data[0].get("rol", {})
+        if isinstance(rol_data, str):
+            try:
+                rol_data = json.loads(rol_data)
+            except json.JSONDecodeError:
+                rol_data = {}
+        if not isinstance(rol_data, dict):
+            rol_data = {}
+
+        st.session_state.update({
+            "usuario": username,
+            "nombre_completo": usuario_data[0]["apellido_nombre"],
+            "rol": rol_data
+        })
+
     except Exception as e:
-        st.error(f"❌ Error al cargar datos del usuario: {str(e)}")
+        st.error(f"❌ Error al cargar datos del usuario: {e}")
         st.stop()
 
+    # Validar sesión
     if not st.session_state.get("usuario") or not st.session_state.get("rol"):
-        st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
+        st.warning("⚠️ La sesión ha expirado o es inválida. Vuelva a iniciar sesión.")
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
 
-    # ---- INTERFAZ DE USUARIO ----
+    # ---- INTERFAZ POST-LOGIN ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
-    # ---- NAVEGACIÓN ----
-
-
-    
-    opcion = st.sidebar.radio("📂 Navegación", [
-        "📝 Instructivo",
-        "📄 Formularios",
-        "📋 Evaluaciones",
-        "👥 RRHH",
-        "📘 Capacitación",
-        "⚙️ Configuración"
-    ])
+    # Navegación
+    opcion = st.sidebar.radio(
+        "📂 Navegación",
+        [
+            "📝 Instructivo",
+            "📄 Formularios",
+            "📋 Evaluaciones",
+            "👥 RRHH",
+            "📘 Capacitación",
+            "⚙️ Configuración"
+        ]
+    )
 
     if opcion == "📝 Instructivo":
         instructivo.mostrar()
@@ -92,7 +96,7 @@ if authentication_status:
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
-    elif opcion == "✏️ RRHH":
+    elif opcion == "👥 RRHH":
         if st.session_state["rol"].get("rrhh"):
             rrhh.mostrar(supabase)
         else:
@@ -111,7 +115,5 @@ if authentication_status:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif authentication_status is False:
-    st.error("❌ Usuario o contraseña incorrectos.")
-
-elif authentication_status is None:
-    st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
+    st.sidebar.error("❌ Usuario o contraseña incorrectos.")
+    authenticator.logout("Cerrar sesión", "sidebar")
