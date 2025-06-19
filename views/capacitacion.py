@@ -43,72 +43,73 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
     grupos = {}
 
-   if "residual" in df.columns and df["residual"].all():
-    # ✅ Caso residual total: generar tabla única y cortar
-    grupos = {"Unidad Residual Consolidada": df}
-    
-    cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
-    for titulo, tabla_df in grupos.items():
-        h2 = doc.add_heading(titulo, level=2)
-        for run in h2.runs:
-            run.font.name = "Calibri"
-            run.font.color.rgb = RGBColor(0, 0, 0)
+    if "residual" in df.columns and df["residual"].all():
+        # ✅ Caso residual total: generar tabla única y cortar
+        grupos = {"Unidad Residual Consolidada": df}
+        
+        cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
+        for titulo, tabla_df in grupos.items():
+            h2 = doc.add_heading(titulo, level=2)
+            for run in h2.runs:
+                run.font.name = "Calibri"
+                run.font.color.rgb = RGBColor(0, 0, 0)
 
-        tbl = doc.add_table(rows=1 + len(tabla_df), cols=len(cols), style="Table Grid")
-        for j, c in enumerate(cols):
-            cell = tbl.rows[0].cells[j]
-            r = cell.paragraphs[0].add_run(c)
-            r.bold = True
-            r.font.name = "Calibri"
-            tc = cell._tc.get_or_add_tcPr()
-            shd = OxmlElement('w:shd')
-            shd.set(qn('w:val'), 'clear')
-            shd.set(qn('w:fill'), azul)
-            tc.append(shd)
+            tbl = doc.add_table(rows=1 + len(tabla_df), cols=len(cols), style="Table Grid")
+            for j, c in enumerate(cols):
+                cell = tbl.rows[0].cells[j]
+                r = cell.paragraphs[0].add_run(c)
+                r.bold = True
+                r.font.name = "Calibri"
+                tc = cell._tc.get_or_add_tcPr()
+                shd = OxmlElement('w:shd')
+                shd.set(qn('w:val'), 'clear')
+                shd.set(qn('w:fill'), azul)
+                tc.append(shd)
 
-        for i, row in enumerate(tabla_df.itertuples(index=False), start=1):
-            cells = tbl.rows[i].cells
-            cells[0].text = row.apellido_nombre
-            cells[1].text = str(row.cuil)
-            cells[2].text = str(row.nivel)
-            cells[3].text = str(row.puntaje_total)
-            cells[4].text = f"{row.puntaje_relativo:.2f}"
-            cells[5].text = row.calificacion
-            for cell in cells:
-                for p in cell.paragraphs:
+            for i, row in enumerate(tabla_df.itertuples(index=False), start=1):
+                cells = tbl.rows[i].cells
+                cells[0].text = row.apellido_nombre
+                cells[1].text = str(row.cuil)
+                cells[2].text = str(row.nivel)
+                cells[3].text = str(row.puntaje_total)
+                cells[4].text = f"{row.puntaje_relativo:.2f}"
+                cells[5].text = row.calificacion
+                for cell in cells:
+                    for p in cell.paragraphs:
+                        for run in p.runs:
+                            run.font.name = 'Calibri'
+                            run.font.size = Pt(9)
+                            run.font.color.rgb = RGBColor(0, 0, 0)
+
+            n = len(tabla_df)
+            cupo = max(1, math.ceil(n * 0.1))
+            tbl_sum = doc.add_table(rows=2, cols=2, style="Table Grid")
+            tbl_sum.rows[0].cells[0].text = "Total evaluados"
+            tbl_sum.rows[0].cells[1].text = str(n)
+            tbl_sum.rows[1].cells[0].text = "BDD correspondientes (10%)"
+            tbl_sum.rows[1].cells[1].text = str(cupo)
+
+            for idx in (0, 1):
+                c0 = tbl_sum.rows[idx].cells[0]
+                tc0 = c0._tc.get_or_add_tcPr()
+                sh = OxmlElement('w:shd')
+                sh.set(qn('w:val'), 'clear')
+                sh.set(qn('w:fill'), azul)
+                tc0.append(sh)
+                for p in c0.paragraphs:
                     for run in p.runs:
-                        run.font.name = 'Calibri'
+                        run.bold = True
+                        run.font.name = "Calibri"
                         run.font.size = Pt(9)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
+                for p in tbl_sum.rows[idx].cells[1].paragraphs:
+                    for run in p.runs:
+                        run.font.name = "Calibri"
+                        run.font.size = Pt(9)
 
-        n = len(tabla_df)
-        cupo = max(1, math.ceil(n * 0.1))
-        tbl_sum = doc.add_table(rows=2, cols=2, style="Table Grid")
-        tbl_sum.rows[0].cells[0].text = "Total evaluados"
-        tbl_sum.rows[0].cells[1].text = str(n)
-        tbl_sum.rows[1].cells[0].text = "BDD correspondientes (10%)"
-        tbl_sum.rows[1].cells[1].text = str(cupo)
+        doc.add_paragraph("")
+        doc.add_page_break()
+        return  # ⬅️ IMPORTANTE: Corta acá y evita seguir procesando niveles
 
-        for idx in (0, 1):
-            c0 = tbl_sum.rows[idx].cells[0]
-            tc0 = c0._tc.get_or_add_tcPr()
-            sh = OxmlElement('w:shd')
-            sh.set(qn('w:val'), 'clear')
-            sh.set(qn('w:fill'), azul)
-            tc0.append(sh)
-            for p in c0.paragraphs:
-                for run in p.runs:
-                    run.bold = True
-                    run.font.name = "Calibri"
-                    run.font.size = Pt(9)
-            for p in tbl_sum.rows[idx].cells[1].paragraphs:
-                for run in p.runs:
-                    run.font.name = "Calibri"
-                    run.font.size = Pt(9)
-
-    doc.add_paragraph("")
-    doc.add_page_break()
-    return  # ⬅️ IMPORTANTE: Corta acá y evita seguir procesando niveles
 
 
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
