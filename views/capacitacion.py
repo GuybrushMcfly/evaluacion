@@ -283,6 +283,7 @@ def analizar_evaluaciones(df):
     return df[["id_evaluacion", "residual"]]
 
 
+
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:24px;'>📋 Análisis de Evaluaciones</h1>", unsafe_allow_html=True)
 
@@ -346,3 +347,80 @@ def mostrar(supabase):
     if df_fil.empty:
         st.info("No hay evaluaciones para mostrar.")
         return
+
+    # PREPARAR datos para Anexos I & II
+    df_inf = df_fil.sort_values("puntaje_total", ascending=False).copy()
+    df_inf["nivel"] = df_inf["formulario"].astype(int)
+
+    # Si tu tabla evaluaciones tiene "agrupamiento" y "tramo", incluí esas columnas acá:
+    df_inf = df_inf[["apellido_nombre", "cuil", "nivel", "puntaje_total", "puntaje_relativo",
+                     "calificacion", "formulario", "agrupamiento", "tramo"]]
+    total  = len(df_inf)
+    cupo30 = math.floor(total*0.3)
+    resumen_niveles = (df_inf.groupby("nivel")
+                   .agg(Cantidad_de_agentes=("cuil","count"),
+                        Bonif_otorgadas=("calificacion", lambda x:(pd.Series(x).str.upper()=="DESTACADO").sum()))
+                   .reindex([1,2,3,4,5,6], fill_value=0))
+
+    resumen_niveles["Bonif. correspondientes"] = (
+        resumen_niveles["Cantidad_de_agentes"] * 0.3
+    ).round().astype(int)
+
+    resumen_niveles["Diferencia"] = (
+        resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
+    )
+    resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(
+        lambda x: f"{x:+d}" if x != 0 else "0"
+    )
+
+    df_res = pd.DataFrame({
+        "Cantidad de agentes":     resumen_niveles["Cantidad_de_agentes"],
+        "Bonif. otorgadas":        resumen_niveles["Bonif_otorgadas"],
+        "Bonif. correspondientes": resumen_niveles["Bonif. correspondientes"],
+        "Diferencia":              resumen_niveles["Diferencia"]
+    }).T
+
+    df_modelo = df_inf[["apellido_nombre","cuil","formulario","puntaje_total","calificacion"]]
+
+    # 7) Anexo I
+    if st.button("📄 Generar Anexo I – Informe para el Comité"):
+        os.makedirs("tmp_anexos", exist_ok=True)
+        path1="tmp_anexos/anexo_I_informe_comite.docx"
+        generar_informe_comite_docx(df_inf, seleccion, total, df_res, path1)
+
+        with open(path1,"rb") as f:
+            st.download_button("📥 Descargar Anexo I", f, "anexo_I_informe_comite.docx")
+
+    # 8) Cuadro Resumen de Niveles
+    if st.button("📄 Generar Cuadro Resumen de Niveles"):
+        os.makedirs("tmp_anexos", exist_ok=True)
+        path2="tmp_anexos/cuadro_resumen_niveles.docx"
+        generar_cuadro_resumen_docx(df_res, path2)
+        with open(path2,"rb") as f:
+            st.download_button("📥 Descargar Cuadro Resumen", f, "cuadro_resumen_niveles.docx")
+
+    # 9) Anexo II – Modelo Listado de Apoyo
+    if st.button("📄 Generar Anexo II – Modelo Listado de Apoyo"):
+        os.makedirs("tmp_anexos", exist_ok=True)
+        path3="tmp_anexos/anexo_ii_modelo.docx"
+        generar_anexo_ii_modelo_docx(df_modelo, seleccion, seleccion, path3)
+        with open(path3,"rb") as f:
+            st.download_button("📥 Descargar Anexo II Modelo", f, "anexo_ii_modelo.docx")
+
+    # 10) Anexo III – Acta de Veeduría
+    if st.button("📄 Generar Anexo III"):
+        tot=len(df_fil)
+        dest=(df_fil["calificacion"].str.upper()=="DESTACADO").sum()
+        acta = (f"ACTA DE VEEDURÍA GREMIAL\n\n"
+                f"En la dependencia {seleccion}, con un total de {tot} personas evaluadas, "
+                f"se asignó la bonificación por desempeño destacado a {dest} agentes, de acuerdo "
+                f"al cupo máximo permitido del 30% según la normativa vigente.\n\n"
+                "La veeduría gremial constató que el procedimiento se realizó conforme a la normativa, "
+                "y se firmó en señal de conformidad.\n\n"
+                "Fecha: ...........................................................\n\n"
+                "Firmas:\n- Representante de la unidad de análisis\n- Veedor/a gremial")
+        os.makedirs("tmp_anexos", exist_ok=True)
+        path4="tmp_anexos/anexo_iii.docx"
+        generar_anexo_iii_docx(acta, path4)
+        with open(path4,"rb") as f:
+            st.download_button("📥 Descargar Anexo III", f, "anexo_iii.docx")
