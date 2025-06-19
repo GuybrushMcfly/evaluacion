@@ -93,21 +93,6 @@ def mostrar(supabase):
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
-    #st.subheader("📋 Uso de formularios")
-    # ---- INDICADORES DE USO DE FORMULARIOS ----
-     # ---- INDICADORES DE USO DE FORMULARIOS ----
-    st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
-    form_labels = ["1", "2", "3", "4", "5", "6"]
-    form_counts = {f: 0 for f in form_labels}
-    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
-        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
-        formulario_counts = df_no_anuladas["formulario"].value_counts()
-        for f in form_labels:
-            form_counts[f] = formulario_counts.get(f, 0)
-    
-    cols = st.columns(len(form_labels))
-    for i, f in enumerate(form_labels):
-        cols[i].metric(f"Formulario {f}", form_counts[f])
     
     # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
     st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
@@ -131,6 +116,22 @@ def mostrar(supabase):
             else "",
             axis=1
         )
+
+        #st.subheader("📋 Uso de formularios")
+    # ---- INDICADORES DE USO DE FORMULARIOS ----
+     # ---- INDICADORES DE USO DE FORMULARIOS ----
+    st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
+    form_labels = ["1", "2", "3", "4", "5", "6"]
+    form_counts = {f: 0 for f in form_labels}
+    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
+        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+        formulario_counts = df_no_anuladas["formulario"].value_counts()
+        for f in form_labels:
+            form_counts[f] = formulario_counts.get(f, 0)
+    
+    cols = st.columns(len(form_labels))
+    for i, f in enumerate(form_labels):
+        cols[i].metric(f"Formulario {f}", form_counts[f])
     
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
