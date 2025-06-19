@@ -156,18 +156,32 @@ def mostrar(supabase):
     
     if not df_no_anuladas.empty:
         st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
-      # st.subheader("🔄 Evaluaciones que pueden anularse:")
-        df_no_anuladas["Seleccionar"] = False
+    
+        # Aseguramos que existan las columnas necesarias
+        for col in ["Seleccionar", "calif_puntaje", "apellido_nombre", "formulario",
+                    "evaluador", "Fecha_formateada", "Estado", "id_evaluacion", "cuil", "calificacion", "puntaje_total"]:
+            if col not in df_no_anuladas.columns:
+                if col == "Seleccionar":
+                    df_no_anuladas["Seleccionar"] = False
+                else:
+                    df_no_anuladas[col] = ""
+    
+        # Crear calif_puntaje (siempre seguro)
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
+            if row.get("calificacion") and row.get("puntaje_total") else "",
+            axis=1
         )
     
-        # Incluí id_evaluacion antes de construir df_para_mostrar
-       # Incluí id_evaluacion antes de construir df_para_mostrar
-        df_para_mostrar = df_no_anuladas[[
+        # Para mostrar, solo las columnas necesarias (y crearlas si faltan)
+        columnas_mostrar = [
             "Seleccionar", "apellido_nombre", "formulario",
             "calif_puntaje", "evaluador", "Fecha_formateada", "Estado", "id_evaluacion"
-        ]].rename(columns={
+        ]
+        for col in columnas_mostrar:
+            if col not in df_no_anuladas.columns:
+                df_no_anuladas[col] = ""
+        df_para_mostrar = df_no_anuladas[columnas_mostrar].rename(columns={
             "Seleccionar": "Seleccionar",
             "apellido_nombre": "Apellido y Nombres",
             "formulario": "Form.",
@@ -177,8 +191,8 @@ def mostrar(supabase):
             "Estado": "Estado",
             "id_evaluacion": "id_evaluacion"
         })
-        
-        # Editor con id_evaluacion oculta pero disponible
+    
+        # Editor de tabla
         seleccion = st.data_editor(
             df_para_mostrar,
             use_container_width=True,
@@ -192,7 +206,7 @@ def mostrar(supabase):
                 "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
             }
         )
-        
+    
         # Botón para anular seleccionadas
         if st.button("❌ Anular seleccionadas"):
             if "Seleccionar" in seleccion.columns:
@@ -200,30 +214,35 @@ def mostrar(supabase):
                 ids_seleccionados = seleccionados["id_evaluacion"].tolist()
             else:
                 ids_seleccionados = []
-        
+    
             if not ids_seleccionados:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
                 for id_eval in ids_seleccionados:
-                    eval_sel = df_no_anuladas[df_no_anuladas["id_evaluacion"] == id_eval].iloc[0]
-                    supabase.table("evaluaciones").update({"anulada": True})\
-                        .eq("id_evaluacion", id_eval).execute()
-                    supabase.table("agentes").update({"evaluado_2024": False})\
-                        .eq("cuil", str(eval_sel["cuil"]).strip()).execute()
+                    eval_sel = df_no_anuladas[df_no_anuladas["id_evaluacion"] == id_eval]
+                    if not eval_sel.empty:
+                        cuil_sel = str(eval_sel.iloc[0].get("cuil", "")).strip()
+                        supabase.table("evaluaciones").update({"anulada": True})\
+                            .eq("id_evaluacion", id_eval).execute()
+                        if cuil_sel:
+                            supabase.table("agentes").update({"evaluado_2024": False})\
+                                .eq("cuil", cuil_sel).execute()
                 st.success(f"✅ {len(ids_seleccionados)} evaluaciones anuladas.")
                 time.sleep(2)
                 st.rerun()
-
-
+    
+    # TABLA DE ANULADAS
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
     if not df_anuladas.empty:
+        # Asegurar columnas
+        for col in ["calif_puntaje", "apellido_nombre", "formulario", "evaluador", "Fecha_formateada", "Estado"]:
+            if col not in df_anuladas.columns:
+                df_anuladas[col] = ""
         df_anuladas["calif_puntaje"] = df_anuladas.apply(
-            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})" if row.get("calificacion") and row.get("puntaje_total") else "",
+            axis=1
         )
-
-        #st.subheader("❌ Evaluaciones ya anuladas:")
         st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones ya anuladas:</h2>", unsafe_allow_html=True)
-       
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
