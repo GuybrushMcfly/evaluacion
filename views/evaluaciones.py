@@ -94,34 +94,35 @@ def mostrar(supabase):
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
     #st.subheader("📋 Uso de formularios")
+    # ---- INDICADORES DE USO DE FORMULARIOS ----
     st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
-    form_columnas = {f"FORM. {f}": [0] for f in form_labels}
-
+    form_counts = {f: 0 for f in form_labels}
     if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
         df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
         formulario_counts = df_no_anuladas["formulario"].value_counts()
         for f in form_labels:
-            form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
-    df_form = pd.DataFrame(form_columnas)
-    st.dataframe(df_form, use_container_width=True, hide_index=True)
+            form_counts[f] = formulario_counts.get(f, 0)
+    
+    cols = st.columns(len(form_labels))
+    for i, f in enumerate(form_labels):
+        cols[i].metric(f"Formulario {f}", form_counts[f])
 
 #    st.subheader("📋 Distribución por calificación")
+    # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
     st.markdown("<h2 style='font-size:24px;'>📋 Distribución por calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
-    calif_columnas = {cat: [0] for cat in categorias}
-
+    calif_counts = {cat: 0 for cat in categorias}
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
-        calif_counts = df_no_anuladas["calificacion"].value_counts()
+        temp_counts = df_no_anuladas["calificacion"].value_counts()
         for cat in categorias:
-            calif_columnas[cat] = [calif_counts.get(cat, 0)]
-    df_calif = pd.DataFrame(calif_columnas)
-    st.dataframe(df_calif, use_container_width=True, hide_index=True)
+            calif_counts[cat] = temp_counts.get(cat, 0)
+    
+    col_cats = st.columns(len(categorias))
+    emojis = ["🌟", "👍", "🟡", "🔴"]
+    for i, cat in enumerate(categorias):
+        col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
 
-    if not df_no_anuladas.empty:
-        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
-        )
 
         st.subheader("✅ Evaluaciones registradas:")
         st.dataframe(
