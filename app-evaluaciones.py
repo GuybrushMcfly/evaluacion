@@ -13,6 +13,11 @@ st.sidebar.markdown(" ")  # Línea decorativa
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase = auth.cargar_usuarios_y_autenticar()
 
+# Mostrar algo en la barra lateral antes del login (clave para que no se colapse)
+if authentication_status is None:
+    st.sidebar.info("🔐 Ingrese sus credenciales para acceder al sistema.")
+
+
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
     try:
