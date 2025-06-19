@@ -5,8 +5,9 @@ import time
 
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
-    st.header("📋 Evaluaciones realizadas")
-
+    #st.header("📋 Evaluaciones realizadas")
+    st.markdown("<h2 style='font-size:24px;'>📋 Evaluaciones realizadas</h1>", unsafe_allow_html=True)
+    
     # Función para verificar rol activo
     def tiene_rol(*roles):
         return any(st.session_state.get("rol", {}).get(r, False) for r in roles)
