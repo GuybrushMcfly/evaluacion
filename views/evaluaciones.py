@@ -63,9 +63,9 @@ def mostrar(supabase):
     #st.subheader("📊 Indicadores")
     st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
     cols = st.columns(3)
-    with cols[0]: st.metric("Total para evaluar", total_asignados)
-    with cols[1]: st.metric("Evaluados", evaluados)
-    with cols[2]: st.metric("% Evaluados", f"{porcentaje:.1f}%")
+    with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
+    with cols[1]: st.metric("✅ Evaluados", evaluados)
+    with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # Obtener evaluaciones filtradas
