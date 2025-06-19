@@ -36,3 +36,52 @@ def mostrar(supabase):
             }).execute()
 
         st.success("✅ Cambios guardados correctamente.")
+
+
+# --- Datos desde Supabase ---
+agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
+usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+
+if not agentes_data or not usuarios_data:
+    st.warning("No hay datos disponibles.")
+else:
+    # --- Crear mapas y listas ---
+    mapa_agentes = {a["apellido_nombre"]: a for a in agentes_data}
+    mapa_usuarios = {u["usuario"]: u for u in usuarios_data if u["activo"]}
+
+    # --- Selector de agente ---
+    nombre_seleccionado = st.selectbox("Seleccioná un agente", list(mapa_agentes.keys()))
+    agente = mapa_agentes[nombre_seleccionado]
+
+    # --- Lista de dependencias únicas desde usuarios activos ---
+    dependencias_disponibles = sorted(set(u["dependencia"] for u in usuarios_data if u["activo"] and u["dependencia"]))
+
+    # --- Seleccionar nueva dependencia ---
+    nueva_dependencia = st.selectbox("Nueva dependencia", dependencias_disponibles, index=dependencias_disponibles.index(agente.get("dependencia", "")))
+
+    # --- Filtrar evaluadores por esa dependencia ---
+    evaluadores_opciones = [u for u in usuarios_data if u["dependencia"] == nueva_dependencia and u["activo"]]
+    opciones_evaluador = {u["apellido_nombre"]: u["usuario"] for u in evaluadores_opciones}
+
+    # --- Determinar evaluador actual por nombre ---
+    usuario_actual = agente.get("evaluador_2024", "")
+    nombre_actual = next((u["apellido_nombre"] for u in usuarios_data if u["usuario"] == usuario_actual), "[No asignado]")
+
+    # --- Selector de evaluador por nombre (guarda usuario internamente) ---
+    nombre_evaluador = st.selectbox("Evaluador asignado (2024)", list(opciones_evaluador.keys()), index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual))
+
+    # --- Botón para actualizar ---
+    if st.button("Actualizar datos"):
+        nuevo_usuario = opciones_evaluador[nombre_evaluador]
+        # Buscar dependencia_general del evaluador
+        dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
+
+        # Actualizar en Supabase
+        supabase.table("agentes").update({
+            "dependencia": nueva_dependencia,
+            "dependencia_general": dependencia_gral,
+            "evaluador_2024": nuevo_usuario
+        }).eq("cuil", agente["cuil"]).execute()
+
+        st.success("Datos actualizados correctamente.")
+
