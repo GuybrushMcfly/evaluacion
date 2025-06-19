@@ -177,7 +177,11 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     for run in h2_ev.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
-    evaluables = df[df.get("bonificacion_elegible") == True]
+    if "bonificacion_elegible" in df.columns:
+        evaluables = df[df["bonificacion_elegible"] == True]
+    else:
+        evaluables = pd.DataFrame(columns=df.columns)
+
     cols_ev = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
     tbl_ev = doc.add_table(rows=1 + len(evaluables), cols=len(cols_ev), style="Table Grid")
     for j, h in enumerate(cols_ev):
