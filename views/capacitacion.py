@@ -379,7 +379,7 @@ def mostrar(supabase):
 
     df_inf = df_inf[["apellido_nombre", "cuil", "nivel", "puntaje_total", "puntaje_relativo",
                  "calificacion", "formulario", "agrupamiento", "tramo",
-                 "bonificacion_elegible", "bonificacion_asignada, residual"]]
+                 "bonificacion_elegible", "bonificacion_asignada", "residual"]]
 
     
     total  = len(df_inf)
