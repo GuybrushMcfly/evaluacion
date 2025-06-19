@@ -399,11 +399,11 @@ def mostrar(supabase):
             if len(indices) == 0:
                 st.warning("No hay personas seleccionadas.")
             else:
-                elegibles.reset_index(drop=True, inplace=True)
-                for idx in indices:
-                    id_eval = elegibles.iloc[idx]["id_evaluacion"]
+                df_ids = elegibles.loc[seleccionados.index, ["id_evaluacion"]]
+                for _, row in df_ids.iterrows():
                     supabase.table("evaluaciones").update({"bonificacion_asignada": True})\
-                        .eq("id_evaluacion", id_eval).execute()
+                        .eq("id_evaluacion", row["id_evaluacion"]).execute()
+
                 st.success(f"Se asignó bonificación a {len(indices)} personas.")
                 st.rerun()
 
