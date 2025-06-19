@@ -64,13 +64,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
 
         oper_df = df[df['nivel'].isin([5, 6])]
         if not oper_df.empty:
-            if len(oper_df) < 6:
-                grupos['Niveles Operativos'] = oper_df
-            else:
-                for lvl in [5, 6]:
-                    tmp = oper_df[oper_df['nivel'] == lvl]
-                    if not tmp.empty:
-                        grupos[f'Nivel {lvl}'] = tmp
+            grupos['Niveles Operativos'] = oper_df
+
 
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
     for titulo, tabla_df in grupos.items():
