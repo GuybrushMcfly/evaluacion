@@ -10,7 +10,7 @@ from docx import Document
 from docx.shared import Pt, RGBColor, Cm
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-
+from pytz import timezone
 
 def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
 
