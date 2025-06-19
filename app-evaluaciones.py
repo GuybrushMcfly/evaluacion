@@ -3,6 +3,13 @@ import json
 from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 
+st.set_page_config(
+    page_title="Evaluación",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
