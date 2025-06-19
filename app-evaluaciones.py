@@ -6,7 +6,7 @@ from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, co
 # ---- CONFIGURACIÓN DE PÁGINA ----
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
-# Mostrar logo siempre
+# ---- SIDEBAR: LOGO SIEMPRE ----
 st.sidebar.image("logo-cap.png", use_container_width=True)
 
 # ---- AUTENTICACIÓN ----
@@ -16,11 +16,8 @@ name, authentication_status, username, authenticator, supabase = auth.cargar_usu
 if authentication_status is None:
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### Bienvenido/a")
-    st.sidebar.markdown("🔐 Inicie sesión para continuar.")
-    # Widget “dummy” para mantener la barra abierta
+    # Widget dummy para mantener la barra visible, pero minimalista
     st.sidebar.selectbox(" ", [" "], index=0, disabled=True)
-    # Información adicional
-    st.sidebar.info("🔐 Ingrese sus credenciales para acceder al sistema.")
 
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
