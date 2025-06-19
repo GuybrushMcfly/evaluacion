@@ -14,10 +14,15 @@ def mostrar(supabase):
     evaluaciones = supabase.table("evaluaciones")\
         .select("cuil, anulada, anio_evaluacion")\
         .eq("anio_evaluacion", 2025).execute().data
-    df_eval = pd.DataFrame(evaluaciones)
     
-    if not df_eval.empty and "anulada" in df_eval.columns:
-        df_eval = df_eval[df_eval["anulada"] != True]
+    # Convertir a DataFrame solo si hay datos
+    if evaluaciones:
+        df_eval = pd.DataFrame(evaluaciones)
+        if "anulada" in df_eval.columns:
+            df_eval = df_eval[df_eval["anulada"] != True]
+    else:
+        df_eval = pd.DataFrame(columns=["cuil", "anulada", "anio_evaluacion"])
+
 
 
     # Filtrar evaluaciones no anuladas
