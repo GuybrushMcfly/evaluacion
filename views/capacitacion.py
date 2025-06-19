@@ -339,8 +339,14 @@ def mostrar(supabase):
 
         destacados = df_ev[df_ev["calificacion"].str.upper() == "DESTACADO"]
         destacados = destacados.sort_values(["dependencia_general", "puntaje_relativo"], ascending=[True, False])
-
-        for dg, grupo in destacados.groupby("dependencia_general"):
+       
+        
+        # Asignar etiqueta especial para agrupamiento
+        df_ev["grupo_cupo"] = df_ev["dependencia_general"]
+        df_ev.loc[df_ev["residual"] == True, "grupo_cupo"] = "RESIDUAL GENERAL"
+     
+        
+        for grupo_id, grupo in destacados.groupby("grupo_cupo"):
             n = len(grupo)
             cupo = max(1, math.ceil(n * 0.1))
             elegibles = grupo.head(cupo)
