@@ -413,7 +413,7 @@ def mostrar(supabase):
     # 4) Botón para análisis automático
     if st.button("⚙️ Realizar Análisis de Residuales"):
         df_ev = pd.DataFrame(evals)
-        df_actualizados = analizar_evaluaciones(df_ev)
+        df_actualizados = analizar_evaluaciones_residuales(df_ev)
         for i, row in df_actualizados.iterrows():
             supabase.table("evaluaciones").update({"residual": row["residual"]}).eq("id_evaluacion", row["id_evaluacion"]).execute()
 
