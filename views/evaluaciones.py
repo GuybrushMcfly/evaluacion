@@ -143,6 +143,7 @@ def mostrar(supabase):
         )
     
         # Incluí id_evaluacion antes de construir df_para_mostrar
+       # Incluí id_evaluacion antes de construir df_para_mostrar
         df_para_mostrar = df_no_anuladas[[
             "Seleccionar", "apellido_nombre", "formulario",
             "calif_puntaje", "evaluador", "Fecha_formateada", "Estado", "id_evaluacion"
@@ -156,22 +157,30 @@ def mostrar(supabase):
             "Estado": "Estado",
             "id_evaluacion": "id_evaluacion"
         })
-    
+        
+        # Editor con id_evaluacion oculta pero disponible
         seleccion = st.data_editor(
             df_para_mostrar,
             use_container_width=True,
             hide_index=True,
-            disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado", "id_evaluacion"],
-            column_config={"Seleccionar": st.column_config.CheckboxColumn("Seleccionar")}
+            disabled=[
+                "Apellido y Nombres", "Form.", "Calificación/Puntaje",
+                "Evaluador", "Fecha", "Estado", "id_evaluacion"
+            ],
+            column_config={
+                "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
+                "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
+            }
         )
-    
+        
+        # Botón para anular seleccionadas
         if st.button("❌ Anular seleccionadas"):
             if "Seleccionar" in seleccion.columns:
                 seleccionados = seleccion[seleccion["Seleccionar"] == True]
                 ids_seleccionados = seleccionados["id_evaluacion"].tolist()
             else:
                 ids_seleccionados = []
-    
+        
             if not ids_seleccionados:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
