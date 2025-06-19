@@ -6,7 +6,7 @@ import time
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
     #st.header("📋 Evaluaciones realizadas")
-    st.markdown("<h2 style='font-size:24px;'>📋 Evaluaciones realizadas</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h1>", unsafe_allow_html=True)
     
     # Función para verificar rol activo
     def tiene_rol(*roles):
@@ -96,7 +96,7 @@ def mostrar(supabase):
     #st.subheader("📋 Uso de formularios")
     # ---- INDICADORES DE USO DE FORMULARIOS ----
      # ---- INDICADORES DE USO DE FORMULARIOS ----
-    st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_counts = {f: 0 for f in form_labels}
     if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
@@ -110,7 +110,7 @@ def mostrar(supabase):
         cols[i].metric(f"Formulario {f}", form_counts[f])
     
     # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
-    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por calificación</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
@@ -133,7 +133,8 @@ def mostrar(supabase):
         )
     
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
-    st.subheader("✅ Evaluaciones registradas:")
+    st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
+    #st.subheader("✅ Evaluaciones registradas:")
     st.dataframe(
         df_no_anuladas[[
             "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
@@ -151,7 +152,8 @@ def mostrar(supabase):
 
     
     if not df_no_anuladas.empty:
-        st.subheader("🔄 Evaluaciones que pueden anularse:")
+        st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
+      # st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
@@ -216,7 +218,9 @@ def mostrar(supabase):
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
         )
 
-        st.subheader("❌ Evaluaciones ya anuladas:")
+        #st.subheader("❌ Evaluaciones ya anuladas:")
+        st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones ya anuladas:</h2>", unsafe_allow_html=True)
+       
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
