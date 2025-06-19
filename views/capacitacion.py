@@ -43,26 +43,28 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
     grupos = {}
     
-   
-    if "residual" in df.columns and df["residual"].any():
-        # Todos los agentes marcados como residual juntos bajo 'Unidad Residual'
-        grupos["Unidad Residual"] = df[df["residual"] == True]
-        df = df[df["residual"] != True]  # El resto (no residuales)
+    # Agrupar todos los residual=True juntos
+    if "residual" in df.columns:
+        residuales_df = df[df["residual"] == True]
+        if not residuales_df.empty:
+            grupos["Unidad Residual"] = residuales_df
+        df = df[df["residual"] != True]  # seguir con no residuales
     
-    # Agrupamiento de no residuales por niveles
-    medios_df = df[df['nivel'].isin([2, 3, 4])]
+    # Agrupamiento habitual de no residuales
+    medios_df = df[df["nivel"].isin([2, 3, 4])]
     if not medios_df.empty:
         if len(medios_df) < 6:
-            grupos['Niveles Medios'] = medios_df
+            grupos["Niveles Medios"] = medios_df
         else:
             for lvl in [2, 3, 4]:
-                tmp = medios_df[medios_df['nivel'] == lvl]
+                tmp = medios_df[medios_df["nivel"] == lvl]
                 if not tmp.empty:
-                    grupos[f'Nivel {lvl}'] = tmp
+                    grupos[f"Nivel {lvl}"] = tmp
     
-    oper_df = df[df['nivel'].isin([5, 6])]
+    oper_df = df[df["nivel"].isin([5, 6])]
     if not oper_df.empty:
-        grupos['Niveles Operativos'] = oper_df
+        grupos["Niveles Operativos"] = oper_df
+
 
 
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
