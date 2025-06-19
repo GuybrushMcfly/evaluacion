@@ -10,10 +10,15 @@ def mostrar(supabase):
     df_agentes = pd.DataFrame(agentes)
 
     # Cargar evaluaciones válidas
+
     evaluaciones = supabase.table("evaluaciones")\
         .select("cuil, anulada, anio_evaluacion")\
         .eq("anio_evaluacion", 2025).execute().data
     df_eval = pd.DataFrame(evaluaciones)
+    
+    if not df_eval.empty and "anulada" in df_eval.columns:
+        df_eval = df_eval[df_eval["anulada"] != True]
+
 
     # Filtrar evaluaciones no anuladas
     df_eval = df_eval[df_eval["anulada"] != True]
