@@ -333,20 +333,18 @@ def mostrar(supabase):
             supabase.table("evaluaciones").update({"residual": row["residual"]}).eq("id_evaluacion", row["id_evaluacion"]).execute()
 
         # Calcular bonificación_elegible para DESTACADOS con puntaje relativo más alto por agrupamiento
-        df_ev = pd.DataFrame(supabase.table("evaluaciones").select("*").execute().data)
         df_ev["nivel"] = df_ev["formulario"].astype(int)
         df_ev["bonificacion_elegible"] = False  # Reiniciar todo
-
-        destacados = df_ev[df_ev["calificacion"].str.upper() == "DESTACADO"]
-        destacados = destacados.sort_values(["dependencia_general", "puntaje_relativo"], ascending=[True, False])
-       
         
-        # Asignar etiqueta especial para agrupamiento
+        # Asignar etiqueta especial para agrupamiento antes de filtrar
         df_ev["grupo_cupo"] = df_ev["dependencia_general"]
         df_ev.loc[df_ev["residual"] == True, "grupo_cupo"] = "RESIDUAL GENERAL"
-     
+        
+        destacados = df_ev[df_ev["calificacion"].str.upper() == "DESTACADO"]
+        destacados = destacados.sort_values(["grupo_cupo", "puntaje_relativo"], ascending=[True, False])
         
         for grupo_id, grupo in destacados.groupby("grupo_cupo"):
+
             n = len(grupo)
             cupo = max(1, math.ceil(n * 0.1))
             elegibles = grupo.head(cupo)
