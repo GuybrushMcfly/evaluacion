@@ -62,7 +62,6 @@ def mostrar(supabase):
     st.divider()
     #st.subheader("📊 Indicadores")
     st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
-    Indicadores
     cols = st.columns(3)
     with cols[0]: st.metric("Total para evaluar", total_asignados)
     with cols[1]: st.metric("Evaluados", evaluados)
@@ -107,7 +106,8 @@ def mostrar(supabase):
     df_form = pd.DataFrame(form_columnas)
     st.dataframe(df_form, use_container_width=True, hide_index=True)
 
-    st.subheader("📋 Distribución por calificación")
+#    st.subheader("📋 Distribución por calificación")
+    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_columnas = {cat: [0] for cat in categorias}
 
