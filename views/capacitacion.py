@@ -1,3 +1,5 @@
+
+
 import streamlit as st
 import pandas as pd
 import io
@@ -21,11 +23,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
 
     doc = Document()
     sec = doc.sections[0]
+    # Márgenes en vertical (portrait)
     sec.top_margin    = Cm(2)
     sec.bottom_margin = Cm(2)
     sec.left_margin   = Cm(2)
     sec.right_margin  = Cm(2)
 
+    # --- Encabezado ---
     header = sec.header
     p_head = header.paragraphs[0]
     p_head.text = "Evaluación de Desempeño 2024"
@@ -34,11 +38,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
 
+    # --- Título principal ---
     h1 = doc.add_heading("Resumen Evaluaciones", level=1)
     for run in h1.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
 
+    # --- Título de la Unidad ---
     p_unit = doc.add_paragraph()
     run_u = p_unit.add_run(f"Unidad de Evaluación: {unidad_nombre}")
     run_u.bold = True
@@ -47,40 +53,42 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
 
     azul = "B7E0F7"
 
-    # --- AÑADIDO: Botón luego del bloque de descarga ---
-    if st.button("📊 ANALIZAR EVALUACIONES (Anexo I)"):
-        st.info("Generando análisis según reglas del Manual BDD...")
-        df["nivel"] = df["nivel"].astype(int)
-        df["residual"] = df["nivel"] == 1
-
-        for grupo in [(2, 3, 4), (5, 6)]:
-            subset = df[df["nivel"].isin(grupo)]
-            if len(subset) < 6:
-                df.loc[subset.index, "residual"] = True
-
-        st.success("Campo 'residual' actualizado para análisis.")
-        st.dataframe(df[["apellido_nombre", "nivel", "residual"]])
-
+    # --- Agrupar datos por reglas de BDD ---
     grupos = {}
-    resid = df[df["residual"] == True]
+    # Unidad Residual (Nivel 1)
+    resid = df[df['nivel'] == 1]
     if not resid.empty:
-        grupos["Unidad Residual"] = resid
+        grupos['Unidad Residual'] = resid
+    # Niveles Medios (2, 3, 4)
+    medios = [2, 3, 4]
+    if any(df[df['nivel'] == lvl].shape[0] < 6 for lvl in medios):
+        grupos['Niveles Medios'] = df[df['nivel'].isin(medios)]
+    else:
+        for lvl in medios:
+            tmp = df[df['nivel'] == lvl]
+            if not tmp.empty:
+                grupos[f'Nivel {lvl}'] = tmp
+    # Niveles Operativos (5, 6)
+    oper = [5, 6]
+    if any(df[df['nivel'] == lvl].shape[0] < 6 for lvl in oper):
+        grupos['Niveles Operativos'] = df[df['nivel'].isin(oper)]
+    else:
+        for lvl in oper:
+            tmp = df[df['nivel'] == lvl]
+            if not tmp.empty:
+                grupos[f'Nivel {lvl}'] = tmp
 
-    medios = df[df["nivel"].isin([2, 3, 4]) & (df["residual"] == False)]
-    if not medios.empty:
-        grupos["Niveles Medios"] = medios
-
-    oper = df[df["nivel"].isin([5, 6]) & (df["residual"] == False)]
-    if not oper.empty:
-        grupos["Niveles Operativos"] = oper
-
+    # --- Listados + mini-cuadros resumen por bloque ---
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
     for titulo, tabla_df in grupos.items():
+        # Sección
         h2 = doc.add_heading(titulo, level=2)
         for run in h2.runs:
             run.font.name = "Calibri"
             run.font.color.rgb = RGBColor(0, 0, 0)
+        # Detalle
         tbl = doc.add_table(rows=1 + len(tabla_df), cols=len(cols), style="Table Grid")
+        # Encabezados
         for j, c in enumerate(cols):
             cell = tbl.rows[0].cells[j]
             r = cell.paragraphs[0].add_run(c)
@@ -89,6 +97,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
             tc = cell._tc.get_or_add_tcPr()
             shd = OxmlElement('w:shd'); shd.set(qn('w:val'), 'clear'); shd.set(qn('w:fill'), azul)
             tc.append(shd)
+        # Filas
         for i, row in enumerate(tabla_df.itertuples(index=False), start=1):
             cells = tbl.rows[i].cells
             cells[0].text = row.apellido_nombre
@@ -105,6 +114,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                         run.font.name = 'Calibri'
                         run.font.size = Pt(9)
                         run.font.color.rgb = RGBColor(0, 0, 0)
+        # Mini-cuadro resumen
         n = len(tabla_df)
         cupo = max(1, math.ceil(n * 0.1))
         tbl_sum = doc.add_table(rows=2, cols=2, style="Table Grid")
@@ -112,6 +122,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
         tbl_sum.rows[0].cells[1].text = str(n)
         tbl_sum.rows[1].cells[0].text = "BDD correspondientes (10%)"
         tbl_sum.rows[1].cells[1].text = str(cupo)
+        # Formato
         for idx in (0, 1):
             c0 = tbl_sum.rows[idx].cells[0]
             tc0 = c0._tc.get_or_add_tcPr()
@@ -128,8 +139,10 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                     run.font.size = Pt(9)
         doc.add_paragraph("")
 
+    # --- Salto de página antes de totales globales ---
     doc.add_page_break()
 
+    # --- Totales Generales ---
     h2_tot = doc.add_heading("Totales Generales", level=2)
     for run in h2_tot.runs:
         run.font.name = "Calibri"
@@ -160,6 +173,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                 run.font.name = "Calibri"
                 run.font.size = Pt(9)
 
+    # --- Evaluables para Bonificación Especial ---
     h2_ev = doc.add_heading("Evaluables para Bonificación Especial", level=2)
     for run in h2_ev.runs:
         run.font.name = "Calibri"
@@ -190,6 +204,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
                     run.font.name = 'Calibri'
                     run.font.size = Pt(9)
 
+    # --- Resumen por Niveles ---
     h2_res = doc.add_heading("Resumen por Niveles de Evaluación", level=2)
     for run in h2_res.runs:
         run.font.name = "Calibri"
@@ -207,6 +222,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
         for j, nv in enumerate(nivs, start=1):
             rc[j].text = str(resumen_niveles.loc[fila, nv])
 
+    # --- Pie de página ---
     footer = sec.footer.paragraphs[0]
     footer.clear()
     left = footer.add_run("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DEL PERSONAL")
@@ -221,7 +237,6 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     footer.paragraph_format.alignment = 0
 
     doc.save(path_docx)
-
 
 
 
@@ -249,7 +264,88 @@ def generar_cuadro_resumen_docx(df_resumen, path_docx):
             cells[j].text = str(df_resumen.loc[fila, nivel])
     doc.save(path_docx)
 
+# --- NUEVA FUNCIÓN DE ANÁLISIS AUTOMÁTICO ---
+def analizar_evaluaciones(df):
+    df = df.copy()
+    df["residual"] = False
+    df["nivel"] = df["formulario"].astype(int)
 
+    # Nivel 1: siempre residual
+    df.loc[df["nivel"] == 1, "residual"] = True
+
+    # Niveles medios y operativos: agrupar por unidad_analisis y marcar si hay <6
+    for nivel_rango in [(2, 3, 4), (5, 6)]:
+        df_tmp = df[df["nivel"].isin(nivel_rango)]
+        conteo = df_tmp.groupby("unidad_analisis")["cuil"].count()
+        residuales = conteo[conteo < 6].index
+        df.loc[df["unidad_analisis"].isin(residuales) & df["nivel"].isin(nivel_rango), "residual"] = True
+
+    return df[["id_evaluacion", "residual"]]
+
+
+def mostrar(supabase):
+    st.markdown("<h1 style='font-size:24px;'>📋 Análisis de Evaluaciones</h1>", unsafe_allow_html=True)
+
+    # 1) Carga
+    evals   = supabase.table("evaluaciones").select("*").execute().data or []
+    agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data or []
+    unids   = supabase.table("unidades_evaluacion").select("*").execute().data or []
+    if not evals or not unids:
+        st.warning("No hay datos.")
+        return
+
+    # 2) Filtrar y mapear
+    evals = [e for e in evals if not e.get("anulada") and e.get("activo")]
+    mapa  = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+
+    # 3) Listado general + Excel
+    filas = [{
+        "CUIL": str(e["cuil"]),
+        "AGENTE": mapa.get(e["cuil"], "Desconocido"),
+        "FORMULARIO": e.get("formulario",""),
+        "CALIFICACIÓN": e.get("calificacion",""),
+        "PUNTAJE TOTAL": e.get("puntaje_total") or 0,
+        "DEPENDENCIA GENERAL": e.get("dependencia_general","")
+    } for e in evals]
+    df_gen = pd.DataFrame(filas)
+    st.markdown("#### 📑 Listado General de Evaluaciones")
+    st.dataframe(df_gen, use_container_width=True)
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
+        df_gen.to_excel(w, index=False, sheet_name="Evaluaciones")
+    buf.seek(0)
+    st.download_button("📥 Descargar Listado General (Excel)", buf, "listado_general.xlsx",
+                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    # 4) Botón para análisis automático
+    if st.button("⚙️ Realizar Análisis de Residuales"):
+        df_ev = pd.DataFrame(evals)
+        df_actualizados = analizar_evaluaciones(df_ev)
+        for i, row in df_actualizados.iterrows():
+            supabase.table("evaluaciones").update({"residual": row["residual"]}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+        st.success("✅ Análisis realizado. Evaluaciones actualizadas.")
+
+    # 5) Filtro por DG y Residual General
+    df_ev = pd.DataFrame(supabase.table("evaluaciones").select("*").execute().data)
+    df_un = pd.DataFrame(unids)
+    df_ev["residual_general"] = df_ev["residual"] == True
+    opciones = sorted(df_ev["dependencia_general"].dropna().unique().tolist())
+    if df_ev["residual_general"].any():
+        opciones.append("RESIDUAL GENERAL")
+    opciones.append("TODAS")
+
+    seleccion = st.selectbox("Seleccioná una Dirección General", opciones)
+
+    if seleccion == "RESIDUAL GENERAL":
+        df_fil = df_ev[df_ev["residual_general"] == True]
+    elif seleccion == "TODAS":
+        df_fil = df_ev
+    else:
+        df_fil = df_ev[df_ev["dependencia_general"] == seleccion]
+
+    if df_fil.empty:
+        st.info("No hay evaluaciones para mostrar.")
+        return
 # —————————— Streamlit ——————————
 
 def mostrar(supabase):
@@ -387,3 +483,5 @@ def mostrar(supabase):
         generar_anexo_iii_docx(acta, path4)
         with open(path4,"rb") as f:
             st.download_button("📥 Descargar Anexo III", f, "anexo_iii.docx")
+
+
