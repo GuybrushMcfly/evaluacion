@@ -82,7 +82,7 @@ if authentication_status:
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
-    elif opcion == "✏️ RRHH":
+    elif opcion == "👥 RRHH":
         if st.session_state["rol"].get("rrhh"):
             rrhh.mostrar(supabase)
         else:
