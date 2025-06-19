@@ -335,6 +335,7 @@ def mostrar(supabase):
         opciones.append("RESIDUAL GENERAL")
     opciones.append("TODAS")
 
+
     seleccion = st.selectbox("Seleccioná una Dirección General", opciones)
 
     if seleccion == "RESIDUAL GENERAL":
@@ -342,11 +343,9 @@ def mostrar(supabase):
     elif seleccion == "TODAS":
         df_fil = df_ev
     else:
-        df_fil = df_ev[df_ev["dependencia_general"] == seleccion]
+        # Solo mostrar agentes NO residuales en la DG seleccionada
+        df_fil = df_ev[(df_ev["dependencia_general"] == seleccion) & (df_ev["residual"] != True)]
 
-    if df_fil.empty:
-        st.info("No hay evaluaciones para mostrar.")
-        return
 
     # PREPARAR datos para Anexos I & II
     df_inf = df_fil.sort_values("puntaje_total", ascending=False).copy()
