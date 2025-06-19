@@ -161,7 +161,7 @@ def mostrar(supabase):
             df_para_mostrar,
             use_container_width=True,
             hide_index=True,
-            disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado"],
+            disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado", "id_evaluacion"],
             column_config={"Seleccionar": st.column_config.CheckboxColumn("Seleccionar")}
         )
     
