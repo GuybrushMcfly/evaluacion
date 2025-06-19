@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-
 def mostrar(supabase):
     st.markdown("## 🧮 Estado General de Evaluación de Desempeño 2025")
 
@@ -10,11 +9,10 @@ def mostrar(supabase):
     df_agentes = pd.DataFrame(agentes)
 
     # Cargar evaluaciones válidas
-
     evaluaciones = supabase.table("evaluaciones")\
         .select("cuil, anulada, anio_evaluacion")\
         .eq("anio_evaluacion", 2025).execute().data
-    
+
     # Convertir a DataFrame solo si hay datos
     if evaluaciones:
         df_eval = pd.DataFrame(evaluaciones)
@@ -22,11 +20,6 @@ def mostrar(supabase):
             df_eval = df_eval[df_eval["anulada"] != True]
     else:
         df_eval = pd.DataFrame(columns=["cuil", "anulada", "anio_evaluacion"])
-
-
-
-    # Filtrar evaluaciones no anuladas
-    df_eval = df_eval[df_eval["anulada"] != True]
 
     # ---- PROGRESO GENERAL ----
     total_agentes = len(df_agentes)
@@ -61,4 +54,3 @@ def mostrar(supabase):
         "agentes_total": "Agentes a Evaluar",
         "evaluados": "Evaluados"
     }), use_container_width=True)
-
