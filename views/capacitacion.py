@@ -307,21 +307,63 @@ def mostrar(supabase):
     mapa  = {a["cuil"]: a["apellido_nombre"] for a in agentes}
 
     # 3) Listado general + Excel
-    filas = [{
+    # 3) Listado general + Excel
+    df_ev = pd.DataFrame(evals)
+    df_ag = pd.DataFrame(agentes)
+    mapa = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+    
+    # Convertir fecha y formatear
+    if "fecha_evaluacion" in df_ev.columns:
+        df_ev["fecha_evaluacion"] = pd.to_datetime(df_ev["fecha_evaluacion"], utc=True)
+        df_ev["fecha_local"] = df_ev["fecha_evaluacion"].dt.tz_convert(timezone("America/Argentina/Buenos_Aires"))
+        df_ev["Fecha"] = df_ev["fecha_local"].dt.strftime('%d/%m/%Y %H:%M')
+    else:
+        df_ev["Fecha"] = ""
+    
+    # 🖥️ Tabla en pantalla
+    df_vista = df_ev.sort_values("fecha_evaluacion", ascending=False)[[
+        "dependencia_general", "apellido_nombre", "formulario", "calificacion", "Fecha"
+    ]].rename(columns={
+        "dependencia_general": "DEPENDENCIA GENERAL",
+        "apellido_nombre": "AGENTE",
+        "formulario": "FORMULARIO",
+        "calificacion": "CALIFICACIÓN"
+    })
+    st.markdown("#### 📑 Listado General de Evaluaciones")
+    st.dataframe(df_vista, use_container_width=True)
+    
+    # 🧮 Campos combinados para Excel
+    def combinar_factores(lista, clave):
+        return [
+            ", ".join([
+                f"{f.get('factor')} ({f.get(clave)})"
+                for f in fila if isinstance(f, dict) and f.get("factor") and f.get(clave) is not None
+            ]) if isinstance(fila, list) else ""
+            for fila in lista
+        ]
+    
+    df_ev["Factor/Puntaje"] = combinar_factores(df_ev.get("factor_puntaje", []), "puntaje")
+    df_ev["Factor/Posición"] = combinar_factores(df_ev.get("factor_posicion", []), "posicion")
+    
+    # 🧾 Preparar para Excel
+    filas_excel = [{
         "CUIL": str(e["cuil"]),
         "AGENTE": mapa.get(e["cuil"], "Desconocido"),
-        "FORMULARIO": e.get("formulario",""),
-        "CALIFICACIÓN": e.get("calificacion",""),
+        "FORMULARIO": e.get("formulario", ""),
+        "CALIFICACIÓN": e.get("calificacion", ""),
         "PUNTAJE TOTAL": e.get("puntaje_total") or 0,
-        "DEPENDENCIA GENERAL": e.get("dependencia_general","")
-    } for e in evals]
-    df_gen = pd.DataFrame(filas)
-    st.markdown("#### 📑 Listado General de Evaluaciones")
-    st.dataframe(df_gen, use_container_width=True)
+        "DEPENDENCIA GENERAL": e.get("dependencia_general", ""),
+        "Factor/Puntaje": e.get("Factor/Puntaje", ""),
+        "Factor/Posición": e.get("Factor/Posición", "")
+    } for _, e in df_ev.iterrows()]
+    df_excel = pd.DataFrame(filas_excel)
+    df_excel.sort_values(["DEPENDENCIA GENERAL", "FORMULARIO", "AGENTE"], inplace=True)
+    
     buf = io.BytesIO()
-    with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
-        df_gen.to_excel(w, index=False, sheet_name="Evaluaciones")
+    with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
+        df_excel.to_excel(writer, index=False, sheet_name="Evaluaciones")
     buf.seek(0)
+    
     st.download_button("📥 Descargar Listado General (Excel)", buf, "listado_general.xlsx",
                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
@@ -389,7 +431,7 @@ def mostrar(supabase):
             use_container_width=True,
             hide_index=True,
             column_config={"Bonificar": st.column_config.CheckboxColumn("Bonificar")},
-            disabled=["Apellido y Nombre", "Formulario", "Puntaje Rel.", "Puntaje Abs.", "Dependencia"]
+            disabled=["Dependencia", "Apellido y Nombre", "Formulario", "Puntaje Rel.", "Puntaje Abs."]
         )
     
         seleccionados = seleccion[seleccion["Bonificar"] == True]
