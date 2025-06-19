@@ -63,19 +63,12 @@ def cargar_usuarios_y_autenticar():
         st.error("❌ No se encontraron usuarios válidos.")
         st.stop()
 
+    # Autenticación
     authenticator = stauth.Authenticate(
-    credentials=credentials,
-    cookie_name=credentials["cookie"]["name"],
-    cookie_key=credentials["cookie"]["key"],
-    cookie_expiry_days=credentials["cookie"]["expiry_days"],
-    translations={
-        "login": "Iniciar sesión",
-        "username": "Usuario",
-        "password": "Contraseña",
-        "login_button": "Entrar",
-        "logged_in": "Sesión iniciada como",
-        "logout": "Cerrar sesión"
-    }
+        credentials=credentials,
+        cookie_name=credentials["cookie"]["name"],
+        cookie_key=credentials["cookie"]["key"],
+        cookie_expiry_days=credentials["cookie"]["expiry_days"]
     )
 
     try:
