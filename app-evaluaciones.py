@@ -8,11 +8,7 @@ st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
 # Mostrar logo siempre, incluso antes de login
 st.sidebar.image("logo-cap.png", use_container_width=True)
-st.sidebar.markdown(" ")  # <- Esta línea ayuda a mantener la barra visible
-
-if authentication_status is None:
-    st.sidebar.info("🔐 Ingrese sus credenciales para acceder al sistema.")
-
+st.sidebar.markdown(" ")  # Línea decorativa
 
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase = auth.cargar_usuarios_y_autenticar()
