@@ -60,7 +60,9 @@ def mostrar(supabase):
     porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
 
     st.divider()
-    st.subheader("📊 Indicadores")
+    #st.subheader("📊 Indicadores")
+    st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h1>", unsafe_allow_html=True)
+    Indicadores
     cols = st.columns(3)
     with cols[0]: st.metric("Total para evaluar", total_asignados)
     with cols[1]: st.metric("Evaluados", evaluados)
@@ -92,7 +94,8 @@ def mostrar(supabase):
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
-    st.subheader("📋 Uso de formularios")
+    #st.subheader("📋 Uso de formularios")
+    st.markdown("<h2 style='font-size:24px;'>📋 Uso de formularios</h1>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_columnas = {f"FORM. {f}": [0] for f in form_labels}
 
