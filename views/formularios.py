@@ -10,7 +10,7 @@ def cargar_formularios():
     return config["formularios"], config["clasificaciones"]
 
 def mostrar(supabase, formularios, clasificaciones):
-    st.markdown("<h1 style='font-size:24px;'>✍🏻 Evaluación de Desempeño 2024</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-size:26px;'>✍🏻 Evaluación de Desempeño 2024</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='font-size:24px;'>📄 Formulario de Evaluación</h1>", unsafe_allow_html=True)
 
     usuario_actual = st.session_state.get("usuario")
