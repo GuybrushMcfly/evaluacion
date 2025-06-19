@@ -272,35 +272,47 @@ def generar_cuadro_resumen_docx(df_resumen, path_docx):
     doc.save(path_docx)
 
 # --- NUEVA FUNCIÓN DE ANÁLISIS AUTOMÁTICO ---
-def analizar_evaluaciones(df):
+def analizar_evaluaciones_residuales(df):
     df = df.copy()
-    df["residual"] = False
     df["nivel"] = df["formulario"].astype(int)
-    df.loc[df["nivel"] == 1, "residual"] = True
+    df["residual_calc"] = False
+    df.loc[df["nivel"] == 1, "residual_calc"] = True
     for ua, df_ua in df.groupby("unidad_analisis"):
-        for niveles in [[2,3,4],[5,6]]:
-            df_rango = df_ua[df_ua["nivel"].isin(niveles)]
-            total_rango = len(df_rango)
-            if total_rango == 0:
-                continue
-            if total_rango < 6:
-                df.loc[df_rango.index, "residual"] = True
-            else:
-                grupos = []
-                for nivel in niveles:
-                    df_nivel = df_rango[df_rango["nivel"] == nivel]
-                    if len(df_nivel) >= 6:
-                        # No residual, compite solo
-                        pass
-                    else:
-                        grupos.append(df_nivel)
-                if grupos:
-                    grupo_unificado = pd.concat(grupos)
-                    if len(grupo_unificado) < 6:
-                        df.loc[grupo_unificado.index, "residual"] = True
-                    else:
-                        df.loc[grupo_unificado.index, "residual"] = False
-    return df[["id_evaluacion", "residual"]]
+        # Niveles medios
+        medios = df_ua[df_ua["nivel"].isin([2,3,4])]
+        if len(medios) < 6 and len(medios) > 0:
+            df.loc[medios.index, "residual_calc"] = True
+        elif len(medios) >= 6:
+            # Unificar niveles chicos
+            grupos_chicos = []
+            for n in [2,3,4]:
+                nivel_n = medios[medios["nivel"] == n]
+                if 0 < len(nivel_n) < 6:
+                    grupos_chicos.append(nivel_n)
+            if grupos_chicos:
+                grupo_unificado = pd.concat(grupos_chicos)
+                if len(grupo_unificado) < 6:
+                    df.loc[grupo_unificado.index, "residual_calc"] = True
+                else:
+                    df.loc[grupo_unificado.index, "residual_calc"] = False
+        # Niveles operativos
+        operativos = df_ua[df_ua["nivel"].isin([5,6])]
+        if len(operativos) < 6 and len(operativos) > 0:
+            df.loc[operativos.index, "residual_calc"] = True
+        elif len(operativos) >= 6:
+            grupos_chicos = []
+            for n in [5,6]:
+                nivel_n = operativos[operativos["nivel"] == n]
+                if 0 < len(nivel_n) < 6:
+                    grupos_chicos.append(nivel_n)
+            if grupos_chicos:
+                grupo_unificado = pd.concat(grupos_chicos)
+                if len(grupo_unificado) < 6:
+                    df.loc[grupo_unificado.index, "residual_calc"] = True
+                else:
+                    df.loc[grupo_unificado.index, "residual_calc"] = False
+    return df
+
 
 
 
