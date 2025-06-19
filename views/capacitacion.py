@@ -355,6 +355,60 @@ def mostrar(supabase):
                 
         st.success("✅ Análisis realizado.")
 
+    # 4.b) Mostrar tabla de elegibles para asignar bonificación
+    st.markdown("### 🎯 Selección de Bonificados")
+
+    df_ev = pd.DataFrame(supabase.table("evaluaciones").select("*").execute().data)
+    df_ev["nivel"] = df_ev["formulario"].astype(int)
+    elegibles = df_ev[df_ev["bonificacion_elegible"] == True].copy()
+
+    if elegibles.empty:
+        st.info("No hay personas elegibles para bonificación.")
+    else:
+        # Mostrar RESIDUAL si corresponde
+        elegibles["Dependencia"] = elegibles.apply(
+            lambda row: "RESIDUAL" if row.get("residual") else row.get("dependencia_general", ""), axis=1
+        )
+
+        elegibles["Bonificar"] = elegibles["bonificacion_asignada"].fillna(False)
+
+        df_mostrar = elegibles[[
+            "Bonificar", "apellido_nombre", "formulario", "puntaje_relativo",
+            "puntaje_total", "Dependencia"
+        ]].rename(columns={
+            "apellido_nombre": "Apellido y Nombre",
+            "formulario": "Formulario",
+            "puntaje_relativo": "Puntaje Rel.",
+            "puntaje_total": "Puntaje Abs.",
+            "Dependencia": "Dependencia"
+        })
+
+        df_mostrar.sort_values(["Dependencia", "Apellido y Nombre"], inplace=True)
+
+        seleccion = st.data_editor(
+            df_mostrar,
+            use_container_width=True,
+            hide_index=True,
+            column_config={"Bonificar": st.column_config.CheckboxColumn("Bonificar")},
+            disabled=["Apellido y Nombre", "Formulario", "Puntaje Rel.", "Puntaje Abs.", "Dependencia"]
+        )
+
+        if st.button("🏅 Asignar Bonificación a Seleccionados"):
+            seleccionados = seleccion[seleccion["Bonificar"] == True]
+            indices = seleccionados.index
+            if len(indices) == 0:
+                st.warning("No hay personas seleccionadas.")
+            else:
+                elegibles.reset_index(drop=True, inplace=True)
+                for idx in indices:
+                    id_eval = elegibles.iloc[idx]["id_evaluacion"]
+                    supabase.table("evaluaciones").update({"bonificacion_asignada": True})\
+                        .eq("id_evaluacion", id_eval).execute()
+                st.success(f"Se asignó bonificación a {len(indices)} personas.")
+                st.rerun()
+
+
+
     # 5) Filtro por DG y Residual General
     df_ev = pd.DataFrame(supabase.table("evaluaciones").select("*").execute().data)
     df_un = pd.DataFrame(unids)
