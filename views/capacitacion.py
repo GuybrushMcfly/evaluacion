@@ -132,7 +132,8 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     for run in h2_tot.runs:
         run.font.name = "Calibri"
         run.font.color.rgb = RGBColor(0, 0, 0)
-    cupo30 = max(1, math.ceil(total * 0.3))
+    #cupo30 = max(1, math.ceil(total * 0.3))
+    cupo30 = math.floor(total * 0.3)
     cupo10 = max(1, math.ceil(total * 0.1))
     tbl_tot = doc.add_table(rows=3, cols=2, style="Table Grid")
     labels = [
