@@ -308,64 +308,79 @@ def mostrar(supabase):
 
     # 3) Listado general + Excel
     # 3) Listado general + Excel
-    df_ev = pd.DataFrame(evals)
-    df_ag = pd.DataFrame(agentes)
-    mapa = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+        st.markdown("#### 📑 Listado General de Evaluaciones")
     
-    # Convertir fecha y formatear
-    if "fecha_evaluacion" in df_ev.columns:
-        df_ev["fecha_evaluacion"] = pd.to_datetime(df_ev["fecha_evaluacion"], utc=True)
-        df_ev["fecha_local"] = df_ev["fecha_evaluacion"].dt.tz_convert(timezone("America/Argentina/Buenos_Aires"))
-        df_ev["Fecha"] = df_ev["fecha_local"].dt.strftime('%d/%m/%Y %H:%M')
-    else:
-        df_ev["Fecha"] = ""
+        df_ev = pd.DataFrame(evals)
+        df_ag = pd.DataFrame(agentes)
+        mapa_ag = {a["cuil"]: a["apellido_nombre"] for a in agentes}
     
-    # 🖥️ Tabla en pantalla
-    df_vista = df_ev.sort_values("fecha_evaluacion", ascending=False)[[
-        "dependencia_general", "apellido_nombre", "formulario", "calificacion", "Fecha"
-    ]].rename(columns={
-        "dependencia_general": "DEPENDENCIA GENERAL",
-        "apellido_nombre": "AGENTE",
-        "formulario": "FORMULARIO",
-        "calificacion": "CALIFICACIÓN"
-    })
-    st.markdown("#### 📑 Listado General de Evaluaciones")
-    st.dataframe(df_vista, use_container_width=True)
+        filas_tabla = []
+        filas_excel = []
     
-    # 🧮 Campos combinados para Excel
-    def combinar_factores(lista, clave):
-        return [
-            ", ".join([
-                f"{f.get('factor')} ({f.get(clave)})"
-                for f in fila if isinstance(f, dict) and f.get("factor") and f.get(clave) is not None
-            ]) if isinstance(fila, list) else ""
-            for fila in lista
-        ]
+        for e in evals:
+            cuil = e.get("cuil", "")
+            agente = mapa_ag.get(cuil, "Desconocido")
+            formulario = e.get("formulario", "")
+            calificacion = e.get("calificacion", "")
+            total = e.get("puntaje_total", "")
+            fecha_eval = e.get("fecha_evaluacion")
     
-    df_ev["Factor/Puntaje"] = combinar_factores(df_ev.get("factor_puntaje", []), "puntaje")
-    df_ev["Factor/Posición"] = combinar_factores(df_ev.get("factor_posicion", []), "posicion")
+            # Para pantalla (con fecha formateada si existe)
+            if fecha_eval:
+                try:
+                    fecha = pd.to_datetime(fecha_eval, utc=True).tz_convert(timezone("America/Argentina/Buenos_Aires"))
+                    fecha_str = fecha.strftime("%d/%m/%Y %H:%M")
+                except Exception:
+                    fecha_str = ""
+            else:
+                fecha_str = ""
     
-    # 🧾 Preparar para Excel
-    filas_excel = [{
-        "CUIL": str(e["cuil"]),
-        "AGENTE": mapa.get(e["cuil"], "Desconocido"),
-        "FORMULARIO": e.get("formulario", ""),
-        "CALIFICACIÓN": e.get("calificacion", ""),
-        "PUNTAJE TOTAL": e.get("puntaje_total") or 0,
-        "DEPENDENCIA GENERAL": e.get("dependencia_general", ""),
-        "Factor/Puntaje": e.get("Factor/Puntaje", ""),
-        "Factor/Posición": e.get("Factor/Posición", "")
-    } for _, e in df_ev.iterrows()]
-    df_excel = pd.DataFrame(filas_excel)
-    df_excel.sort_values(["DEPENDENCIA GENERAL", "FORMULARIO", "AGENTE"], inplace=True)
+            filas_tabla.append({
+                "DEPENDENCIA GENERAL": e.get("dependencia_general", ""),
+                "AGENTE": agente,
+                "FORMULARIO": formulario,
+                "CALIFICACIÓN": calificacion,
+                "FECHA": fecha_str
+            })
     
-    buf = io.BytesIO()
-    with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
-        df_excel.to_excel(writer, index=False, sheet_name="Evaluaciones")
-    buf.seek(0)
+            # Para Excel
+            factores_puntaje = e.get("factor_puntaje", {})
+            resumen_puntaje = ", ".join([f"{k} ({v})" for k, v in factores_puntaje.items()])
     
-    st.download_button("📥 Descargar Listado General (Excel)", buf, "listado_general.xlsx",
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            factores_posicion = e.get("factor_posicion", {})
+            resumen_posicion = ", ".join([f"{k} ({v})" for k, v in factores_posicion.items()])
+    
+            filas_excel.append({
+                "CUIL": cuil,
+                "AGENTE": agente,
+                "FORMULARIO": formulario,
+                "FACTOR/PUNTAJE": resumen_puntaje,
+                "FACTOR/POSICION": resumen_posicion,
+                "CALIFICACIÓN": calificacion,
+                "PUNTAJE TOTAL": total,
+                "PUNTAJE MÁXIMO": e.get("puntaje_maximo", ""),
+                "PUNTAJE RELATIVO": e.get("puntaje_relativo", ""),
+                "DEPENDENCIA": e.get("dependencia", ""),
+                "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
+            })
+    
+        # Mostrar tabla pantalla
+        df_tabla = pd.DataFrame(filas_tabla)
+        df_tabla = df_tabla.sort_values("FECHA", ascending=False)
+        st.dataframe(df_tabla, use_container_width=True)
+    
+        # Descargar Excel
+        df_excel = pd.DataFrame(filas_excel)
+        df_excel = df_excel.sort_values(["DEPENDENCIA GENERAL", "FORMULARIO", "AGENTE"])
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+            df_excel.to_excel(writer, index=False, sheet_name="Resumen")
+        st.download_button(
+            label="📥 Descargar Listado General (Excel)",
+            data=buffer.getvalue(),
+            file_name="listado_general.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     # 4) Botón para análisis automático
     if st.button("⚙️ Realizar Análisis de Residuales"):
