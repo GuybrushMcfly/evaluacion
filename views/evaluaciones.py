@@ -56,17 +56,10 @@ def mostrar(supabase):
 
     cuils_asignados = [a["cuil"] for a in agentes]
     total_asignados = len(cuils_asignados)
-    evaluados = sum(1 for a in agentes if a.get("evaluado_2024") is True)
-    porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
+
 
     st.divider()
-    #st.subheader("📊 Indicadores")
     st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
-    cols = st.columns(3)
-    with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
-    with cols[1]: st.metric("✅ Evaluados", evaluados)
-    with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
-    st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # Obtener evaluaciones filtradas
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
@@ -78,23 +71,33 @@ def mostrar(supabase):
             "puntaje_total", "evaluador", "id_evaluacion", "cuil"
         ])
 
+    # --- Filtrar solo evaluaciones no anuladas ---
     if "anulada" not in df_eval.columns:
         df_eval["anulada"] = False
     else:
         df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
 
-    if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
-        hora_arg = timezone('America/Argentina/Buenos_Aires')
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
-        df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
-    else:
-        df_eval["Fecha_formateada"] = ""
-
-    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
-    
-    # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
+    # --- Tomar SOLO la última evaluación NO ANULADA por CUIL ---
+    if "fecha_evaluacion" in df_no_anuladas.columns and not df_no_anuladas["fecha_evaluacion"].isna().all():
+        df_no_anuladas["fecha_evaluacion"] = pd.to_datetime(df_no_anuladas["fecha_evaluacion"], errors="coerce")
+        df_no_anuladas = df_no_anuladas.sort_values("fecha_evaluacion").drop_duplicates("cuil", keep="last")
+    else:
+        if "id_evaluacion" in df_no_anuladas.columns:
+            df_no_anuladas = df_no_anuladas.sort_values("id_evaluacion").drop_duplicates("cuil", keep="last")
+
+    # --- Indicadores únicos por persona ---
+    evaluados = len(df_no_anuladas["cuil"].unique())
+    porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
+
+    cols = st.columns(3)
+    with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
+    with cols[1]: st.metric("✅ Evaluados", evaluados)
+    with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
+    st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
+
+    # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN (único por cuil) ----
     st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
@@ -102,24 +105,12 @@ def mostrar(supabase):
         temp_counts = df_no_anuladas["calificacion"].value_counts()
         for cat in categorias:
             calif_counts[cat] = temp_counts.get(cat, 0)
-    
     col_cats = st.columns(len(categorias))
     emojis = ["🌟", "👍", "🟡", "🔴"]
     for i, cat in enumerate(categorias):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
-    
-    # ---- CREAR calif_puntaje SIEMPRE ANTES DE USARLA EN LA TABLA ----
-    if "calif_puntaje" not in df_no_anuladas.columns:
-        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-            lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
-            if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
-            else "",
-            axis=1
-        )
 
-        #st.subheader("📋 Uso de formularios")
-    # ---- INDICADORES DE USO DE FORMULARIOS ----
-     # ---- INDICADORES DE USO DE FORMULARIOS ----
+    # ---- INDICADORES DE USO DE FORMULARIOS (único por cuil) ----
     st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_counts = {f: 0 for f in form_labels}
@@ -128,12 +119,12 @@ def mostrar(supabase):
         formulario_counts = df_no_anuladas["formulario"].value_counts()
         for f in form_labels:
             form_counts[f] = formulario_counts.get(f, 0)
-    
     cols = st.columns(len(form_labels))
     for i, f in enumerate(form_labels):
         cols[i].metric(f"Formulario {f}", form_counts[f])
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
+
 
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
