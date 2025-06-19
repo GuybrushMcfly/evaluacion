@@ -132,7 +132,9 @@ def mostrar(supabase):
     cols = st.columns(len(form_labels))
     for i, f in enumerate(form_labels):
         cols[i].metric(f"Formulario {f}", form_counts[f])
-    
+
+    st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
+
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
     #st.subheader("✅ Evaluaciones registradas:")
