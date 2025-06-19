@@ -416,7 +416,7 @@ def mostrar(supabase):
         
         df_actualizados = analizar_evaluaciones_residuales(df_ev)
         for i, row in df_actualizados.iterrows():
-            supabase.table("evaluaciones").update({"residual": bool(row["residual_calc"])}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+            supabase.table("evaluaciones").update({"residual": bool(row["residual"])}).eq("id_evaluacion", row["id_evaluacion"]).execute()
 
 
         # Calcular bonificación_elegible para DESTACADOS con puntaje relativo más alto por agrupamiento
