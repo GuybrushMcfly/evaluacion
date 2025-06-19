@@ -3,28 +3,22 @@ import pandas as pd
 from pytz import timezone
 import time
 
-# ---- Vista: Evaluaciones ----
 def mostrar(supabase):
-    #st.header("📋 Evaluaciones realizadas")
-    st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h2>", unsafe_allow_html=True)
     
-    # Función para verificar rol activo
+    # --- Función para verificar rol activo ---
     def tiene_rol(*roles):
         return any(st.session_state.get("rol", {}).get(r, False) for r in roles)
 
-    # Rol y dependencias desde sesión
     dependencia_usuario = st.session_state.get("dependencia", "")
     dependencia_general = st.session_state.get("dependencia_general", "")
 
-    # Construir opciones de filtro de dependencia
     opciones_dependencia = []
 
     if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         opciones_dependencia.append(f"{dependencia_general} (todas)")
-
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
-
     dependencias_subordinadas = []
     if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         resultado = supabase.table("unidades_evaluacion")\
@@ -40,7 +34,7 @@ def mostrar(supabase):
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
-    # Filtrar agentes por dependencia seleccionada
+    # --- Filtrar agentes por dependencia seleccionada ---
     if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_general
         agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia_general", dependencia_filtro).execute().data
@@ -57,11 +51,10 @@ def mostrar(supabase):
     cuils_asignados = [a["cuil"] for a in agentes]
     total_asignados = len(cuils_asignados)
 
-
     st.divider()
     st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
 
-    # Obtener evaluaciones filtradas
+    # --- Obtener y procesar evaluaciones ---
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
     df_eval = pd.DataFrame(evaluaciones)
 
@@ -70,22 +63,40 @@ def mostrar(supabase):
             "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
             "puntaje_total", "evaluador", "id_evaluacion", "cuil"
         ])
-
-    # --- Filtrar solo evaluaciones no anuladas ---
     if "anulada" not in df_eval.columns:
         df_eval["anulada"] = False
     else:
         df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
 
+    # --- Solo evaluaciones NO anuladas, última por CUIL ---
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
-
-    # --- Tomar SOLO la última evaluación NO ANULADA por CUIL ---
     if "fecha_evaluacion" in df_no_anuladas.columns and not df_no_anuladas["fecha_evaluacion"].isna().all():
         df_no_anuladas["fecha_evaluacion"] = pd.to_datetime(df_no_anuladas["fecha_evaluacion"], errors="coerce")
         df_no_anuladas = df_no_anuladas.sort_values("fecha_evaluacion").drop_duplicates("cuil", keep="last")
+    elif "id_evaluacion" in df_no_anuladas.columns:
+        df_no_anuladas = df_no_anuladas.sort_values("id_evaluacion").drop_duplicates("cuil", keep="last")
+
+    # --- Asegurá que existan todas las columnas requeridas ---
+    columnas_tabla = ["apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"]
+    for col in columnas_tabla:
+        if col not in df_no_anuladas.columns:
+            df_no_anuladas[col] = ""
+
+    # --- Calcular columna de puntaje si no existe o está vacía ---
+    if df_no_anuladas["calif_puntaje"].isnull().all() or (df_no_anuladas["calif_puntaje"] == "").all():
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row.get('calificacion','')} ({row.get('puntaje_total','')})"
+            if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
+            else "",
+            axis=1
+        )
+    # --- Calcular fecha formateada si no existe ---
+    if "fecha_evaluacion" in df_no_anuladas.columns and not df_no_anuladas["fecha_evaluacion"].isna().all():
+        hora_arg = timezone('America/Argentina/Buenos_Aires')
+        df_no_anuladas["Fecha"] = pd.to_datetime(df_no_anuladas["fecha_evaluacion"], errors="coerce", utc=True).dt.tz_convert(hora_arg)
+        df_no_anuladas["Fecha_formateada"] = df_no_anuladas["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
     else:
-        if "id_evaluacion" in df_no_anuladas.columns:
-            df_no_anuladas = df_no_anuladas.sort_values("id_evaluacion").drop_duplicates("cuil", keep="last")
+        df_no_anuladas["Fecha_formateada"] = ""
 
     # --- Indicadores únicos por persona ---
     evaluados = len(df_no_anuladas["cuil"].unique())
@@ -97,7 +108,7 @@ def mostrar(supabase):
     with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
-    # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN (único por cuil) ----
+    # --- Calificaciones únicas por cuil ---
     st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
@@ -110,7 +121,7 @@ def mostrar(supabase):
     for i, cat in enumerate(categorias):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
 
-    # ---- INDICADORES DE USO DE FORMULARIOS (único por cuil) ----
+    # --- Niveles de evaluación (único por cuil) ---
     st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
     form_counts = {f: 0 for f in form_labels}
@@ -125,10 +136,8 @@ def mostrar(supabase):
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
 
-
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
-    #st.subheader("✅ Evaluaciones registradas:")
     st.dataframe(
         df_no_anuladas[[
             "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
