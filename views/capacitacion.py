@@ -276,12 +276,9 @@ def analizar_evaluaciones(df):
     df = df.copy()
     df["residual"] = False
     df["nivel"] = df["formulario"].astype(int)
-    # Nivel 1: siempre residual
     df.loc[df["nivel"] == 1, "residual"] = True
-
     for ua, df_ua in df.groupby("unidad_analisis"):
-        # Medios y operativos
-        for rango, niveles in {"medios": [2, 3, 4], "operativos": [5, 6]}.items():
+        for niveles in [[2,3,4],[5,6]]:
             df_rango = df_ua[df_ua["nivel"].isin(niveles)]
             total_rango = len(df_rango)
             if total_rango == 0:
@@ -289,7 +286,6 @@ def analizar_evaluaciones(df):
             if total_rango < 6:
                 df.loc[df_rango.index, "residual"] = True
             else:
-                # Chequear cada nivel por separado
                 grupos = []
                 for nivel in niveles:
                     df_nivel = df_rango[df_rango["nivel"] == nivel]
@@ -298,14 +294,14 @@ def analizar_evaluaciones(df):
                         pass
                     else:
                         grupos.append(df_nivel)
-                # Unificar niveles chicos
                 if grupos:
                     grupo_unificado = pd.concat(grupos)
                     if len(grupo_unificado) < 6:
-                        # Todos los chicos van a residual
                         df.loc[grupo_unificado.index, "residual"] = True
-                    # Si el unificado suma ≥6, compiten juntos (no residual)
+                    else:
+                        df.loc[grupo_unificado.index, "residual"] = False
     return df[["id_evaluacion", "residual"]]
+
 
 
 
