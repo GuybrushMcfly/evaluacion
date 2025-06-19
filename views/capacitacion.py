@@ -54,7 +54,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
 
     # --- Agrupar datos por reglas de BDD ---
-     # --- Agrupar datos por reglas de BDD ---
+    # --- Agrupar datos por reglas de BDD ---
     grupos = {}
     
     # Unidad Residual (Nivel 1)
@@ -62,19 +62,28 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     if not resid.empty:
         grupos['Unidad Residual'] = resid
     
-    # Verificar existencia de columna unidad_analisis
-    tiene_unidad_analisis = "unidad_analisis" in df.columns
-    
     # Niveles Medios (2, 3, 4)
     medios_df = df[df['nivel'].isin([2, 3, 4])]
     if not medios_df.empty:
-        if tiene_unidad_analisis and any(medios_df.groupby("unidad_analisis").size() < 6):
+        if len(medios_df) < 6:
             grupos['Niveles Medios'] = medios_df
         else:
             for lvl in [2, 3, 4]:
                 tmp = medios_df[medios_df['nivel'] == lvl]
                 if not tmp.empty:
                     grupos[f'Nivel {lvl}'] = tmp
+    
+    # Niveles Operativos (5, 6)
+    oper_df = df[df['nivel'].isin([5, 6])]
+    if not oper_df.empty:
+        if len(oper_df) < 6:
+            grupos['Niveles Operativos'] = oper_df
+        else:
+            for lvl in [5, 6]:
+                tmp = oper_df[oper_df['nivel'] == lvl]
+                if not tmp.empty:
+                    grupos[f'Nivel {lvl}'] = tmp
+
     
     # Niveles Operativos (5, 6)
     oper_df = df[df['nivel'].isin([5, 6])]
