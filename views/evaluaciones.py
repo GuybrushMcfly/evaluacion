@@ -134,21 +134,18 @@ def mostrar(supabase):
             hide_index=True
         )
 
+    
     if not df_no_anuladas.empty:
         st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
         )
-
-        df_no_anuladas = df_no_anuladas[[
-            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre",
-            "formulario", "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
-        ]]
-
+    
+        # Incluí id_evaluacion antes de construir df_para_mostrar
         df_para_mostrar = df_no_anuladas[[
             "Seleccionar", "apellido_nombre", "formulario",
-            "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
+            "calif_puntaje", "evaluador", "Fecha_formateada", "Estado", "id_evaluacion"
         ]].rename(columns={
             "Seleccionar": "Seleccionar",
             "apellido_nombre": "Apellido y Nombres",
@@ -156,9 +153,10 @@ def mostrar(supabase):
             "calif_puntaje": "Calificación/Puntaje",
             "evaluador": "Evaluador",
             "Fecha_formateada": "Fecha",
-            "Estado": "Estado"
+            "Estado": "Estado",
+            "id_evaluacion": "id_evaluacion"
         })
-
+    
         seleccion = st.data_editor(
             df_para_mostrar,
             use_container_width=True,
@@ -166,27 +164,27 @@ def mostrar(supabase):
             disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado"],
             column_config={"Seleccionar": st.column_config.CheckboxColumn("Seleccionar")}
         )
-
+    
         if st.button("❌ Anular seleccionadas"):
             if "Seleccionar" in seleccion.columns:
                 seleccionados = seleccion[seleccion["Seleccionar"] == True]
-                indices = seleccionados.index
+                ids_seleccionados = seleccionados["id_evaluacion"].tolist()
             else:
-                indices = []
-
-            if len(indices) == 0:
+                ids_seleccionados = []
+    
+            if not ids_seleccionados:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
-                df_no_anuladas.reset_index(drop=True, inplace=True)
-                for idx in indices:
-                    eval_sel = df_no_anuladas.iloc[idx]
+                for id_eval in ids_seleccionados:
+                    eval_sel = df_no_anuladas[df_no_anuladas["id_evaluacion"] == id_eval].iloc[0]
                     supabase.table("evaluaciones").update({"anulada": True})\
-                        .eq("id_evaluacion", eval_sel["id_evaluacion"]).execute()
+                        .eq("id_evaluacion", id_eval).execute()
                     supabase.table("agentes").update({"evaluado_2024": False})\
                         .eq("cuil", str(eval_sel["cuil"]).strip()).execute()
-                st.success(f"✅ {len(indices)} evaluaciones anuladas.")
+                st.success(f"✅ {len(ids_seleccionados)} evaluaciones anuladas.")
                 time.sleep(2)
                 st.rerun()
+
 
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
     if not df_anuladas.empty:
