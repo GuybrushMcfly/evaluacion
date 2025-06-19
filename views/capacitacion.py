@@ -356,22 +356,21 @@ def mostrar(supabase):
         st.success("✅ Análisis realizado.")
 
     # 4.b) Mostrar tabla de elegibles para asignar bonificación
+     # 4.b) Mostrar tabla de elegibles para asignar bonificación
     st.markdown("### 🎯 Selección de Bonificados")
-
+    
     df_ev = pd.DataFrame(supabase.table("evaluaciones").select("*").execute().data)
     df_ev["nivel"] = df_ev["formulario"].astype(int)
     elegibles = df_ev[df_ev["bonificacion_elegible"] == True].copy()
-
+    
     if elegibles.empty:
         st.info("No hay personas elegibles para bonificación.")
     else:
-        # Mostrar RESIDUAL si corresponde
         elegibles["Dependencia"] = elegibles.apply(
             lambda row: "RESIDUAL" if row.get("residual") else row.get("dependencia_general", ""), axis=1
         )
-
         elegibles["Bonificar"] = elegibles["bonificacion_asignada"].fillna(False)
-
+    
         df_mostrar = elegibles[[
             "Bonificar", "apellido_nombre", "formulario", "puntaje_relativo",
             "puntaje_total", "Dependencia"
@@ -382,9 +381,9 @@ def mostrar(supabase):
             "puntaje_total": "Puntaje Abs.",
             "Dependencia": "Dependencia"
         })
-
+    
         df_mostrar.sort_values(["Dependencia", "Apellido y Nombre"], inplace=True)
-
+    
         seleccion = st.data_editor(
             df_mostrar,
             use_container_width=True,
@@ -392,20 +391,38 @@ def mostrar(supabase):
             column_config={"Bonificar": st.column_config.CheckboxColumn("Bonificar")},
             disabled=["Apellido y Nombre", "Formulario", "Puntaje Rel.", "Puntaje Abs.", "Dependencia"]
         )
-
-        if st.button("🏅 Asignar Bonificación a Seleccionados"):
-            seleccionados = seleccion[seleccion["Bonificar"] == True]
-            indices = seleccionados.index
-            if len(indices) == 0:
-                st.warning("No hay personas seleccionadas.")
-            else:
+    
+        seleccionados = seleccion[seleccion["Bonificar"] == True]
+    
+        col1, col2, col3 = st.columns([1, 1, 2])
+    
+        with col1:
+            if st.button("🏅 Asignar Bonificación a Seleccionados"):
                 df_ids = elegibles.loc[seleccionados.index, ["id_evaluacion"]]
                 for _, row in df_ids.iterrows():
                     supabase.table("evaluaciones").update({"bonificacion_asignada": True})\
                         .eq("id_evaluacion", row["id_evaluacion"]).execute()
-
-                st.success(f"Se asignó bonificación a {len(indices)} personas.")
+                st.success(f"✅ Se asignó bonificación a {len(df_ids)} personas.")
                 st.rerun()
+    
+        with col2:
+            if st.button("🔙 Quitar Bonificación"):
+                df_ids = elegibles.loc[seleccionados.index, ["id_evaluacion"]]
+                for _, row in df_ids.iterrows():
+                    supabase.table("evaluaciones").update({"bonificacion_asignada": False})\
+                        .eq("id_evaluacion", row["id_evaluacion"]).execute()
+                st.success(f"❌ Se quitó bonificación a {len(df_ids)} personas.")
+                st.rerun()
+    
+        with col3:
+            buf = io.BytesIO()
+            df_export = df_mostrar.rename(columns={"Bonificar": "Bonificación Asignada"})
+            with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
+                df_export.to_excel(writer, index=False, sheet_name="Bonificados")
+            buf.seek(0)
+            st.download_button("📥 Descargar Excel de Bonificados", buf, "bonificados.xlsx",
+                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 
