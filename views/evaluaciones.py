@@ -1,73 +1,213 @@
 import streamlit as st
 import pandas as pd
+from pytz import timezone
+import time
 
+# ---- Vista: Evaluaciones ----
 def mostrar(supabase):
-    st.header("📊 Estado General de Evaluación de Desempeño 2024")
+    st.header("📋 Evaluaciones realizadas")
 
-    # Cargar agentes
-    agentes = supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
-    df_agentes = pd.DataFrame(agentes)
+    # Función para verificar rol activo
+    def tiene_rol(*roles):
+        return any(st.session_state.get("rol", {}).get(r, False) for r in roles)
 
-    # Cargar evaluaciones del año
-    evaluaciones = supabase.table("evaluaciones")\
-        .select("cuil, anulada, anio_evaluacion, calificacion")\
-        .eq("anio_evaluacion", 2024).execute().data
+    # Rol y dependencias desde sesión
+    dependencia_usuario = st.session_state.get("dependencia", "")
+    dependencia_general = st.session_state.get("dependencia_general", "")
 
-    if evaluaciones:
-        df_eval = pd.DataFrame(evaluaciones)
-        if "anulada" in df_eval.columns:
-            df_eval = df_eval[df_eval["anulada"] != True]
-        df_eval = df_eval[df_eval["cuil"].notna()]
+    # Construir opciones de filtro de dependencia
+    opciones_dependencia = []
+
+    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
+        opciones_dependencia.append(f"{dependencia_general} (todas)")
+
+    if dependencia_usuario:
+        opciones_dependencia.append(f"{dependencia_usuario} (individual)")
+
+    dependencias_subordinadas = []
+    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
+        resultado = supabase.table("unidades_evaluacion")\
+            .select("dependencia")\
+            .eq("dependencia_general", dependencia_general)\
+            .neq("dependencia", dependencia_usuario)\
+            .execute()
+        dependencias_subordinadas = sorted({d["dependencia"] for d in resultado.data})
+        opciones_dependencia += [
+            d for d in dependencias_subordinadas
+            if d != dependencia_usuario and "UNIDAD RESIDUAL" not in d.upper()
+        ]
+
+    dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
+
+    # Filtrar agentes por dependencia seleccionada
+    if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
+        dependencia_filtro = dependencia_general
+        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia_general", dependencia_filtro).execute().data
+    elif dependencia_seleccionada and "(individual)" in dependencia_seleccionada:
+        dependencia_filtro = dependencia_usuario
+        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
+    elif dependencia_seleccionada:
+        dependencia_filtro = dependencia_seleccionada
+        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
     else:
-        df_eval = pd.DataFrame(columns=["cuil", "anulada", "anio_evaluacion", "calificacion"])
+        st.warning("⚠️ Seleccione una dependencia válida para continuar.")
+        return
 
-    # ---- INDICADORES ----
+    cuils_asignados = [a["cuil"] for a in agentes]
+    total_asignados = len(cuils_asignados)
+    evaluados = sum(1 for a in agentes if a.get("evaluado_2024") is True)
+    porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
+
     st.divider()
-    st.subheader("📈 Indicadores generales")
+    st.subheader("📊 Indicadores")
+    cols = st.columns(3)
+    with cols[0]: st.metric("Total para evaluar", total_asignados)
+    with cols[1]: st.metric("Evaluados", evaluados)
+    with cols[2]: st.metric("% Evaluados", f"{porcentaje:.1f}%")
+    st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
-    total_agentes = len(df_agentes)
-    evaluados = df_eval["cuil"].nunique()
-    porcentaje = round((evaluados / total_agentes) * 100) if total_agentes > 0 else 0
+    # Obtener evaluaciones filtradas
+    evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
+    df_eval = pd.DataFrame(evaluaciones)
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("👥 Total a Evaluar", total_agentes)
-    col2.metric("✅ Evaluados", evaluados)
-    col3.metric("📊 % Evaluación", f"{porcentaje}%")
+    if df_eval.empty:
+        df_eval = pd.DataFrame(columns=[
+            "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
+            "puntaje_total", "evaluador", "id_evaluacion", "cuil"
+        ])
 
-    st.progress(porcentaje / 100, text=f"Progreso de evaluaciones registradas: {porcentaje}%")
+    if "anulada" not in df_eval.columns:
+        df_eval["anulada"] = False
+    else:
+        df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
 
-    # ---- CALIFICACIONES ----
-    st.divider()
-    st.subheader("🏅 Distribución por Calificación")
+    if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
+        hora_arg = timezone('America/Argentina/Buenos_Aires')
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
+        df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
+    else:
+        df_eval["Fecha_formateada"] = ""
 
+    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+
+    st.subheader("📋 Uso de formularios")
+    form_labels = ["1", "2", "3", "4", "5", "6"]
+    form_columnas = {f"FORM. {f}": [0] for f in form_labels}
+
+    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
+        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+        formulario_counts = df_no_anuladas["formulario"].value_counts()
+        for f in form_labels:
+            form_columnas[f"FORM. {f}"] = [formulario_counts.get(f, 0)]
+    df_form = pd.DataFrame(form_columnas)
+    st.dataframe(df_form, use_container_width=True, hide_index=True)
+
+    st.subheader("📋 Distribución por calificación")
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
-    conteo = df_eval["calificacion"].value_counts().to_dict()
-    col4, col5, col6, col7 = st.columns(4)
-    col4.metric("🌟 Destacados", conteo.get("DESTACADO", 0))
-    col5.metric("👍 Buenos", conteo.get("BUENO", 0))
-    col6.metric("🟡 Regulares", conteo.get("REGULAR", 0))
-    col7.metric("🔴 Deficientes", conteo.get("DEFICIENTE", 0))
+    calif_columnas = {cat: [0] for cat in categorias}
 
-    # ---- TABLA POR DEPENDENCIA GENERAL ----
-    st.divider()
-    st.subheader("🏢 Avance por Dependencia General")
+    if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
+        calif_counts = df_no_anuladas["calificacion"].value_counts()
+        for cat in categorias:
+            calif_columnas[cat] = [calif_counts.get(cat, 0)]
+    df_calif = pd.DataFrame(calif_columnas)
+    st.dataframe(df_calif, use_container_width=True, hide_index=True)
 
-    df_agentes["evaluado"] = df_agentes["cuil"].isin(df_eval["cuil"])
+    if not df_no_anuladas.empty:
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
 
-    resumen = df_agentes.groupby("dependencia_general").agg(
-        agentes_total=("cuil", "count"),
-        evaluados=("evaluado", "sum")
-    ).reset_index()
+        st.subheader("✅ Evaluaciones registradas:")
+        st.dataframe(
+            df_no_anuladas[[
+                "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
+            ]].rename(columns={
+                "apellido_nombre": "Apellido y Nombres",
+                "formulario": "Form.",
+                "calif_puntaje": "Calificación/Puntaje",
+                "evaluador": "Evaluador",
+                "Fecha_formateada": "Fecha"
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
 
-    resumen["% Evaluación"] = ((resumen["evaluados"] / resumen["agentes_total"]) * 100).round().astype(int)
-    resumen = resumen.sort_values("% Evaluación", ascending=False)
+    if not df_no_anuladas.empty:
+        st.subheader("🔄 Evaluaciones que pueden anularse:")
+        df_no_anuladas["Seleccionar"] = False
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
 
-    st.dataframe(
-        resumen.rename(columns={
-            "dependencia_general": "Dependencia General",
-            "agentes_total": "Agentes a Evaluar",
-            "evaluados": "Evaluados"
-        }),
-        use_container_width=True,
-        hide_index=True
-    )
+        df_no_anuladas = df_no_anuladas[[
+            "Seleccionar", "id_evaluacion", "cuil", "apellido_nombre",
+            "formulario", "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
+        ]]
+
+        df_para_mostrar = df_no_anuladas[[
+            "Seleccionar", "apellido_nombre", "formulario",
+            "calif_puntaje", "evaluador", "Fecha_formateada", "Estado"
+        ]].rename(columns={
+            "Seleccionar": "Seleccionar",
+            "apellido_nombre": "Apellido y Nombres",
+            "formulario": "Form.",
+            "calif_puntaje": "Calificación/Puntaje",
+            "evaluador": "Evaluador",
+            "Fecha_formateada": "Fecha",
+            "Estado": "Estado"
+        })
+
+        seleccion = st.data_editor(
+            df_para_mostrar,
+            use_container_width=True,
+            hide_index=True,
+            disabled=["Apellido y Nombres", "Form.", "Calificación/Puntaje", "Evaluador", "Fecha", "Estado"],
+            column_config={"Seleccionar": st.column_config.CheckboxColumn("Seleccionar")}
+        )
+
+        if st.button("❌ Anular seleccionadas"):
+            if "Seleccionar" in seleccion.columns:
+                seleccionados = seleccion[seleccion["Seleccionar"] == True]
+                indices = seleccionados.index
+            else:
+                indices = []
+
+            if len(indices) == 0:
+                st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
+            else:
+                df_no_anuladas.reset_index(drop=True, inplace=True)
+                for idx in indices:
+                    eval_sel = df_no_anuladas.iloc[idx]
+                    supabase.table("evaluaciones").update({"anulada": True})\
+                        .eq("id_evaluacion", eval_sel["id_evaluacion"]).execute()
+                    supabase.table("agentes").update({"evaluado_2024": False})\
+                        .eq("cuil", str(eval_sel["cuil"]).strip()).execute()
+                st.success(f"✅ {len(indices)} evaluaciones anuladas.")
+                time.sleep(2)
+                st.rerun()
+
+    df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+    if not df_anuladas.empty:
+        df_anuladas["calif_puntaje"] = df_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
+        )
+
+        st.subheader("❌ Evaluaciones ya anuladas:")
+        st.dataframe(
+            df_anuladas[[
+                "apellido_nombre", "formulario",
+                "calif_puntaje", "evaluador",
+                "Fecha_formateada", "Estado"
+            ]].rename(columns={
+                "apellido_nombre": "Apellido y Nombres",
+                "formulario": "Form.",
+                "calif_puntaje": "Calificación/Puntaje",
+                "evaluador": "Evaluador",
+                "Fecha_formateada": "Fecha",
+                "Estado": "Estado"
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
