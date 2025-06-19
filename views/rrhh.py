@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-def rrhh(supabase):
+
+def mostrar(supabase):
     st.markdown("## 🧮 Estado General de Evaluación de Desempeño 2025")
 
     # Cargar agentes
