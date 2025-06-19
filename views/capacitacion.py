@@ -43,15 +43,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
     grupos = {}
     
-    if "residual" in df.columns and df["residual"].all():
-        # ✅ Todos residuales
-        grupos = {"Unidad Residual Consolidada": df}
-    elif "residual" in df.columns and df["residual"].any():
-        # ✅ Algunos residuales
+   
+    if "residual" in df.columns and df["residual"].any():
+        # Todos los agentes marcados como residual juntos bajo 'Unidad Residual'
         grupos["Unidad Residual"] = df[df["residual"] == True]
-        df = df[df["residual"] != True]  # filtrar no residuales
+        df = df[df["residual"] != True]  # El resto (no residuales)
     
-    # 🔁 Agrupamiento habitual de no residuales
+    # Agrupamiento de no residuales por niveles
     medios_df = df[df['nivel'].isin([2, 3, 4])]
     if not medios_df.empty:
         if len(medios_df) < 6:
@@ -65,6 +63,7 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     oper_df = df[df['nivel'].isin([5, 6])]
     if not oper_df.empty:
         grupos['Niveles Operativos'] = oper_df
+
 
     cols = ["Apellido y Nombre", "CUIL", "Nivel", "Puntaje Absoluto", "Puntaje Relativo", "Calificación"]
     for titulo, tabla_df in grupos.items():
