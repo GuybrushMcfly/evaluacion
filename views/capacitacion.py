@@ -43,12 +43,13 @@ def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_
     azul = "B7E0F7"
     grupos = {}
     
-    # Agrupar todos los residual=True juntos
+    # ✅ Agrupar todos los residual=True juntos
     if "residual" in df.columns:
         residuales_df = df[df["residual"] == True]
         if not residuales_df.empty:
             grupos["Unidad Residual"] = residuales_df
-        df = df[df["residual"] != True]  # seguir con no residuales
+
+    df = df[df["residual"] != True]  # filtrar solo los no residuales
     
     # Agrupamiento habitual de no residuales
     medios_df = df[df["nivel"].isin([2, 3, 4])]
