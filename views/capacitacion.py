@@ -275,13 +275,13 @@ def generar_cuadro_resumen_docx(df_resumen, path_docx):
 def analizar_evaluaciones_residuales(df):
     df = df.copy()
     df["nivel"] = df["formulario"].astype(int)
-    df["residual_calc"] = False
-    df.loc[df["nivel"] == 1, "residual_calc"] = True
+    df["residual"] = False
+    df.loc[df["nivel"] == 1, "residual"] = True
     for ua, df_ua in df.groupby("unidad_analisis"):
         # Niveles medios
         medios = df_ua[df_ua["nivel"].isin([2,3,4])]
         if len(medios) < 6 and len(medios) > 0:
-            df.loc[medios.index, "residual_calc"] = True
+            df.loc[medios.index, "residual"] = True
         elif len(medios) >= 6:
             # Unificar niveles chicos
             grupos_chicos = []
@@ -292,13 +292,13 @@ def analizar_evaluaciones_residuales(df):
             if grupos_chicos:
                 grupo_unificado = pd.concat(grupos_chicos)
                 if len(grupo_unificado) < 6:
-                    df.loc[grupo_unificado.index, "residual_calc"] = True
+                    df.loc[grupo_unificado.index, "residual"] = True
                 else:
-                    df.loc[grupo_unificado.index, "residual_calc"] = False
+                    df.loc[grupo_unificado.index, "residual"] = False
         # Niveles operativos
         operativos = df_ua[df_ua["nivel"].isin([5,6])]
         if len(operativos) < 6 and len(operativos) > 0:
-            df.loc[operativos.index, "residual_calc"] = True
+            df.loc[operativos.index, "residual"] = True
         elif len(operativos) >= 6:
             grupos_chicos = []
             for n in [5,6]:
@@ -308,9 +308,9 @@ def analizar_evaluaciones_residuales(df):
             if grupos_chicos:
                 grupo_unificado = pd.concat(grupos_chicos)
                 if len(grupo_unificado) < 6:
-                    df.loc[grupo_unificado.index, "residual_calc"] = True
+                    df.loc[grupo_unificado.index, "residual"] = True
                 else:
-                    df.loc[grupo_unificado.index, "residual_calc"] = False
+                    df.loc[grupo_unificado.index, "residual"] = False
     return df
 
 
@@ -413,9 +413,11 @@ def mostrar(supabase):
     # 4) Botón para análisis automático
     if st.button("⚙️ Realizar Análisis de Residuales"):
         df_ev = pd.DataFrame(evals)
+        
         df_actualizados = analizar_evaluaciones_residuales(df_ev)
         for i, row in df_actualizados.iterrows():
-            supabase.table("evaluaciones").update({"residual": row["residual"]}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+            supabase.table("evaluaciones").update({"residual": bool(row["residual_calc"])}).eq("id_evaluacion", row["id_evaluacion"]).execute()
+
 
         # Calcular bonificación_elegible para DESTACADOS con puntaje relativo más alto por agrupamiento
         df_ev["nivel"] = df_ev["formulario"].astype(int)
