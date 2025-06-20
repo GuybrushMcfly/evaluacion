@@ -250,6 +250,7 @@ def mostrar(supabase):
     
     # TABLA DE ANULADAS
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+    df_anuladas["Estado"] = "Anulada"
     # Calcular Fecha formateada en anuladas
     df_anuladas["fecha_evaluacion"] = pd.to_datetime(df_anuladas["fecha_evaluacion"], errors="coerce")
     df_anuladas["Fecha_formateada"] = df_anuladas["fecha_evaluacion"].dt.strftime('%d/%m/%Y %H:%M')
