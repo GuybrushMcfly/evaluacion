@@ -55,48 +55,57 @@ def mostrar(supabase):
     st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
 
     # --- Obtener y procesar evaluaciones ---
+    # --- Obtener y procesar evaluaciones ---
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
     df_eval = pd.DataFrame(evaluaciones)
-
+    
     if df_eval.empty:
         df_eval = pd.DataFrame(columns=[
             "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
             "puntaje_total", "evaluador", "id_evaluacion", "cuil"
         ])
+    
+    # Normalizar columna anulada
     if "anulada" not in df_eval.columns:
         df_eval["anulada"] = False
     else:
         df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
-
+    
     # --- Solo evaluaciones NO anuladas, última por CUIL ---
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+    
     if "fecha_evaluacion" in df_no_anuladas.columns and not df_no_anuladas["fecha_evaluacion"].isna().all():
         df_no_anuladas["fecha_evaluacion"] = pd.to_datetime(df_no_anuladas["fecha_evaluacion"], errors="coerce")
         df_no_anuladas = df_no_anuladas.sort_values("fecha_evaluacion").drop_duplicates("cuil", keep="last")
     elif "id_evaluacion" in df_no_anuladas.columns:
         df_no_anuladas = df_no_anuladas.sort_values("id_evaluacion").drop_duplicates("cuil", keep="last")
-
-    # --- Asegurá que existan todas las columnas requeridas ---
+    
+    # Asegurá que existan todas las columnas requeridas
     columnas_tabla = ["apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"]
     for col in columnas_tabla:
         if col not in df_no_anuladas.columns:
             df_no_anuladas[col] = ""
-
-    # --- Calcular columna de puntaje si no existe o está vacía ---
+    
+    # Calcular columna de puntaje si no existe o está vacía
     if df_no_anuladas["calif_puntaje"].isnull().all() or (df_no_anuladas["calif_puntaje"] == "").all():
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
             lambda row: f"{row.get('calificacion','')} ({row.get('puntaje_total','')})"
-            if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
+            if pd.notna(row.get("calificacion")) and pd.notna(row.get("puntaje_total"))
             else "",
             axis=1
         )
-    # --- Calcular fecha formateada si no existe ---
+    
+    # Calcular fecha formateada
     if "fecha_evaluacion" in df_no_anuladas.columns and not df_no_anuladas["fecha_evaluacion"].isna().all():
         hora_arg = timezone('America/Argentina/Buenos_Aires')
         df_no_anuladas["Fecha"] = pd.to_datetime(df_no_anuladas["fecha_evaluacion"], errors="coerce", utc=True).dt.tz_convert(hora_arg)
         df_no_anuladas["Fecha_formateada"] = df_no_anuladas["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
     else:
         df_no_anuladas["Fecha_formateada"] = ""
+    
+    # Asignar estado
+    df_no_anuladas["Estado"] = "Registrada"
+
 
     # --- Indicadores únicos por persona ---
     evaluados = len(df_no_anuladas["cuil"].unique())
@@ -241,6 +250,10 @@ def mostrar(supabase):
     
     # TABLA DE ANULADAS
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+    # Calcular Fecha formateada en anuladas
+    df_anuladas["fecha_evaluacion"] = pd.to_datetime(df_anuladas["fecha_evaluacion"], errors="coerce")
+    df_anuladas["Fecha_formateada"] = df_anuladas["fecha_evaluacion"].dt.strftime('%d/%m/%Y %H:%M')
+
     if not df_anuladas.empty:
         # Asegurar columnas
         for col in ["calif_puntaje", "apellido_nombre", "formulario", "evaluador", "Fecha_formateada", "Estado"]:
