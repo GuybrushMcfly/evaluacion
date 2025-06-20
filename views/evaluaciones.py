@@ -122,17 +122,26 @@ def mostrar(supabase):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
 
     # --- Niveles de evaluación (único por cuil) ---
-    st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
-    form_labels = ["1", "2", "3", "4", "5", "6"]
-    form_counts = {f: 0 for f in form_labels}
-    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
-        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
-        formulario_counts = df_no_anuladas["formulario"].value_counts()
-        for f in form_labels:
-            form_counts[f] = formulario_counts.get(f, 0)
-    cols = st.columns(len(form_labels))
-    for i, f in enumerate(form_labels):
-        cols[i].metric(f"Formulario {f}", form_counts[f])
+    # --- Niveles jerárquicos agrupados por formulario ---
+    st.markdown("<h2 style='font-size:24px;'>📋 Niveles Jerárquicos</h2>", unsafe_allow_html=True)
+    
+    # Asegurar que formulario esté como string
+    df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+    
+    # Conteos por formulario
+    conteo_form = df_no_anuladas["formulario"].value_counts()
+    
+    # Agrupación por nivel
+    nivel_gerencial = conteo_form.get("1", 0)
+    nivel_medio = sum(conteo_form.get(str(f), 0) for f in [2, 3, 4])
+    nivel_operativo = sum(conteo_form.get(str(f), 0) for f in [5, 6])
+    
+    # Mostrar indicadores
+    cols_niveles = st.columns(3)
+    cols_niveles[0].metric("👔 Nivel Gerencial", nivel_gerencial)
+    cols_niveles[1].metric("📘 Nivel Medio", nivel_medio)
+    cols_niveles[2].metric("🔧 Nivel Operativo", nivel_operativo)
+
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
 
