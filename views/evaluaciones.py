@@ -112,9 +112,9 @@ def mostrar(supabase):
     porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
 
     cols = st.columns(3)
-    with cols[0]: st.metric("👥 TOTAL A EVALUAR", total_asignados)
-    with cols[1]: st.metric("✅ EVALUADOS", evaluados)
-    with cols[2]: st.metric("📊 % EVALUACIÓN", f"{round(porcentaje)}%")
+    with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
+    with cols[1]: st.metric("✅ Evaluados", evaluados)
+    with cols[2]: st.metric("📊 % Evaluación", f"{round(porcentaje)}%")
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # --- Calificaciones únicas por cuil ---
@@ -146,9 +146,9 @@ def mostrar(supabase):
     
     # Mostrar indicadores
     cols_niveles = st.columns(3)
-    cols_niveles[0].metric("🔵 NIVEL JERÁRQUICO", nivel_gerencial)
-    cols_niveles[1].metric("🟢 NIVEL MEDIO", nivel_medio)
-    cols_niveles[2].metric("🟣 NIVEL OPERATIVO", nivel_operativo)
+    cols_niveles[0].metric("🔵 Nivel Jerárquico", nivel_gerencial)
+    cols_niveles[1].metric("🟢 Nivel Medio", nivel_medio)
+    cols_niveles[2].metric("🟣 Nivel Operativo", nivel_operativo)
 
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
