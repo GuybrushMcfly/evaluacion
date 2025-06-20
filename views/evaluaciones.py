@@ -117,14 +117,6 @@ def mostrar(supabase):
     with cols[2]: st.metric("📊 % Evaluación", f"{round(porcentaje)}%")
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
-    # Añadir badge o caja visual
-    if pct < 50:
-        st.badge("Bajo cumplimiento", icon="⚠️", color="orange")
-    elif pct < 80:
-        st.badge("Medio cumplimiento", icon="ℹ️", color="blue")
-    else:
-        st.badge("Alto cumplimiento", icon="✅", color="green")
-
     # --- Calificaciones únicas por cuil ---
     st.markdown("<h2 style='font-size:24px;'>📋 Distribución de evaluaciones según calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
