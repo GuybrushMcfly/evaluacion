@@ -109,7 +109,7 @@ def mostrar(supabase):
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # --- Calificaciones únicas por cuil ---
-    st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Distribución de evaluaciones según calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
@@ -121,9 +121,8 @@ def mostrar(supabase):
     for i, cat in enumerate(categorias):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
 
-    # --- Niveles de evaluación (único por cuil) ---
     # --- Niveles jerárquicos agrupados por formulario ---
-    st.markdown("<h2 style='font-size:24px;'>📋 Niveles Jerárquicos</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por nivel de evaluación</h2>", unsafe_allow_html=True)
     
     # Asegurar que formulario esté como string
     df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
@@ -138,9 +137,9 @@ def mostrar(supabase):
     
     # Mostrar indicadores
     cols_niveles = st.columns(3)
-    cols_niveles[0].metric("👔 Nivel Gerencial", nivel_gerencial)
-    cols_niveles[1].metric("📘 Nivel Medio", nivel_medio)
-    cols_niveles[2].metric("🔧 Nivel Operativo", nivel_operativo)
+    cols_niveles[0].metric("🔵 Nivel Jerárquico", nivel_gerencial)
+    cols_niveles[1].metric("🟢 Nivel Medio", nivel_medio)
+    cols_niveles[2].metric("🟣 Nivel Operativo", nivel_operativo)
 
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
