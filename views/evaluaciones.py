@@ -118,7 +118,7 @@ def mostrar(supabase):
     st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
 
     # --- Calificaciones únicas por cuil ---
-    st.markdown("<h2 style='font-size:24px;'>📋 Distribución de evaluaciones según calificación</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por Calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
@@ -131,7 +131,7 @@ def mostrar(supabase):
         col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
 
     # --- Niveles jerárquicos agrupados por formulario ---
-    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por nivel de evaluación</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>📋 Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
     
     # Asegurar que formulario esté como string
     df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
