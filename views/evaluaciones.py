@@ -257,7 +257,7 @@ def mostrar(supabase):
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})" if row.get("calificacion") and row.get("puntaje_total") else "",
             axis=1
         )
-        st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones ya anuladas:</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
         st.dataframe(
             df_anuladas[[
                 "apellido_nombre", "formulario",
