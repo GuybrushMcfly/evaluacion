@@ -9,9 +9,18 @@ def cargar_formularios():
         config = yaml.safe_load(f)
     return config["formularios"], config["clasificaciones"]
 
+
 def mostrar(supabase, formularios, clasificaciones):
     st.markdown("<h1 style='font-size:26px;'>✍🏻 Evaluación de Desempeño 2024</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='font-size:24px;'>📄 Formulario de Evaluación</h1>", unsafe_allow_html=True)
+
+    # 🔒 Verificar si el formulario está habilitado
+    conf = supabase.table("configuracion").select("valor").eq("id", "formulario_activo").execute().data
+    formulario_activo = conf[0]["valor"] if conf else True
+
+    if not formulario_activo:
+        st.warning("🚫 PERIODO DE EVALUACIÓN CERRADO")
+        return
 
     usuario_actual = st.session_state.get("usuario")
 
