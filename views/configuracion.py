@@ -1,38 +1,56 @@
 import streamlit as st
 from datetime import datetime
+import pandas as pd
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:24px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
-
+    
     # --- Consultar configuración actual ---
     config_items = supabase.table("configuracion").select("*").execute().data
     config_map = {item["id"]: item for item in config_items}
 
-    formulario_activo = config_map.get("formulario_activo", {}).get("valor", True)
-    nuevo_formulario_activo = st.checkbox("✅ Formulario habilitado", value=formulario_activo)
-
-    anulacion_activa = config_map.get("anulacion_activa", {}).get("valor", True)
-    nueva_anulacion_activa = st.checkbox("❌ Permitir anulación de evaluaciones", value=anulacion_activa)
-
+    # Crear dataframe editable
+    df_config = pd.DataFrame([
+        {
+            "ID": "formulario_activo",
+            "Descripción": "Formulario habilitado",
+            "Activo": config_map.get("formulario_activo", {}).get("valor", True)
+        },
+        {
+            "ID": "anulacion_activa",
+            "Descripción": "Permitir anulación de evaluaciones",
+            "Activo": config_map.get("anulacion_activa", {}).get("valor", True)
+        }
+    ])
+    
+    # Mostrar tabla editable
+    st.markdown("### 🔧 Parámetros del sistema")
+    edit_config = st.data_editor(
+        df_config[["Descripción", "Activo"]],
+        use_container_width=True,
+        hide_index=True,
+        disabled=["Descripción"],
+        column_config={
+            "Activo": st.column_config.CheckboxColumn("Activo")
+        }
+    )
+    
+    # Botón para guardar
     if st.button("💾 Guardar cambios"):
         usuario = st.session_state.get("usuario", "desconocido")
         ahora = datetime.now().isoformat()
-
-        if nuevo_formulario_activo != formulario_activo:
+    
+        for i, row in edit_config.iterrows():
+            id_config = df_config.loc[i, "ID"]
+            nuevo_valor = row["Activo"]
             supabase.table("configuracion").upsert({
-                "id": "formulario_activo",
-                "valor": nuevo_formulario_activo,
-                "actualizado_por": usuario,
+                "id": id_config,
+                "valor": nuevo_valor,
+                "actualizado_por": usuario
             }).execute()
-
-        if nueva_anulacion_activa != anulacion_activa:
-            supabase.table("configuracion").upsert({
-                "id": "anulacion_activa",
-                "valor": nueva_anulacion_activa,
-                "actualizado_por": usuario,
-            }).execute()
-
-        st.success("✅ Cambios guardados correctamente.")
+    
+        st.success("✅ Configuración actualizada.")
+        st.rerun()
 
     # --- A PARTIR DE ACÁ: Lógica de edición de agente ---
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
