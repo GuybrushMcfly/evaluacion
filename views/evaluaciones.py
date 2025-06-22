@@ -170,9 +170,13 @@ def mostrar(supabase):
     )
 
     
-    if not df_no_anuladas.empty:
+    # Consultar si la funcionalidad de anulación está habilitada
+    conf = supabase.table("configuracion").select("valor").eq("id", "anulacion_activa").execute().data
+    anulacion_activa = conf[0]["valor"] if conf else True
+
+    if anulacion_activa and not df_no_anuladas.empty:
         st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
-    
+
         # Asegurar columnas necesarias
         for col in ["Seleccionar", "calif_puntaje", "apellido_nombre", "formulario",
                     "Fecha_formateada", "id_evaluacion", "cuil", "calificacion", "puntaje_total"]:
@@ -181,14 +185,14 @@ def mostrar(supabase):
                     df_no_anuladas["Seleccionar"] = False
                 else:
                     df_no_anuladas[col] = ""
-    
+
         # Calcular columna calif_puntaje por si acaso
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
             if row.get("calificacion") and row.get("puntaje_total") else "",
             axis=1
         )
-    
+
         # Crear tabla simplificada para mostrar
         columnas_mostrar = [
             "Seleccionar", "apellido_nombre", "formulario",
@@ -202,7 +206,7 @@ def mostrar(supabase):
             "Fecha_formateada": "Fecha",
             "id_evaluacion": "id_evaluacion"  # Oculta visualmente
         })
-    
+
         seleccion = st.data_editor(
             df_para_mostrar,
             use_container_width=True,
@@ -213,7 +217,7 @@ def mostrar(supabase):
                 "id_evaluacion": None  # ⛔ Oculta visualmente
             }
         )
-    
+
         # Botón para anular
         if st.button("❌ Anular seleccionadas"):
             if "Seleccionar" in seleccion.columns:
@@ -221,7 +225,7 @@ def mostrar(supabase):
                 ids_seleccionados = seleccionados["id_evaluacion"].tolist()
             else:
                 ids_seleccionados = []
-    
+
             if not ids_seleccionados:
                 st.warning("⚠️ No hay evaluaciones seleccionadas para anular.")
             else:
