@@ -145,19 +145,22 @@ def mostrar(supabase):
         )
 
         #st.subheader("📋 Uso de formularios")
-     # ---- INDICADORES DE USO DE FORMULARIOS ----
+    # ---- INDICADORES DE USO DE FORMULARIOS AGRUPADOS POR NIVEL ----
     st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
-    form_labels = ["1", "2", "3", "4", "5", "6"]
-    form_counts = {f: 0 for f in form_labels}
-    if not df_no_anuladas.empty and "formulario" in df_no_anuladas.columns:
-        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
-        formulario_counts = df_no_anuladas["formulario"].value_counts()
-        for f in form_labels:
-            form_counts[f] = formulario_counts.get(f, 0)
     
-    cols = st.columns(len(form_labels))
-    for i, f in enumerate(form_labels):
-        cols[i].metric(f"Formulario {f}", form_counts[f])
+    df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+    
+    niveles_eval = {
+        "🔵 Nivel Jerárquico": ["1"],
+        "🟣 Niveles Medios": ["2", "3", "4"],
+        "🟢 Niveles Operativos": ["5", "6"]
+    }
+    
+    cols = st.columns(3)
+    for i, (titulo, formularios) in enumerate(niveles_eval.items()):
+        cantidad = df_no_anuladas["formulario"].isin(formularios).sum()
+        cols[i].metric(titulo, cantidad)
+
 
     st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
 
