@@ -226,9 +226,10 @@ def mostrar(supabase):
         p_header = header.paragraphs[0]
         p_header.clear()
         run = p_header.add_run(
-            "INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS\n"
-            "DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL\n"
-            "EVALUACIÓN DE DESEMPEÑO 2024"
+            f"INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS\n"
+            f"DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL\n"
+            f"EVALUACIÓN DE DESEMPEÑO 2024\n"
+            f"UNIDAD DE ANÁLISIS: {dependencia_nombre}"
         )
         run.font.name = "Calibri"
         run.font.size = Pt(10)
@@ -237,8 +238,6 @@ def mostrar(supabase):
         p_header.alignment = 1
         p_header.paragraph_format.line_spacing = Pt(12)
 
-        # 👉 Agregar título de unidad de análisis
-        titulo(f"UNIDAD DE ANÁLISIS: {dependencia_nombre}")
 
         
         # AGRUPAMIENTO
