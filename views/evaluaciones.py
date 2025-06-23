@@ -319,7 +319,9 @@ def mostrar(supabase):
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
     
         return doc
-    
+
+    df_informe = df_agentes.copy()
+
     st.markdown("---")
     st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
     
