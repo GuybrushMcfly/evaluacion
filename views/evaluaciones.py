@@ -177,7 +177,7 @@ def mostrar(supabase):
         hide_index=True
     )
 
-    def set_cell_style(cell, bold=True, bg_color="136ac1", font_color="FFFFFF"):
+    def set_cell_style(cell, bold=True, bg_color="104f8e", font_color="FFFFFF"):
         para = cell.paragraphs[0]
         run = para.runs[0] if para.runs else para.add_run(" ")  # Añadimos un espacio si está vacío
     
