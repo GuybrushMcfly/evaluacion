@@ -181,36 +181,35 @@ def mostrar(supabase):
 
     def generar_planilla_docx(df, dependencia_nombre):
         doc = Document()
-
+    
         # Encabezado
         doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
         doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
         doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
         doc.add_heading(f"UNIDAD DE ANALISIS: {dependencia_nombre}", level=2)
-
-        # Tabla agrupamiento
+    
+        # --- Agrupamiento: GRAL / PROF ---
         doc.add_heading("PERSONAL POR TIPO DE AGRUPAMIENTO", level=2)
-        agrup_counts = df["agrupamiento"].value_counts()
-        tabla_agrup = doc.add_table(rows=1, cols=2)
-        hdr = tabla_agrup.rows[0].cells
-        hdr[0].text = "GENERAL"
-        hdr[1].text = "PROFESIONAL"
-        row = tabla_agrup.add_row().cells
-        row[0].text = str(agrup_counts.get("GENERAL", 0))
-        row[1].text = str(agrup_counts.get("PROFESIONAL", 0))
-
-        # Tabla nivel+grado
+        gral = len(df[df["agrupamiento"] == "GRAL"])
+        prof = len(df[df["agrupamiento"] == "PROF"])
+        tabla_agrup = doc.add_table(rows=2, cols=2)
+        tabla_agrup.style = 'Table Grid'
+        tabla_agrup.rows[0].cells[0].text = "GENERAL"
+        tabla_agrup.rows[0].cells[1].text = "PROFESIONAL"
+        tabla_agrup.rows[1].cells[0].text = str(gral)
+        tabla_agrup.rows[1].cells[1].text = str(prof)
+    
+        # --- Nivel escalafonario: A, B, C, D, E ---
         doc.add_heading("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO", level=2)
-        df["categoria"] = df["nivel"].astype(str) + df["grado"].astype(str)
-        cat_counts = df["categoria"].value_counts()
-        tabla_cat = doc.add_table(rows=1, cols=len(cat_counts))
-        hdr = tabla_cat.rows[0].cells
-        for i, cat in enumerate(cat_counts.index):
-            hdr[i].text = cat
-        row = tabla_cat.add_row().cells
-        for i, cat in enumerate(cat_counts.index):
-            row[i].text = str(cat_counts[cat])
-
+        niveles = ["A", "B", "C", "D", "E"]
+        conteo_niveles = df["nivel"].value_counts()
+        tabla_nivel = doc.add_table(rows=2, cols=len(niveles))
+        tabla_nivel.style = 'Table Grid'
+        for i, nivel in enumerate(niveles):
+            tabla_nivel.rows[0].cells[i].text = nivel
+            tabla_nivel.rows[1].cells[i].text = str(conteo_niveles.get(nivel, 0))
+    
+        # --- Función para generar bloques de evaluación ---
         def agregar_tabla_por_formulario(titulo, formularios):
             doc.add_heading(titulo, level=2)
             subset = df[df["formulario"].astype(str).isin(formularios)]
@@ -225,11 +224,12 @@ def mostrar(supabase):
                 r[0].text = row.get("apellido_nombre", "")
                 r[1].text = row.get("calificacion", "")
                 r[2].text = str(row.get("puntaje_total", ""))
-
+    
+        # --- Agregar secciones por nivel ---
         agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
-
+    
         return doc
 
     if st.button("📥 Generar y descargar informe Word"):
