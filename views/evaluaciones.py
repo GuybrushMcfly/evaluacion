@@ -177,18 +177,19 @@ def mostrar(supabase):
         hide_index=True
     )
 
-    def set_cell_style(cell, bold=True, bg_color="D9D9D9"):
-        """Aplica estilo Calibri 10 y fondo gris a una celda"""
+    def set_cell_style(cell, bold=True, bg_color="136ac1", font_color="FFFFFF"):
+        """Aplica estilo Calibri 10, color de fondo y texto personalizados a una celda"""
         para = cell.paragraphs[0]
         run = para.runs[0] if para.runs else para.add_run()
         run.font.name = "Calibri"
-        run.font.size = Pt(11)
+        run.font.size = Pt(10)
         run.font.bold = bold
+        run.font.color.rgb = RGBColor.from_string(font_color.upper())
     
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
         shd = OxmlElement("w:shd")
-        shd.set(qn("w:fill"), bg_color)
+        shd.set(qn("w:fill"), bg_color.lower())  # fondo celda
         tcPr.append(shd)
 
     # Preparar dataframe combinado para informe
