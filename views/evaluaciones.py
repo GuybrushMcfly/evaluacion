@@ -341,7 +341,7 @@ def mostrar(supabase):
 
 
     st.markdown("---")
-    st.markdown("<h3 style='font-size:22px;'>📄 Descargar informe resumen Word</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
     
     if not df_informe.empty:
         for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
@@ -356,7 +356,7 @@ def mostrar(supabase):
     
         with open(tmp_path, "rb") as file:
             st.download_button(
-                label="📄 Descargar Informe Word",
+                label="📥 Descargar Informe",
                 data=file,
                 file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
