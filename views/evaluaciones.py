@@ -179,7 +179,7 @@ def mostrar(supabase):
     )
 
 
-    def set_cell_style(cell, bold=True, bg_color="136ac1", font_color="FFFFFF"):
+    def set_cell_style(cell, bold=True, bg_color="104f8e", font_color="FFFFFF"):
         para = cell.paragraphs[0]
         run = para.runs[0] if para.runs else para.add_run(" ")
         run.text = run.text if run.text.strip() else " "
@@ -237,12 +237,33 @@ def mostrar(supabase):
             run.font.name = "Calibri"
             run.font.size = Pt(10)
             run.font.bold = True
-            run.font.color.rgb = RGBColor.from_string("136ac1")
+            run.font.color.rgb = RGBColor.from_string("104f8e")
     
-        titulo("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS")
-        doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
-        doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
-        titulo(f"UNIDAD DE ANALISIS: {dependencia_nombre}")
+        # Encabezado que se repite en cada página
+        header = section.header
+        p_header = header.paragraphs[0]
+        
+        # Borrar contenido previo si lo hubiera
+        p_header.clear()
+        
+        run = p_header.add_run(
+            "INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS\n"
+            "DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL\n"
+            "EVALUACIÓN DE DESEMPEÑO 2024"
+        )
+        
+        # Formato del texto
+        run.font.name = "Calibri"
+        run.font.size = Pt(10)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor.from_string("104f8e")
+        
+        # Alineación centrada
+        p_header.alignment = 1  # Centrado
+        
+        # Interlineado simple
+        p_header.paragraph_format.line_spacing = Pt(12)  # Equivale a sencillo en Word (1.0)
+
     
         # AGRUPAMIENTO
         titulo("PERSONAL POR TIPO DE AGRUPAMIENTO")
@@ -254,7 +275,8 @@ def mostrar(supabase):
             tabla_agrup.cell(0, i).text = h
             set_cell_style(tabla_agrup.cell(0, i))
             tabla_agrup.cell(1, i).text = str([gral, prof][i])
-    
+            set_cell_style(tabla_agrup.cell(1, i), bold=False)  # <-- centrado sin negrita
+        
         # ESCALAFÓN
         titulo("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO")
         niveles = ["A", "B", "C", "D", "E"]
@@ -265,7 +287,8 @@ def mostrar(supabase):
             tabla_nivel.cell(0, i).text = nivel
             set_cell_style(tabla_nivel.cell(0, i))
             tabla_nivel.cell(1, i).text = str(conteo_niveles.get(nivel, 0))
-    
+            set_cell_style(tabla_nivel.cell(1, i), bold=False)
+        
         # EVALUADO / INGRESANTE
         titulo("PERSONAL EVALUADO")
         df_evaluable = df_base[df_base["ingresante"].isin([True, False])]
@@ -273,7 +296,7 @@ def mostrar(supabase):
         ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
         total_evaluable = no_ingresantes + ingresantes
         evaluados = df_eval["calificacion"].apply(lambda x: x != "").sum()
-    
+        
         tabla_eval = doc.add_table(rows=2, cols=4)
         tabla_eval.style = 'Table Grid'
         eval_headers = [
@@ -286,6 +309,7 @@ def mostrar(supabase):
             tabla_eval.cell(0, i).text = h
             set_cell_style(tabla_eval.cell(0, i))
             tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, evaluados][i])
+            set_cell_style(tabla_eval.cell(1, i), bold=False)
     
         # FUNCION AUXILIAR PARA LISTADOS POR FORMULARIO
         def agregar_tabla_por_formulario(titulo_texto, formularios):
