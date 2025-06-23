@@ -3,6 +3,12 @@ import pandas as pd
 from pytz import timezone
 import time
 
+from docx import Document
+from docx.shared import Pt
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+import tempfile
+
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
     #st.header("📋 Evaluaciones realizadas")
@@ -93,6 +99,25 @@ def mostrar(supabase):
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
 
+    # Unir con datos de agentes si no están ya
+    agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
+    df_agentes = pd.DataFrame(agentes_completos)
+    
+    if not df_agentes.empty:
+        df_no_anuladas = df_no_anuladas.merge(df_agentes[[
+            "cuil", "agrupamiento", "nivel", "ingresante", "apellido_nombre"
+        ]], on="cuil", how="left", suffixes=("", "_agente"))
+    
+    # Reasegurar columnas requeridas por el informe
+    columnas_necesarias = [
+        "cuil", "apellido_nombre", "calificacion", "puntaje_total", "formulario",
+        "nivel", "agrupamiento", "ingresante"
+    ]
+    for col in columnas_necesarias:
+        if col not in df_no_anuladas.columns:
+            df_no_anuladas[col] = ""
+
+
     
     # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
     st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
@@ -152,7 +177,112 @@ def mostrar(supabase):
         hide_index=True
     )
 
-
+    def set_cell_style(cell, bold=True, bg_color="D9D9D9"):
+        """Aplica estilo Calibri 10 y fondo gris a una celda"""
+        para = cell.paragraphs[0]
+        run = para.runs[0] if para.runs else para.add_run()
+        run.font.name = "Calibri"
+        run.font.size = Pt(11)
+        run.font.bold = bold
+    
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), bg_color)
+        tcPr.append(shd)
+    
+    def generar_informe_docx(df, dependencia_nombre):
+        doc = Document()
+        doc.styles["Normal"].font.name = "Calibri"
+        doc.styles["Normal"].font.size = Pt(11)
+    
+        doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
+        doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
+        doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
+        doc.add_heading(f"UNIDAD DE ANALISIS: {dependencia_nombre}", level=2)
+    
+        # AGRUPAMIENTO
+        doc.add_heading("PERSONAL POR TIPO DE AGRUPAMIENTO", level=2)
+        gral = len(df[df["agrupamiento"] == "GRAL"])
+        prof = len(df[df["agrupamiento"] == "PROF"])
+        tabla_agrup = doc.add_table(rows=2, cols=2)
+        tabla_agrup.style = 'Table Grid'
+        for i, h in enumerate(["GENERAL", "PROFESIONAL"]):
+            tabla_agrup.cell(0, i).text = h
+            set_cell_style(tabla_agrup.cell(0, i))
+            tabla_agrup.cell(1, i).text = str([gral, prof][i])
+    
+        # ESCALAFÓN
+        doc.add_heading("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO", level=2)
+        niveles = ["A", "B", "C", "D", "E"]
+        conteo_niveles = df["nivel"].value_counts()
+        tabla_nivel = doc.add_table(rows=2, cols=5)
+        tabla_nivel.style = 'Table Grid'
+        for i, nivel in enumerate(niveles):
+            tabla_nivel.cell(0, i).text = nivel
+            set_cell_style(tabla_nivel.cell(0, i))
+            tabla_nivel.cell(1, i).text = str(conteo_niveles.get(nivel, 0))
+    
+        # EVALUADO / INGRESANTE
+        doc.add_heading("PERSONAL EVALUADO", level=2)
+        df_evaluable = df[df["ingresante"].isin([True, False])]
+        no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
+        ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
+        total_evaluable = no_ingresantes + ingresantes
+        total_evaluado = df["cuil"].nunique()
+    
+        tabla_eval = doc.add_table(rows=2, cols=4)
+        tabla_eval.style = 'Table Grid'
+        eval_headers = [
+            "PERMANENTES NO INGRESANTE",
+            "PERMANENTES INGRESANTES",
+            "TOTAL A EVALUAR",
+            "TOTAL EVALUADO"
+        ]
+        for i, h in enumerate(eval_headers):
+            tabla_eval.cell(0, i).text = h
+            set_cell_style(tabla_eval.cell(0, i))
+            tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, total_evaluado][i])
+    
+        # FUNCION AUXILIAR PARA TABLAS POR FORMULARIO
+        def agregar_tabla_por_formulario(titulo, formularios):
+            doc.add_heading(titulo, level=2)
+            subset = df[df["formulario"].astype(str).isin(formularios)].sort_values("apellido_nombre")
+            tabla = doc.add_table(rows=1, cols=3)
+            tabla.style = 'Table Grid'
+            for i, col in enumerate(["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]):
+                tabla.cell(0, i).text = col
+                set_cell_style(tabla.cell(0, i))
+            for _, row in subset.iterrows():
+                r = tabla.add_row().cells
+                r[0].text = row.get("apellido_nombre", "")
+                r[1].text = row.get("calificacion", "")
+                r[2].text = str(row.get("puntaje_total", ""))
+    
+        agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
+        agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
+        agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
+    
+        return doc
+    
+    # Botón de descarga
+    st.markdown("---")
+    st.markdown("<h3 style='font-size:22px;'>📄 Generar informe resumen Word</h3>", unsafe_allow_html=True)
+    
+    if st.button("📥 Descargar informe Word"):
+        if df_no_anuladas.empty:
+            st.warning("⚠️ No hay evaluaciones válidas para esta dependencia.")
+        else:
+            doc = generar_informe_docx(df_no_anuladas, dependencia_filtro)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                doc.save(tmp.name)
+                tmp.seek(0)
+                st.download_button(
+                    label="📄 Descargar informe",
+                    data=tmp.read(),
+                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
     
     if not df_no_anuladas.empty:
         st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
