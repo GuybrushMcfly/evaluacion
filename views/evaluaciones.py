@@ -1,12 +1,13 @@
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qnimport streamlit as st
+import streamlit as st
 import pandas as pd
 from pytz import timezone
 import time
-from docx import Document
-from docx.shared import Pt
 import tempfile
 import io
+
+from docx import Document
+from docx.shared import Pt
+from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 def mostrar(supabase):
