@@ -323,6 +323,12 @@ def mostrar(supabase):
 
     df_informe = df_agentes.copy()
 
+    df_evaluados = df_informe.merge(
+        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total", "apellido_nombre"]],
+        on="cuil", how="left"
+    ).fillna("")
+
+
     st.markdown("---")
     st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
     
