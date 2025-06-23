@@ -213,8 +213,10 @@ def mostrar(supabase):
     
     # Unir evaluaciones a todos los agentes (para listados por formulario)
     df_evaluados = df_informe.merge(
-        df_no_anuladas[columnas_eval], on="cuil", how="left"
+        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total"]],
+        on="cuil", how="left"
     ).fillna("")
+
     
     def generar_informe_docx(df_base, df_eval, dependencia_nombre):
         doc = Document()
