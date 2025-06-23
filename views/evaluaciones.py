@@ -223,7 +223,7 @@ def mostrar(supabase):
     def generar_informe_docx(df_base, df_eval, dependencia_nombre):
         doc = Document()
         doc.styles["Normal"].font.name = "Calibri"
-        doc.styles["Normal"].font.size = Pt(11)
+        doc.styles["Normal"].font.size = Pt(10)
     
         doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
         doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
