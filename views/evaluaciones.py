@@ -243,7 +243,7 @@ def mostrar(supabase):
         # AGRUPAMIENTO
         doc.add_paragraph()
 
-        titulo("PERSONAL POR TIPO DE AGRUPAMIENTO")
+        titulo("PERSONAL TOTAL POR TIPO DE AGRUPAMIENTO")
         gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
         prof = len(df_base[df_base["agrupamiento"] == "PROF"])
         tabla_agrup = doc.add_table(rows=2, cols=2)
@@ -257,7 +257,7 @@ def mostrar(supabase):
         doc.add_paragraph()
     
         # ESCALAFÓN
-        titulo("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO")
+        titulo("PERSONAL TOTAL POR TIPO DE NIVEL ESCALAFONARIO")
         niveles = ["A", "B", "C", "D", "E"]
         conteo_niveles = df_base["nivel"].value_counts()
         tabla_nivel = doc.add_table(rows=2, cols=5)
@@ -271,7 +271,7 @@ def mostrar(supabase):
         doc.add_paragraph()
     
         # EVALUADO / INGRESANTE
-        titulo("PERSONAL EVALUADO")
+        titulo("PERSONAL PARA EVALUAR/EVALUADO")
         df_evaluable = df_base[df_base["ingresante"].isin([True, False])]
         no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
         ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
