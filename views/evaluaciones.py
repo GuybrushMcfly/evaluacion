@@ -144,7 +144,6 @@ def mostrar(supabase):
         )
 
         #st.subheader("📋 Uso de formularios")
-    # ---- INDICADORES DE USO DE FORMULARIOS ----
      # ---- INDICADORES DE USO DE FORMULARIOS ----
     st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
     form_labels = ["1", "2", "3", "4", "5", "6"]
@@ -179,9 +178,10 @@ def mostrar(supabase):
     )
 
     def set_cell_style(cell, bold=True, bg_color="136ac1", font_color="FFFFFF"):
-        """Aplica estilo Calibri 10, color de fondo y texto personalizados a una celda"""
         para = cell.paragraphs[0]
-        run = para.runs[0] if para.runs else para.add_run()
+        run = para.runs[0] if para.runs else para.add_run(" ")  # Añadimos un espacio si está vacío
+    
+        run.text = run.text if run.text.strip() else " "  # Garantiza contenido mínimo
         run.font.name = "Calibri"
         run.font.size = Pt(10)
         run.font.bold = bold
@@ -190,8 +190,11 @@ def mostrar(supabase):
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
         shd = OxmlElement("w:shd")
-        shd.set(qn("w:fill"), bg_color.lower())  # fondo celda
+        shd.set(qn("w:fill"), bg_color.lower())
         tcPr.append(shd)
+    
+        para.alignment = 1  # Centrado
+
 
     # Preparar dataframe combinado para informe
     df_informe = df_agentes.copy()
