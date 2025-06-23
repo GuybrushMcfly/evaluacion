@@ -242,6 +242,8 @@ def mostrar(supabase):
 
         
         # AGRUPAMIENTO
+        doc.add_paragraph()
+
         titulo("PERSONAL POR TIPO DE AGRUPAMIENTO")
         gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
         prof = len(df_base[df_base["agrupamiento"] == "PROF"])
@@ -322,7 +324,9 @@ def mostrar(supabase):
                 r[2].text = str(puntaje)
     
         agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
+        doc.add_paragraph()
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
+        doc.add_paragraph()
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
     
         return doc
