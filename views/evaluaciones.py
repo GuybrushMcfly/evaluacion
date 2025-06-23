@@ -179,8 +179,27 @@ def mostrar(supabase):
     st.markdown("---")
     st.markdown("<h3 style='font-size:22px;'>📄 Generar informe resumen</h3>", unsafe_allow_html=True)
 
+    def set_cell_style(cell, bold=True, bg_color="D9D9D9"):
+        """Aplica estilo Calibri 10 y fondo gris a una celda"""
+        para = cell.paragraphs[0]
+        run = para.runs[0] if para.runs else para.add_run()
+        run.font.name = "Calibri"
+        run.font.size = Pt(11)
+        run.font.bold = bold
+    
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), bg_color)
+        tcPr.append(shd)
+    
     def generar_planilla_docx(df, dependencia_nombre):
         doc = Document()
+    
+        # Fuente por defecto del documento
+        style = doc.styles["Normal"]
+        style.font.name = "Calibri"
+        style.font.size = Pt(11)
     
         # Encabezado
         doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
@@ -188,44 +207,66 @@ def mostrar(supabase):
         doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
         doc.add_heading(f"UNIDAD DE ANALISIS: {dependencia_nombre}", level=2)
     
-        # --- Agrupamiento: GRAL / PROF ---
+        # --- AGRUPAMIENTO ---
         doc.add_heading("PERSONAL POR TIPO DE AGRUPAMIENTO", level=2)
         gral = len(df[df["agrupamiento"] == "GRAL"])
         prof = len(df[df["agrupamiento"] == "PROF"])
         tabla_agrup = doc.add_table(rows=2, cols=2)
         tabla_agrup.style = 'Table Grid'
-        tabla_agrup.rows[0].cells[0].text = "GENERAL"
-        tabla_agrup.rows[0].cells[1].text = "PROFESIONAL"
-        tabla_agrup.rows[1].cells[0].text = str(gral)
-        tabla_agrup.rows[1].cells[1].text = str(prof)
+        headers = ["GENERAL", "PROFESIONAL"]
+        for i, h in enumerate(headers):
+            tabla_agrup.cell(0, i).text = h
+            set_cell_style(tabla_agrup.cell(0, i))
+            tabla_agrup.cell(1, i).text = str([gral, prof][i])
     
-        # --- Nivel escalafonario: A, B, C, D, E ---
+        # --- NIVEL ESCALAFONARIO ---
         doc.add_heading("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO", level=2)
         niveles = ["A", "B", "C", "D", "E"]
         conteo_niveles = df["nivel"].value_counts()
-        tabla_nivel = doc.add_table(rows=2, cols=len(niveles))
+        tabla_nivel = doc.add_table(rows=2, cols=5)
         tabla_nivel.style = 'Table Grid'
         for i, nivel in enumerate(niveles):
-            tabla_nivel.rows[0].cells[i].text = nivel
-            tabla_nivel.rows[1].cells[i].text = str(conteo_niveles.get(nivel, 0))
+            tabla_nivel.cell(0, i).text = nivel
+            set_cell_style(tabla_nivel.cell(0, i))
+            tabla_nivel.cell(1, i).text = str(conteo_niveles.get(nivel, 0))
     
-        # --- Función para generar bloques de evaluación ---
+        # --- PERSONAL EVALUADO ---
+        doc.add_heading("PERSONAL EVALUADO", level=2)
+        df_evaluable = df[df["ingresante"].isin([True, False])]
+        no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
+        ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
+        total_evaluable = no_ingresantes + ingresantes
+        total_evaluado = df["cuil"].nunique()
+    
+        tabla_eval = doc.add_table(rows=2, cols=4)
+        tabla_eval.style = 'Table Grid'
+        eval_headers = [
+            "PERMANENTES NO INGRESANTE",
+            "PERMANENTES INGRESANTES",
+            "TOTAL A EVALUAR",
+            "TOTAL EVALUADO"
+        ]
+        for i, h in enumerate(eval_headers):
+            tabla_eval.cell(0, i).text = h
+            set_cell_style(tabla_eval.cell(0, i))
+            tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, total_evaluado][i])
+    
+        # --- EVALUACIONES POR FORMULARIO ---
         def agregar_tabla_por_formulario(titulo, formularios):
             doc.add_heading(titulo, level=2)
-            subset = df[df["formulario"].astype(str).isin(formularios)]
+            subset = df[df["formulario"].astype(str).isin(formularios)].sort_values("apellido_nombre")
             tabla = doc.add_table(rows=1, cols=3)
             tabla.style = 'Table Grid'
-            hdr = tabla.rows[0].cells
-            hdr[0].text = "APELLIDOS Y NOMBRES"
-            hdr[1].text = "CALIFICACIÓN"
-            hdr[2].text = "PUNTAJE"
+            cols = ["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]
+            for i, c in enumerate(cols):
+                tabla.cell(0, i).text = c
+                set_cell_style(tabla.cell(0, i))
             for _, row in subset.iterrows():
                 r = tabla.add_row().cells
                 r[0].text = row.get("apellido_nombre", "")
                 r[1].text = row.get("calificacion", "")
                 r[2].text = str(row.get("puntaje_total", ""))
     
-        # --- Agregar secciones por nivel ---
         agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
