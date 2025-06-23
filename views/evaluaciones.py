@@ -236,7 +236,11 @@ def mostrar(supabase):
         run.font.color.rgb = RGBColor.from_string("104f8e")
         p_header.alignment = 1
         p_header.paragraph_format.line_spacing = Pt(12)
-    
+
+        # 👉 Agregar título de unidad de análisis
+        titulo(f"UNIDAD DE ANÁLISIS: {dependencia_nombre}")
+
+        
         # AGRUPAMIENTO
         titulo("PERSONAL POR TIPO DE AGRUPAMIENTO")
         gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
