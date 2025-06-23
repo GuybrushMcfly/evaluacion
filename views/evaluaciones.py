@@ -9,6 +9,7 @@ from docx.oxml import OxmlElement
 
 from docx.oxml.ns import qn
 import tempfile
+from docx.shared import Cm 
 
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
@@ -179,9 +180,8 @@ def mostrar(supabase):
 
     def set_cell_style(cell, bold=True, bg_color="104f8e", font_color="FFFFFF"):
         para = cell.paragraphs[0]
-        run = para.runs[0] if para.runs else para.add_run(" ")  # Añadimos un espacio si está vacío
-    
-        run.text = run.text if run.text.strip() else " "  # Garantiza contenido mínimo
+        run = para.runs[0] if para.runs else para.add_run(" ")
+        run.text = run.text if run.text.strip() else " "
         run.font.name = "Calibri"
         run.font.size = Pt(10)
         run.font.bold = bold
@@ -190,19 +190,16 @@ def mostrar(supabase):
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
         shd = OxmlElement("w:shd")
-        shd.set(qn("w:fill"), bg_color.lower())
+        shd.set(qn("w:fill"), bg_color)
         tcPr.append(shd)
     
         para.alignment = 1  # Centrado
-
-
+    
     # Preparar dataframe combinado para informe
     df_informe = df_agentes.copy()
     
     # Reasegurar columnas necesarias en df_agentes
-    columnas_necesarias = [
-        "cuil", "apellido_nombre", "nivel", "agrupamiento", "ingresante"
-    ]
+    columnas_necesarias = ["cuil", "apellido_nombre", "nivel", "agrupamiento", "ingresante"]
     for col in columnas_necesarias:
         if col not in df_informe.columns:
             df_informe[col] = ""
@@ -215,23 +212,39 @@ def mostrar(supabase):
     
     # Unir evaluaciones a todos los agentes (para listados por formulario)
     df_evaluados = df_informe.merge(
-        df_no_anuladas[columnas_eval],
-        on="cuil", how="left"
+        df_no_anuladas[columnas_eval], on="cuil", how="left"
     ).fillna("")
     
-    # Función para generar el informe
     def generar_informe_docx(df_base, df_eval, dependencia_nombre):
         doc = Document()
+    
+        # Márgenes 2 cm
+        section = doc.sections[0]
+        section.top_margin = Cm(2)
+        section.bottom_margin = Cm(2)
+        section.left_margin = Cm(2)
+        section.right_margin = Cm(2)
+    
+        # Fuente general
         doc.styles["Normal"].font.name = "Calibri"
         doc.styles["Normal"].font.size = Pt(10)
     
-        doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
+        # Títulos con estilo
+        def titulo(texto):
+            p = doc.add_paragraph()
+            run = p.add_run(texto)
+            run.font.name = "Calibri"
+            run.font.size = Pt(10)
+            run.font.bold = True
+            run.font.color.rgb = RGBColor.from_string("104f8e")
+    
+        titulo("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS")
         doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
         doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
-        doc.add_heading(f"UNIDAD DE ANALISIS: {dependencia_nombre}", level=2)
+        titulo(f"UNIDAD DE ANALISIS: {dependencia_nombre}")
     
         # AGRUPAMIENTO
-        doc.add_heading("PERSONAL POR TIPO DE AGRUPAMIENTO", level=2)
+        titulo("PERSONAL POR TIPO DE AGRUPAMIENTO")
         gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
         prof = len(df_base[df_base["agrupamiento"] == "PROF"])
         tabla_agrup = doc.add_table(rows=2, cols=2)
@@ -242,7 +255,7 @@ def mostrar(supabase):
             tabla_agrup.cell(1, i).text = str([gral, prof][i])
     
         # ESCALAFÓN
-        doc.add_heading("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO", level=2)
+        titulo("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO")
         niveles = ["A", "B", "C", "D", "E"]
         conteo_niveles = df_base["nivel"].value_counts()
         tabla_nivel = doc.add_table(rows=2, cols=5)
@@ -253,7 +266,7 @@ def mostrar(supabase):
             tabla_nivel.cell(1, i).text = str(conteo_niveles.get(nivel, 0))
     
         # EVALUADO / INGRESANTE
-        doc.add_heading("PERSONAL EVALUADO", level=2)
+        titulo("PERSONAL EVALUADO")
         df_evaluable = df_base[df_base["ingresante"].isin([True, False])]
         no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
         ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
@@ -272,30 +285,27 @@ def mostrar(supabase):
             tabla_eval.cell(0, i).text = h
             set_cell_style(tabla_eval.cell(0, i))
             tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, evaluados][i])
-
-
-        # FUNCIÓN AUXILIAR PARA LISTADOS POR FORMULARIO
-        def agregar_tabla_por_formulario(titulo, formularios):
-            doc.add_heading(titulo, level=2)
+    
+        # FUNCION AUXILIAR PARA LISTADOS POR FORMULARIO
+        def agregar_tabla_por_formulario(titulo_texto, formularios):
+            titulo(titulo_texto)
             subset = df_eval[df_eval["formulario"].astype(str).isin(formularios)].sort_values("apellido_nombre")
-
+    
             tabla = doc.add_table(rows=1, cols=3)
             tabla.style = 'Table Grid'
             for i, col in enumerate(["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]):
                 tabla.cell(0, i).text = col
                 set_cell_style(tabla.cell(0, i))
-
+    
             if subset.empty:
                 p = doc.add_paragraph("No hay evaluaciones registradas en este nivel.")
                 p.paragraph_format.space_before = Pt(4)
                 return
-
+    
             for _, row in subset.iterrows():
                 r = tabla.add_row().cells
                 r[0].text = row.get("apellido_nombre", "")
                 r[1].text = row.get("calificacion", "")
-
-                # Formatear puntaje quitando .0 si es entero
                 puntaje = row.get("puntaje_total", "")
                 try:
                     puntaje_float = float(puntaje)
@@ -303,13 +313,12 @@ def mostrar(supabase):
                 except:
                     pass
                 r[2].text = str(puntaje)
-
+    
         agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
-
+    
         return doc
-
 
     st.markdown("---")
     st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
