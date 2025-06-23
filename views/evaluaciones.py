@@ -27,33 +27,36 @@ def mostrar(supabase):
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
     dependencias_subordinadas = []
+        # No agregar otras dependencias si no es RRHH o Coordinador
     if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         resultado = supabase.table("unidades_evaluacion")\
             .select("dependencia")\
             .eq("dependencia_general", dependencia_general)\
-            .neq("dependencia", dependencia_usuario)\
             .execute()
         dependencias_subordinadas = sorted({d["dependencia"] for d in resultado.data})
         opciones_dependencia += [
-            d for d in dependencias_subordinadas
-            if d != dependencia_usuario and "UNIDAD RESIDUAL" not in d.upper()
+            f"{dependencia_general} (todas)"
         ]
+    elif dependencia_usuario:
+        opciones_dependencia.append(f"{dependencia_usuario} (individual)")
+
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
 
     # --- Filtrar agentes por dependencia seleccionada ---
     if dependencia_seleccionada and "(todas)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_general
-        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia_general", dependencia_filtro).execute().data
+        agentes = supabase.table("agentes").select("*").eq("dependencia_general", dependencia_filtro).execute().data
     elif dependencia_seleccionada and "(individual)" in dependencia_seleccionada:
         dependencia_filtro = dependencia_usuario
-        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
+        agentes = supabase.table("agentes").select("*").eq("dependencia", dependencia_filtro).execute().data
     elif dependencia_seleccionada:
         dependencia_filtro = dependencia_seleccionada
-        agentes = supabase.table("agentes").select("cuil, evaluado_2024").eq("dependencia", dependencia_filtro).execute().data
+        agentes = supabase.table("agentes").select("*").eq("dependencia", dependencia_filtro).execute().data
     else:
         st.warning("⚠️ Seleccione una dependencia válida para continuar.")
         return
+
 
     cuils_asignados = [a["cuil"] for a in agentes]
     total_asignados = len(cuils_asignados)
@@ -112,6 +115,11 @@ def mostrar(supabase):
     
     # Asignar estado
     df_no_anuladas["Estado"] = "Registrada"
+
+    # --- Unir evaluaciones con datos de agentes ---
+    df_agentes = pd.DataFrame(agentes)
+    if not df_agentes.empty:
+        df_no_anuladas = df_no_anuladas.merge(df_agentes, on="cuil", how="left")
 
 
     # --- Indicadores únicos por persona ---
