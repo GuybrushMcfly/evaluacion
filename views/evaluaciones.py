@@ -326,10 +326,12 @@ def mostrar(supabase):
 
     df_informe = df_agentes.copy()
 
-    df_evaluados = df_informe.merge(
+    df_evaluados = df_agentes.merge(
         df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total", "apellido_nombre"]],
         on="cuil", how="left"
     ).fillna("")
+    # → apellido_nombre viene de df_no_anuladas que sí los tiene
+
 
 
     st.markdown("---")
