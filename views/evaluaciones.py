@@ -295,13 +295,18 @@ def mostrar(supabase):
         if df_informe.empty:
             st.warning("⚠️ No hay agentes registrados en esta unidad.")
         else:
+            # Asegurar que df_evaluados tenga las columnas necesarias
+            for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
+                if col not in df_evaluados.columns:
+                    df_evaluados[col] = ""
+            
             with st.spinner("✏️ Generando documento..."):
                 doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
                     doc.save(tmp.name)
                     tmp_path = tmp.name  # Guardamos ruta temporal
     
-            # Mostrar botón de descarga fuera del with
+            # Mostrar botón de descarga fuera del spinner
             with open(tmp_path, "rb") as file:
                 st.download_button(
                     label="📄 Descargar Informe Word",
