@@ -194,21 +194,27 @@ def mostrar(supabase):
     # Preparar dataframe combinado para informe
     df_informe = df_agentes.copy()
     
-    # Reasegurar columnas necesarias
+    # Reasegurar columnas necesarias en df_agentes
     columnas_necesarias = [
-        "cuil", "apellido_nombre", "calificacion", "puntaje_total", "formulario",
-        "nivel", "agrupamiento", "ingresante"
+        "cuil", "apellido_nombre", "nivel", "agrupamiento", "ingresante"
     ]
     for col in columnas_necesarias:
         if col not in df_informe.columns:
             df_informe[col] = ""
     
-    # Unir evaluaciones para los listados por formulario
-    df_evaluados = df_informe.merge(
-        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total"]],
-        on="cuil", how="left"
-    )
+    # Preparar las columnas necesarias en df_no_anuladas
+    columnas_eval = ["cuil", "formulario", "calificacion", "puntaje_total"]
+    for col in columnas_eval:
+        if col not in df_no_anuladas.columns:
+            df_no_anuladas[col] = ""
     
+    # Unir evaluaciones a todos los agentes (para listados por formulario)
+    df_evaluados = df_informe.merge(
+        df_no_anuladas[columnas_eval],
+        on="cuil", how="left"
+    ).fillna("")
+    
+    # Función para generar el informe
     def generar_informe_docx(df_base, df_eval, dependencia_nombre):
         doc = Document()
         doc.styles["Normal"].font.name = "Calibri"
@@ -247,12 +253,7 @@ def mostrar(supabase):
         no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
         ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
         total_evaluable = no_ingresantes + ingresantes
-        if "calificacion" in df_evaluados.columns:
-            evaluados = df_evaluados["calificacion"].notna().sum()
-        else:
-            evaluados = 0
-
-
+        evaluados = df_eval["calificacion"].apply(lambda x: x != "").sum()
     
         tabla_eval = doc.add_table(rows=2, cols=4)
         tabla_eval.style = 'Table Grid'
