@@ -20,25 +20,27 @@ def mostrar(supabase):
     dependencia_usuario = st.session_state.get("dependencia", "")
     dependencia_general = st.session_state.get("dependencia_general", "")
 
+        
     opciones_dependencia = []
-
+    
     if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         opciones_dependencia.append(f"{dependencia_general} (todas)")
+    
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
+    
     dependencias_subordinadas = []
-        # No agregar otras dependencias si no es RRHH o Coordinador
     if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
         resultado = supabase.table("unidades_evaluacion")\
             .select("dependencia")\
             .eq("dependencia_general", dependencia_general)\
+            .neq("dependencia", dependencia_usuario)\
             .execute()
         dependencias_subordinadas = sorted({d["dependencia"] for d in resultado.data})
         opciones_dependencia += [
-            f"{dependencia_general} (todas)"
+            d for d in dependencias_subordinadas
+            if d != dependencia_usuario and "UNIDAD RESIDUAL" not in d.upper()
         ]
-    elif dependencia_usuario:
-        opciones_dependencia.append(f"{dependencia_usuario} (individual)")
 
 
     dependencia_seleccionada = st.selectbox("📂 Dependencia a visualizar:", opciones_dependencia)
@@ -170,6 +172,13 @@ def mostrar(supabase):
 
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
+
+    # Asegurar columnas requeridas para la tabla
+    for col in ["apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"]:
+        if col not in df_no_anuladas.columns:
+            df_no_anuladas[col] = ""
+
+    
     st.dataframe(
         df_no_anuladas[[
             "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
