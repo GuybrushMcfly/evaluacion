@@ -122,7 +122,7 @@ def mostrar(supabase):
 
     
     # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
-    st.markdown("<h2 style='font-size:24px;'>📋 Calificaciones</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
     categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
     calif_counts = {cat: 0 for cat in categorias}
     if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
@@ -146,7 +146,7 @@ def mostrar(supabase):
 
         #st.subheader("📋 Uso de formularios")
     # ---- INDICADORES DE USO DE FORMULARIOS AGRUPADOS POR NIVEL ----
-    st.markdown("<h2 style='font-size:24px;'>📋 Niveles de Evaluación</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
     
     df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
     
