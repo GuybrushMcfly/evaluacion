@@ -219,7 +219,7 @@ def mostrar(supabase):
             run.font.name = "Calibri"
             run.font.size = Pt(10)
             run.font.bold = True
-            run.font.color.rgb = RGBColor.from_string("136AC1")
+            run.font.color.rgb = RGBColor.from_string("104f8e")
     
         # Encabezado
         header = section.header
@@ -233,7 +233,7 @@ def mostrar(supabase):
         run.font.name = "Calibri"
         run.font.size = Pt(10)
         run.font.bold = True
-        run.font.color.rgb = RGBColor.from_string("136AC1")
+        run.font.color.rgb = RGBColor.from_string("104f8e")
         p_header.alignment = 1
         p_header.paragraph_format.line_spacing = Pt(12)
     
@@ -323,14 +323,11 @@ def mostrar(supabase):
     
         return doc
 
+    
+    df_evaluados = df_no_anuladas.copy()
+    
+    df_informe = df_evaluados.copy()  # si querés mantener consistencia
 
-    df_informe = df_agentes.copy()
-
-    df_evaluados = df_agentes.merge(
-        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total", "apellido_nombre"]],
-        on="cuil", how="left"
-    ).fillna("")
-    # → apellido_nombre viene de df_no_anuladas que sí los tiene
 
 
 
