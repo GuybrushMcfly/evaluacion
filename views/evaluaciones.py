@@ -332,9 +332,14 @@ def mostrar(supabase):
         return doc
 
     
-    df_evaluados = df_no_anuladas.copy()
+   
+    df_informe = df_agentes.copy()  # todos los agentes asignados
     
-    df_informe = df_evaluados.copy()  # si querés mantener consistencia
+    df_evaluados = df_informe.merge(
+        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total", "apellido_nombre"]],
+        on="cuil", how="left"
+    ).fillna("")
+
 
 
 
