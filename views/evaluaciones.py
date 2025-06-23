@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from pytz import timezone
 import time
+from docx import Document
+from docx.shared import Pt
+import tempfile
+import io
 
 def mostrar(supabase):
     st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h2>", unsafe_allow_html=True)
@@ -169,6 +173,82 @@ def mostrar(supabase):
         hide_index=True
     )
 
+    # ---- BOTÓN PARA GENERAR Y DESCARGAR INFORME WORD ----
+
+
+    st.markdown("---")
+    st.markdown("<h3 style='font-size:22px;'>📄 Generar informe resumen</h3>", unsafe_allow_html=True)
+
+    def generar_planilla_docx(df, dependencia_nombre):
+        doc = Document()
+
+        # Encabezado
+        doc.add_heading("INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS", level=1)
+        doc.add_paragraph("DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL")
+        doc.add_paragraph("EVALUACIÓN DE DESEMPEÑO 2024")
+        doc.add_heading(f"UNIDAD DE ANALISIS: {dependencia_nombre}", level=2)
+
+        # Tabla agrupamiento
+        doc.add_heading("PERSONAL POR TIPO DE AGRUPAMIENTO", level=2)
+        agrup_counts = df["agrupamiento"].value_counts()
+        tabla_agrup = doc.add_table(rows=1, cols=2)
+        hdr = tabla_agrup.rows[0].cells
+        hdr[0].text = "GENERAL"
+        hdr[1].text = "PROFESIONAL"
+        row = tabla_agrup.add_row().cells
+        row[0].text = str(agrup_counts.get("GENERAL", 0))
+        row[1].text = str(agrup_counts.get("PROFESIONAL", 0))
+
+        # Tabla nivel+grado
+        doc.add_heading("PERSONAL POR TIPO DE NIVEL ESCALAFONARIO", level=2)
+        df["categoria"] = df["nivel"].astype(str) + df["grado"].astype(str)
+        cat_counts = df["categoria"].value_counts()
+        tabla_cat = doc.add_table(rows=1, cols=len(cat_counts))
+        hdr = tabla_cat.rows[0].cells
+        for i, cat in enumerate(cat_counts.index):
+            hdr[i].text = cat
+        row = tabla_cat.add_row().cells
+        for i, cat in enumerate(cat_counts.index):
+            row[i].text = str(cat_counts[cat])
+
+        def agregar_tabla_por_formulario(titulo, formularios):
+            doc.add_heading(titulo, level=2)
+            subset = df[df["formulario"].astype(str).isin(formularios)]
+            tabla = doc.add_table(rows=1, cols=3)
+            tabla.style = 'Table Grid'
+            hdr = tabla.rows[0].cells
+            hdr[0].text = "APELLIDOS Y NOMBRES"
+            hdr[1].text = "CALIFICACIÓN"
+            hdr[2].text = "PUNTAJE"
+            for _, row in subset.iterrows():
+                r = tabla.add_row().cells
+                r[0].text = row.get("apellido_nombre", "")
+                r[1].text = row.get("calificacion", "")
+                r[2].text = str(row.get("puntaje_total", ""))
+
+        agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
+        agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
+        agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
+
+        return doc
+
+    if st.button("📥 Generar y descargar informe Word"):
+        if df_no_anuladas.empty:
+            st.warning("⚠️ No hay evaluaciones válidas para esta dependencia.")
+        else:
+            doc = generar_planilla_docx(df_no_anuladas, dependencia_filtro)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                doc.save(tmp.name)
+                tmp.seek(0)
+                st.download_button(
+                    label="📄 Descargar informe",
+                    data=tmp.read(),
+                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+
+
+    
     
     # Consultar si la funcionalidad de anulación está habilitada
     conf = supabase.table("configuracion").select("valor").eq("id", "anulacion_activa").execute().data
@@ -179,7 +259,7 @@ def mostrar(supabase):
 
         # Asegurar columnas necesarias
         for col in ["Seleccionar", "calif_puntaje", "apellido_nombre", "formulario",
-                    "Fecha_formateada", "id_evaluacion", "cuil", "calificacion", "puntaje_total"]:
+                    "Fecha_formateada", "id_evaluacion", "cuil", "calificacion", "puntaje_total", "agrupamiento", "nivel", "grado", "ingresante"]:
             if col not in df_no_anuladas.columns:
                 if col == "Seleccionar":
                     df_no_anuladas["Seleccionar"] = False
