@@ -335,10 +335,11 @@ def mostrar(supabase):
    
     df_informe = df_agentes.copy()  # todos los agentes asignados
     
-    df_evaluados = df_informe.merge(
-        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total", "apellido_nombre"]],
+    df_evaluados = df_agentes[["cuil", "apellido_nombre"]].merge(
+        df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total"]],
         on="cuil", how="left"
     ).fillna("")
+
 
 
 
