@@ -190,6 +190,17 @@ def mostrar(supabase):
         shd = OxmlElement("w:shd")
         shd.set(qn("w:fill"), bg_color)
         tcPr.append(shd)
+
+    df_informe = df_agentes.copy()
+    
+    # Asegurar que tenga las columnas necesarias
+    columnas_necesarias = [
+        "cuil", "apellido_nombre", "calificacion", "puntaje_total", "formulario",
+        "nivel", "agrupamiento", "ingresante"
+    ]
+    for col in columnas_necesarias:
+        if col not in df_informe.columns:
+            df_informe[col] = ""
     
     def generar_informe_docx(df, dependencia_nombre):
         doc = Document()
@@ -267,23 +278,24 @@ def mostrar(supabase):
     
     # Botón de descarga
     st.markdown("---")
-    st.markdown("<h3 style='font-size:22px;'>📄 Generar informe resumen Word</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
     
-    if st.button("📥 Descargar informe Word"):
-        if df_no_anuladas.empty:
-            st.warning("⚠️ No hay evaluaciones válidas para esta dependencia.")
+    if st.button("📥 Generar y Descargar Informe Word"):
+        if df_informe.empty:
+            st.warning("⚠️ No hay agentes registrados en esta unidad.")
         else:
-            doc = generar_informe_docx(df_no_anuladas, dependencia_filtro)
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                doc.save(tmp.name)
-                tmp.seek(0)
-                st.download_button(
-                    label="📄 Descargar informe",
-                    data=tmp.read(),
-                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
-    
+            with st.spinner("✏️ Generando documento..."):
+                doc = generar_informe_docx(df_informe, dependencia_filtro)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                    doc.save(tmp.name)
+                    tmp.seek(0)
+                    st.download_button(
+                        label="📄 Descargar Informe Word",
+                        data=tmp.read(),
+                        file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+
     if not df_no_anuladas.empty:
         st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
       # st.subheader("🔄 Evaluaciones que pueden anularse:")
