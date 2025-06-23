@@ -267,27 +267,44 @@ def mostrar(supabase):
             tabla_eval.cell(0, i).text = h
             set_cell_style(tabla_eval.cell(0, i))
             tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, evaluados][i])
-    
-        # FUNCION AUXILIAR PARA LISTADOS POR FORMULARIO
+
+
+        # FUNCIÓN AUXILIAR PARA LISTADOS POR FORMULARIO
         def agregar_tabla_por_formulario(titulo, formularios):
             doc.add_heading(titulo, level=2)
             subset = df_eval[df_eval["formulario"].astype(str).isin(formularios)].sort_values("apellido_nombre")
+
             tabla = doc.add_table(rows=1, cols=3)
             tabla.style = 'Table Grid'
             for i, col in enumerate(["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]):
                 tabla.cell(0, i).text = col
                 set_cell_style(tabla.cell(0, i))
+
+            if subset.empty:
+                p = doc.add_paragraph("No hay evaluaciones registradas en este nivel.")
+                p.paragraph_format.space_before = Pt(4)
+                return
+
             for _, row in subset.iterrows():
                 r = tabla.add_row().cells
                 r[0].text = row.get("apellido_nombre", "")
                 r[1].text = row.get("calificacion", "")
-                r[2].text = str(row.get("puntaje_total", ""))
-    
+
+                # Formatear puntaje quitando .0 si es entero
+                puntaje = row.get("puntaje_total", "")
+                try:
+                    puntaje_float = float(puntaje)
+                    puntaje = int(puntaje_float) if puntaje_float.is_integer() else puntaje_float
+                except:
+                    pass
+                r[2].text = str(puntaje)
+
         agregar_tabla_por_formulario("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
-    
+
         return doc
+
 
     st.markdown("---")
     st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
