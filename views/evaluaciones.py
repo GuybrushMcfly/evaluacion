@@ -1,4 +1,5 @@
-import streamlit as st
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qnimport streamlit as st
 import pandas as pd
 from pytz import timezone
 import time
@@ -6,6 +7,7 @@ from docx import Document
 from docx.shared import Pt
 import tempfile
 import io
+from docx.oxml.ns import qn
 
 def mostrar(supabase):
     st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h2>", unsafe_allow_html=True)
