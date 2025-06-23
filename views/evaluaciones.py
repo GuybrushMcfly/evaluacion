@@ -247,7 +247,12 @@ def mostrar(supabase):
         no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
         ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
         total_evaluable = no_ingresantes + ingresantes
-        evaluados = df_evaluados["calificacion"].notna().sum()
+        if "calificacion" in df_evaluados.columns:
+            evaluados = df_evaluados["calificacion"].notna().sum()
+        else:
+            evaluados = 0
+
+
     
         tabla_eval = doc.add_table(rows=2, cols=4)
         tabla_eval.style = 'Table Grid'
