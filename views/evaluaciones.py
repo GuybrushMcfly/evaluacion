@@ -340,36 +340,30 @@ def mostrar(supabase):
     ).fillna("")
 
 
-
-
-
-
     st.markdown("---")
-    st.markdown("<h3 style='font-size:22px;'>📄 Generar y descargar informe resumen Word</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size:22px;'>📄 Descargar informe resumen Word</h3>", unsafe_allow_html=True)
     
-    if st.button("📥 Generar y Descargar Informe Word"):
-        if df_informe.empty:
-            st.warning("⚠️ No hay agentes registrados en esta unidad.")
-        else:
-            # Asegurar columnas necesarias en df_evaluados
-            for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
-                if col not in df_evaluados.columns:
-                    df_evaluados[col] = ""
+    if not df_informe.empty:
+        for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
+            if col not in df_evaluados.columns:
+                df_evaluados[col] = ""
     
-            with st.spinner("✏️ Generando documento..."):
-                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                    doc.save(tmp.name)
-                    tmp_path = tmp.name  # Guardamos ruta temporal
+        with st.spinner("✏️ Generando documento..."):
+            doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                doc.save(tmp.name)
+                tmp_path = tmp.name
     
-            # Botón de descarga fuera del spinner
-            with open(tmp_path, "rb") as file:
-                st.download_button(
-                    label="📄 Descargar Informe Word",
-                    data=file,
-                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+        with open(tmp_path, "rb") as file:
+            st.download_button(
+                label="📄 Descargar Informe Word",
+                data=file,
+                file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+    else:
+        st.warning("⚠️ No hay agentes registrados en esta unidad.")
+
 
     
 
