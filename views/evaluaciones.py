@@ -244,8 +244,8 @@ def mostrar(supabase):
         tabla_agrup = doc.add_table(rows=2, cols=2)
         tabla_agrup.style = 'Table Grid'
         for i, h in enumerate(["GENERAL", "PROFESIONAL"]):
-            set_cell_style(tabla_agrup.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_agrup.cell(0, i).text = h
+            set_cell_style(tabla_agrup.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_agrup.cell(1, i).text = str([gral, prof][i])
             set_cell_style(tabla_agrup.cell(1, i), bold=False)
     
@@ -258,8 +258,8 @@ def mostrar(supabase):
         tabla_nivel = doc.add_table(rows=2, cols=5)
         tabla_nivel.style = 'Table Grid'
         for i, nivel in enumerate(niveles):
-            set_cell_style(tabla_nivel.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_nivel.cell(0, i).text = nivel
+            set_cell_style(tabla_nivel.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_nivel.cell(1, i).text = str(conteo_niveles.get(nivel, 0))
             set_cell_style(tabla_nivel.cell(1, i), bold=False)
     
@@ -282,8 +282,8 @@ def mostrar(supabase):
             "TOTAL EVALUADO"
         ]
         for i, h in enumerate(eval_headers):
-            set_cell_style(tabla_eval.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_eval.cell(0, i).text = h
+            set_cell_style(tabla_eval.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
             tabla_eval.cell(1, i).text = str([no_ingresantes, ingresantes, total_evaluable, evaluados][i])
             set_cell_style(tabla_eval.cell(1, i), bold=False)
     
@@ -296,9 +296,10 @@ def mostrar(supabase):
     
             tabla = doc.add_table(rows=1, cols=3)
             tabla.style = 'Table Grid'
-            for i, col in enumerate(["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]):
-                set_cell_style(tabla.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
+            headers = ["APELLIDOS Y NOMBRES", "CALIFICACIÓN", "PUNTAJE"]
+            for i, col in enumerate(headers):
                 tabla.cell(0, i).text = col
+                set_cell_style(tabla.cell(0, i), bg_color="104f8e", font_color="FFFFFF")
     
             if subset.empty:
                 doc.add_paragraph("No hay evaluaciones registradas en este nivel.")
@@ -321,6 +322,7 @@ def mostrar(supabase):
         agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
     
         return doc
+
 
     df_informe = df_agentes.copy()
 
