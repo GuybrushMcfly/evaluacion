@@ -27,14 +27,14 @@ def mostrar(supabase):
     # Construir opciones de filtro de dependencia
     opciones_dependencia = []
 
-    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
+    if tiene_rol("coordinador", "evaluador_general") and dependencia_general:
         opciones_dependencia.append(f"{dependencia_general} (todas)")
 
     if dependencia_usuario:
         opciones_dependencia.append(f"{dependencia_usuario} (individual)")
 
     dependencias_subordinadas = []
-    if tiene_rol("rrhh", "coordinador", "evaluador_general") and dependencia_general:
+    if tiene_rol("coordinador", "evaluador_general") and dependencia_general:
         resultado = supabase.table("unidades_evaluacion")\
             .select("dependencia")\
             .eq("dependencia_general", dependencia_general)\
