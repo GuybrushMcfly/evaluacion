@@ -69,101 +69,44 @@ def mostrar(supabase):
 
     st.divider()
     #st.subheader("📊 Indicadores")
-    st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
-    cols = st.columns(3)
-    with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
-    with cols[1]: st.metric("✅ Evaluados", evaluados)
-    with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
-    st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
-
-    # Obtener evaluaciones filtradas
-    evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
-    df_eval = pd.DataFrame(evaluaciones)
-
-    if df_eval.empty:
-        df_eval = pd.DataFrame(columns=[
-            "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
-            "puntaje_total", "evaluador", "id_evaluacion", "cuil"
-        ])
-
-    if "anulada" not in df_eval.columns:
-        df_eval["anulada"] = False
-    else:
-        df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
-
-    if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
-        hora_arg = timezone('America/Argentina/Buenos_Aires')
-        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
-        df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
-    else:
-        df_eval["Fecha_formateada"] = ""
-
-    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
-
-    # Unir con datos de agentes si no están ya
-    agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
-    df_agentes = pd.DataFrame(agentes_completos)
+    tab1, tab2 = st.tabs(["📊 Indicadores", "✅ Evaluaciones"])
     
-    if not df_agentes.empty:
-        df_no_anuladas = df_no_anuladas.merge(df_agentes[[
-            "cuil", "agrupamiento", "nivel", "ingresante", "apellido_nombre"
-        ]], on="cuil", how="left", suffixes=("", "_agente"))
+    with tab1:
+        st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
+        cols = st.columns(3)
+        with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
+        with cols[1]: st.metric("✅ Evaluados", evaluados)
+        with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
+        st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
     
-    # Reasegurar columnas requeridas por el informe
-    columnas_necesarias = [
-        "cuil", "apellido_nombre", "calificacion", "puntaje_total", "formulario",
-        "nivel", "agrupamiento", "ingresante"
-    ]
-    for col in columnas_necesarias:
-        if col not in df_no_anuladas.columns:
-            df_no_anuladas[col] = ""
-
-
+        st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
+        categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
+        calif_counts = {cat: 0 for cat in categorias}
+        if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
+            temp_counts = df_no_anuladas["calificacion"].value_counts()
+            for cat in categorias:
+                calif_counts[cat] = temp_counts.get(cat, 0)
     
-    # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
-    st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
-    categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
-    calif_counts = {cat: 0 for cat in categorias}
-    if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
-        temp_counts = df_no_anuladas["calificacion"].value_counts()
-        for cat in categorias:
-            calif_counts[cat] = temp_counts.get(cat, 0)
+        col_cats = st.columns(len(categorias))
+        emojis = ["🌟", "👍", "🟡", "🔴"]
+        for i, cat in enumerate(categorias):
+            col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
     
-    col_cats = st.columns(len(categorias))
-    emojis = ["🌟", "👍", "🟡", "🔴"]
-    for i, cat in enumerate(categorias):
-        col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
+        st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
+        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+        niveles_eval = {
+            "🔵 Nivel Jerárquico": ["1"],
+            "🟣 Niveles Medios": ["2", "3", "4"],
+            "🟢 Niveles Operativos": ["5", "6"]
+        }
+        cols = st.columns(3)
+        for i, (titulo, formularios) in enumerate(niveles_eval.items()):
+            cantidad = df_no_anuladas["formulario"].isin(formularios).sum()
+            cols[i].metric(titulo, cantidad)
     
-    # ---- CREAR calif_puntaje SIEMPRE ANTES DE USARLA EN LA TABLA ----
-    if "calif_puntaje" not in df_no_anuladas.columns:
-        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-            lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
-            if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
-            else "",
-            axis=1
-        )
-
-        #st.subheader("📋 Uso de formularios")
-    # ---- INDICADORES DE USO DE FORMULARIOS AGRUPADOS POR NIVEL ----
-    st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
+    with tab2:
+        st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
     
-    df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
-    
-    niveles_eval = {
-        "🔵 Nivel Jerárquico": ["1"],
-        "🟣 Niveles Medios": ["2", "3", "4"],
-        "🟢 Niveles Operativos": ["5", "6"]
-    }
-    
-    cols = st.columns(3)
-    for i, (titulo, formularios) in enumerate(niveles_eval.items()):
-        cantidad = df_no_anuladas["formulario"].isin(formularios).sum()
-        cols[i].metric(titulo, cantidad)
-
-
-    st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
-
     # ---- TABLA DE EVALUACIONES REGISTRADAS ----
     st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
     #st.subheader("✅ Evaluaciones registradas:")
