@@ -368,18 +368,21 @@ def mostrar(supabase):
         st.warning("⚠️ No hay agentes registrados en esta unidad.")
 
 
+    # Obtener configuración global
+    config_items = supabase.table("configuracion").select("*").execute().data
+    config_map = {item["id"]: item for item in config_items}
+    anulacion_activa = config_map.get("anulacion_activa", {}).get("valor", True)
     
 
-
-    if not df_no_anuladas.empty:
+    # Mostrar bloque de anulaciones solo si está habilitado
+    if not df_no_anuladas.empty and anulacion_activa:
         st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
-      # st.subheader("🔄 Evaluaciones que pueden anularse:")
         df_no_anuladas["Seleccionar"] = False
         df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
             lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
         )
+
     
-        # Incluí id_evaluacion antes de construir df_para_mostrar
        # Incluí id_evaluacion antes de construir df_para_mostrar
         df_para_mostrar = df_no_anuladas[[
             "Seleccionar", "apellido_nombre", "formulario",
@@ -430,7 +433,8 @@ def mostrar(supabase):
                 st.success(f"✅ {len(ids_seleccionados)} evaluaciones anuladas.")
                 time.sleep(2)
                 st.rerun()
-
+    elif not anulacion_activa:
+        st.info("🔒 La anulación de evaluaciones está deshabilitada por configuración.")
 
     df_anuladas = df_eval[df_eval["anulada"] == True].copy()
     if not df_anuladas.empty:
