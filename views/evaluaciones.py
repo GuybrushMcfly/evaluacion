@@ -546,4 +546,79 @@ def mostrar(supabase):
         
         st.plotly_chart(fig, use_container_width=True)
 
+        st.markdown("<h2 style='font-size:24px;'>👤 Ingresantes vs No Ingresantes</h2>", unsafe_allow_html=True)
+        
+        ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
+        no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
+        total_ing = ingresantes + no_ingresantes
+        pct_ing = ingresantes / total_ing * 100 if total_ing > 0 else 0
+        pct_no_ing = no_ingresantes / total_ing * 100 if total_ing > 0 else 0
+        
+        fig_ing = go.Figure()
+        
+        fig_ing.add_trace(go.Bar(
+            y=["Agentes"],
+            x=[no_ingresantes],
+            name="No Ingresantes",
+            marker_color='#FFB347',
+            orientation='h',
+            customdata=[[no_ingresantes, pct_no_ing]],
+            hovertemplate='🙋‍♂️ No Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+        
+        fig_ing.add_trace(go.Bar(
+            y=["Agentes"],
+            x=[ingresantes],
+            name="Ingresantes",
+            marker_color='#77DD77',
+            orientation='h',
+            customdata=[[ingresantes, pct_ing]],
+            hovertemplate='🙋‍♀️ Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+        
+        fig_ing.update_layout(
+            barmode='stack',
+            height=140,
+            showlegend=True,
+            margin=dict(l=30, r=30, t=30, b=30),
+            xaxis_title="Cantidad",
+            yaxis_title="",
+        )
+        
+        st.plotly_chart(fig_ing, use_container_width=True)
+
+
+        st.markdown("<h2 style='font-size:24px;'>📚 Distribución por Nivel</h2>", unsafe_allow_html=True)
+        
+        niveles = ["A", "B", "C", "D", "E"]
+        conteo_niveles = df_agentes["nivel"].value_counts().to_dict()
+        total_niveles = sum(conteo_niveles.get(n, 0) for n in niveles)
+        
+        fig_niv = go.Figure()
+        colores_niveles = ['#F1948A', '#F7DC6F', '#82E0AA', '#85C1E9', '#D7BDE2']
+        
+        for i, nivel in enumerate(niveles):
+            cantidad = conteo_niveles.get(nivel, 0)
+            pct = cantidad / total_niveles * 100 if total_niveles > 0 else 0
+            fig_niv.add_trace(go.Bar(
+                y=["Agentes"],
+                x=[cantidad],
+                name=f"Nivel {nivel}",
+                marker_color=colores_niveles[i],
+                orientation='h',
+                customdata=[[cantidad, pct]],
+                hovertemplate=f"📘 Nivel {nivel}: "+"%{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>"
+            ))
+        
+        fig_niv.update_layout(
+            barmode='stack',
+            height=160,
+            showlegend=True,
+            margin=dict(l=30, r=30, t=30, b=30),
+            xaxis_title="Cantidad",
+            yaxis_title="",
+        )
+        
+        st.plotly_chart(fig_niv, use_container_width=True)
+
 
