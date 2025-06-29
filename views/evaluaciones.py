@@ -159,7 +159,9 @@ def mostrar(supabase):
         with cols[1]: st.metric("✅ Evaluados", evaluados)
         with cols[2]: st.metric("📊 % Evaluación", f"{int(porcentaje)}%")                
         st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {int(porcentaje)}%")
-    
+
+        st.markdown("---")
+
         st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
         categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
         calif_counts = {cat: 0 for cat in categorias}
@@ -173,6 +175,7 @@ def mostrar(supabase):
         for i, cat in enumerate(categorias):
             col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
     
+        st.markdown("---")
 
     
         st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
@@ -391,7 +394,7 @@ def mostrar(supabase):
     
     
         st.markdown("---")
-        st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True)
+       # st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True) #linea divisora
         st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
         
         if df_informe.empty:
