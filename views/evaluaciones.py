@@ -128,7 +128,8 @@ def mostrar(supabase):
                 "font-size": "17px",
                 "text-align": "center",
                 "margin": "0 8px",
-                "color": "#000000",
+                "color": "white",
+                "font-weight": "bold",
                 "background-color": "#d1484d",  # rojo apagado
                 "border-radius": "8px",
             },
@@ -516,7 +517,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color="lightblue",
+            marker_color='rgb(128,177,211)',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
@@ -526,11 +527,12 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color="lightgreen",
+            marker_color='rgb(190,186,218)',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
             hovertemplate='👥 Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
+
         
         fig.update_layout(
             barmode='stack',
