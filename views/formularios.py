@@ -35,6 +35,10 @@ def mostrar(supabase, formularios, clasificaciones):
     if not agentes_data:
         st.warning("⚠️ No hay agentes disponibles para evaluar.")
         return
+    
+    # Mostrar mensaje con la cantidad de agentes pendientes
+    st.info(f"👥 Tiene {len(agentes_data)} agentes pendientes para evaluar.")
+
 
     # Selección de agente (con placeholder)
     opciones_agentes = [""] + [a["apellido_nombre"] for a in agentes_data]
