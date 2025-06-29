@@ -11,7 +11,7 @@ st.set_page_config(
 
 
 # ---- CONFIGURACIÓN DE PÁGINA ----
-st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
+#st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
 # Mostrar logo siempre, incluso antes de login
 st.sidebar.image("logo-cap.png", use_container_width=True)
