@@ -621,7 +621,7 @@ def mostrar(supabase):
             cantidad = conteo_niveles.get(nivel, 0)
             pct = cantidad / total_niveles * 100 if total_niveles > 0 else 0
             fig_niv.add_trace(go.Bar(
-                y=["Agentes"],
+                y=[""],
                 x=[cantidad],
                 name=f"Nivel {nivel}",
                 marker_color=colores_niveles[i],
