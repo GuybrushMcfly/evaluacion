@@ -46,7 +46,7 @@ def mostrar(supabase, formularios, clasificaciones):
     )
     # Mostrar mensaje SOLO si no se seleccionó aún, pero hay agentes disponibles
     if seleccion_agente == "":
-        st.info(f"👥 Tiene {len(agentes_data)} agentes pendientes para evaluar.")
+        st.info(f"👥 Tiene {len(agentes_data)} agente/s pendiente/s para evaluar.")
         st.warning("⚠️ Por favor seleccione un agente")
         return
 
