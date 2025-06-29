@@ -642,7 +642,7 @@ def mostrar(supabase):
                 xanchor="center",
                 x=0.5,
                 font=dict(
-                    size=14  # 🔍 Aumentá este número para hacerlo más grande
+                    size=16  # 🔍 Aumentá este número para hacerlo más grande
                 )        
             ),
             margin=dict(l=30, r=30, t=30, b=30),
