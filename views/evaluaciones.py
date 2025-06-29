@@ -116,7 +116,7 @@ def mostrar(supabase):
     seleccion = option_menu(
         menu_title=None,
         options=["📊 INDICADORES", "✅ EVALUACIONES"],
-        icons=["bar-chart-line", "clipboard-check"],
+ #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
         styles={
