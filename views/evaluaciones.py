@@ -151,8 +151,8 @@ def mostrar(supabase):
         cols = st.columns(3)
         with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
         with cols[1]: st.metric("✅ Evaluados", evaluados)
-        with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje}%")
-        st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje}%")
+        with cols[2]: st.metric("📊 % Evaluación", f"{int(porcentaje)}%")                
+        st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {int(porcentaje)}%")
     
         st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
         categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
@@ -569,7 +569,6 @@ def mostrar(supabase):
             customdata=[[prof, pct_prof]],
             hovertemplate='PROFESIONAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
-
         
         
         fig_agru.add_trace(go.Bar(
@@ -595,7 +594,6 @@ def mostrar(supabase):
                 xanchor="center",
                 x=0.5,
                 font=dict(size=16),
-                traceorder="reversed"  # 👈 esto revierte el orden de leyenda                     
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
