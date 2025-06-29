@@ -518,7 +518,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color='#F6EFBD',  # GRAL
+            marker_color='#A1D6CB',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
@@ -528,7 +528,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color='#A2D2DF',  # PROF
+            marker_color='#FF8383',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
             hovertemplate='👥 Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
