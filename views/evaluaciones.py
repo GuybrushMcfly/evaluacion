@@ -94,6 +94,14 @@ def mostrar(supabase):
     
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+
+    if "calif_puntaje" not in df_no_anuladas.columns:
+        df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+            lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
+            if pd.notna(row.get("calificacion")) and pd.notna(row.get("puntaje_total"))
+            else "",
+            axis=1
+        )
     
     # Unir con datos de agentes si no están ya
     agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
@@ -113,15 +121,20 @@ def mostrar(supabase):
         default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "#f0f2f6"},
-            "icon": {"color": "#0f62fe", "font-size": "18px"},
+            "icon": {"color": "white", "font-size": "18px"},
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "center",
                 "margin": "0px",
-                "--hover-color": "#eee",
+                "color": "white",
+                "background-color": "#d32f2f",  # rojo inactivo
             },
-            "nav-link-selected": {"background-color": "#0f62fe", "color": "white"},
+            "nav-link-selected": {
+                "background-color": "#b71c1c",  # rojo más oscuro
+                "color": "white",
+            },
         }
+
     )
     
     if seleccion == "📊 Indicadores":
@@ -146,13 +159,7 @@ def mostrar(supabase):
         for i, cat in enumerate(categorias):
             col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
     
-        if "calif_puntaje" not in df_no_anuladas.columns:
-            df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-                lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
-                if pd.notna(row.get("calificacion")) and pd.notna(row.get("puntaje_total"))
-                else "",
-                axis=1
-            )
+
     
         st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
         df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
@@ -465,7 +472,7 @@ def mostrar(supabase):
             )
     
             #st.subheader("❌ Evaluaciones ya anuladas:")
-            st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones ya anuladas:</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
            
             st.dataframe(
                 df_anuladas[[
