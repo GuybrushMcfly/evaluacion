@@ -683,63 +683,54 @@ def mostrar(supabase):
 
 
         st.markdown("<h2 style='font-size:24px;'>Distribución por Ingreso en Planta Permanente</h2>", unsafe_allow_html=True)
-        
-        ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
-        no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
-        total_ing = ingresantes + no_ingresantes
-        pct_ing = ingresantes / total_ing * 100 if total_ing > 0 else 0
-        pct_no_ing = no_ingresantes / total_ing * 100 if total_ing > 0 else 0
-        
-        # Crear una barra vacía y llenarla progresivamente
-        steps = 20
-        for i in range(1, steps + 1):
-            step_ing = int(ingresantes * i / steps)
-            step_no_ing = int(no_ingresantes * i / steps)
-        
-            fig_ing = go.Figure()
-        
-            fig_ing.add_trace(go.Bar(
-                y=[""],
-                x=[step_no_ing],
-                name="HISTÓRICOS",
-                marker_color='#A19AD3',
-                orientation='h',
-                customdata=[[step_no_ing, pct_no_ing]],
-                hovertemplate='HISTÓRICOS: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
-            ))
-        
-            fig_ing.add_trace(go.Bar(
-                y=[""],
-                x=[step_ing],
-                name="INGRESANTES",
-                marker_color='#82E0AA',
-                orientation='h',
-                customdata=[[step_ing, pct_ing]],
-                hovertemplate='INGRESANTES: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
-            ))
-        
-            fig_ing.update_layout(
-                barmode='stack',
-                height=160,
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.6,
-                    xanchor="center",
-                    x=0.5,
-                    font=dict(size=16),
-                    traceorder='normal'
-                ),
-                margin=dict(l=30, r=30, t=30, b=30),
-                xaxis_title="",
-                yaxis_title="",
-                xaxis=dict(range=[0, total_ing])
-            )
-        
-            st.plotly_chart(fig_ing, use_container_width=True, config={"displayModeBar": False})
-            time.sleep(0.05)  # ⏱️ Ajustá la velocidad acá
-
+                
+                ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
+                no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
+                total_ing = ingresantes + no_ingresantes
+                pct_ing = ingresantes / total_ing * 100 if total_ing > 0 else 0
+                pct_no_ing = no_ingresantes / total_ing * 100 if total_ing > 0 else 0
+                
+                fig_ing = go.Figure()
+                
+                fig_ing.add_trace(go.Bar(
+                    y=[""],
+                    x=[no_ingresantes],
+                    name="HISTÓRICOS",
+                    marker_color='#A19AD3',
+                    orientation='h',
+                    customdata=[[no_ingresantes, pct_no_ing]],
+                    hovertemplate='HISTÓRICOS: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+                ))
+                
+                fig_ing.add_trace(go.Bar(
+                    y=[""],
+                    x=[ingresantes],
+                    name="INGRESANTES",
+                    marker_color='#82E0AA',
+                    orientation='h',
+                    customdata=[[ingresantes, pct_ing]],
+                    hovertemplate='INGRESANTES: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+                ))
+                
+                fig_ing.update_layout(
+                    barmode='stack',
+                    height=160,
+                    showlegend=True,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.6,
+                        xanchor="center",
+                        x=0.5,
+                        font=dict(size=16),
+                        traceorder='normal'
+                    ),
+                    margin=dict(l=30, r=30, t=30, b=30),
+                    xaxis_title="",
+                    yaxis_title=""
+                )
+               
+                st.plotly_chart(fig_ing, use_container_width=True, config={"displayModeBar": False})
 
 
 
