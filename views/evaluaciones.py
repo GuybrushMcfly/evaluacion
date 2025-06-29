@@ -391,6 +391,7 @@ def mostrar(supabase):
     
     
         st.markdown("---")
+        st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True)
         st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
         
         if df_informe.empty:
