@@ -708,7 +708,8 @@ def mostrar(supabase):
                 y=-0.6,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=16)
+                font=dict(size=16),
+                traceorder="reversed"  # 👈 invierte el orden
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
