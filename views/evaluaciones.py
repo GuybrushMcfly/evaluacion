@@ -11,6 +11,8 @@ from docx.oxml.ns import qn
 import tempfile
 from docx.shared import Cm 
 from streamlit_option_menu import option_menu
+import plotly.graph_objects as go
+from plotly.colors import qualitative
 
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
@@ -127,11 +129,11 @@ def mostrar(supabase):
                 "text-align": "center",
                 "margin": "0 8px",
                 "color": "#000000",
-                "background-color": "lightcoral",  # rojo apagado
+                "background-color": "#d1484d",  # rojo apagado
                 "border-radius": "8px",
             },
             "nav-link-selected": {
-                "background-color": "lightblue",  # verde fuerte
+                "background-color": "#48d1cc",  # verde fuerte
                 "color": "#0C0909",
                 "font-weight": "bold",
                 "border-radius": "8px",
@@ -498,8 +500,7 @@ def mostrar(supabase):
     
     elif seleccion == "✅ AGENTES EVALUABLES":
 
-        import plotly.graph_objects as go
-        
+                
         st.markdown("<h2 style='font-size:24px;'>👥 Composición por Agrupamiento</h2>", unsafe_allow_html=True)
         
         # Contar agrupamientos
@@ -507,14 +508,16 @@ def mostrar(supabase):
         gral = conteo.get("GRAL", 0)
         prof = conteo.get("PROF", 0)
         
-        # Crear gráfico apilado horizontal
+
+        
+        # Crear gráfico apilado horizontal con colores Pastel1
         fig = go.Figure()
         
         fig.add_trace(go.Bar(
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color="mediumturquoise",
+            marker_color=qualitative.Pastel1[0],  # pastel celeste
             orientation='h'
         ))
         
@@ -522,7 +525,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color="salmon",
+            marker_color=qualitative.Pastel1[1],  # pastel rosa
             orientation='h'
         ))
         
@@ -536,3 +539,4 @@ def mostrar(supabase):
         )
         
         st.plotly_chart(fig, use_container_width=True)
+
