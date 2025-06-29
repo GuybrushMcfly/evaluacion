@@ -117,7 +117,7 @@ def mostrar(supabase):
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
-        options=["📊 INDICADORES", "✅ EVALUACIONES", "👥 AGENTES EVALUABLES"],
+        options=["📊 INDICADORES", "✅ EVALUACIONES", "👥 AGENTES"],
  #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
@@ -134,7 +134,7 @@ def mostrar(supabase):
                 "text-align": "center",
                 "margin": "0 15px",  # ← Margin moderado
                 "flex": "1",  # ← Que se distribuyan uniformemente
-                "max-width": "250px",  # ← Ancho máximo por botón
+                "max-width": "300px",  # ← Ancho máximo por botón
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#d1484d",
@@ -509,7 +509,7 @@ def mostrar(supabase):
     
 
                 
-    elif seleccion == "👥 AGENTES EVALUABLES":
+    elif seleccion == "👥 AGENTES":
 
 
         st.markdown("<h2 style='font-size:24px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
