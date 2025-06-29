@@ -115,7 +115,7 @@ def mostrar(supabase):
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
-        options=["📊 INDICADORES", "✅ Evaluaciones"],
+        options=["📊 INDICADORES", "✅ EVALUACIONES"],
         icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
