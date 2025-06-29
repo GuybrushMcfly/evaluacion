@@ -393,7 +393,9 @@ def mostrar(supabase):
         st.markdown("---")
         st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
         
-        if df_informe.empty or df_no_anuladas.empty:
+        if df_informe.empty:
+            st.warning("⚠️ No hay agentes registrados en esta unidad.")
+        elif df_no_anuladas.empty:
             st.info("ℹ️ No hay evaluaciones registradas para generar el informe.")
         else:
             for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
@@ -413,6 +415,7 @@ def mostrar(supabase):
                     file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
+
 
         else:
             st.warning("⚠️ No hay agentes registrados en esta unidad.")
