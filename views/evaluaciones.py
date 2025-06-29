@@ -471,7 +471,7 @@ def mostrar(supabase):
                     time.sleep(2)
                     st.rerun()
         elif not anulacion_activa:
-            st.info("🔒 La anulación de evaluaciones está deshabilitada por configuración.")
+            st.info("🔒 La anulación de evaluaciones está cerrada.")
     
         df_anuladas = df_eval[df_eval["anulada"] == True].copy()
         if not df_anuladas.empty:
@@ -503,7 +503,53 @@ def mostrar(supabase):
 
                 
     elif seleccion == "✅ AGENTES EVALUABLES":
-        st.markdown("<h2 style='font-size:24px;'>Composición por Agrupamiento</h2>", unsafe_allow_html=True)
+
+
+        st.markdown("<h2 style='font-size:24px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
+        
+        niveles = ["A", "B", "C", "D", "E"]
+        conteo_niveles = df_agentes["nivel"].value_counts().to_dict()
+        total_niveles = sum(conteo_niveles.get(n, 0) for n in niveles)
+        
+        fig_niv = go.Figure()
+        colores_niveles = ['#F1948A', '#F7DC6F', '#82E0AA', '#85C1E9', '#D7BDE2']
+        
+        for i, nivel in enumerate(niveles):
+            cantidad = conteo_niveles.get(nivel, 0)
+            pct = cantidad / total_niveles * 100 if total_niveles > 0 else 0
+            fig_niv.add_trace(go.Bar(
+                y=[""],
+                x=[cantidad],
+                name=f"NIVEL {nivel}",
+                marker_color=colores_niveles[i],
+                orientation='h',
+                customdata=[[cantidad, pct]],
+                hovertemplate=f"NIVEL {nivel}: "+"%{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>"
+            ))
+        
+        # --- Niveles ---
+        fig_niv.update_layout(
+            barmode='stack',
+            height=160,
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.6,
+                xanchor="center",
+                x=0.5,
+                font=dict(
+                    size=16  # 🔍 Aumentá este número para hacerlo más grande
+                )        
+            ),
+            margin=dict(l=30, r=30, t=30, b=30),
+            xaxis_title="",
+            yaxis_title=""
+        )
+        st.plotly_chart(fig_niv, use_container_width=True)
+
+
+        st.markdown("<h2 style='font-size:24px;'>Distribución por Agrupamiento</h2>", unsafe_allow_html=True)
         
         # Calcular cantidades
         gral = len(df_agentes[df_agentes["agrupamiento"] == "GRAL"])
@@ -512,26 +558,27 @@ def mostrar(supabase):
         pct_gral = gral / total * 100 if total > 0 else 0
         pct_prof = prof / total * 100 if total > 0 else 0
         
+        
         fig_agru = go.Figure()
         
         fig_agru.add_trace(go.Bar(
             y=[""],
             x=[gral],
-            name="General",
+            name="GENERAL",
             marker_color='#A19AD3',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
-            hovertemplate='General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='GENERAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_agru.add_trace(go.Bar(
             y=[""],
             x=[prof],
-            name="Profesional",
+            name="PROFESIONAL",
             marker_color='#82E0AA',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
-            hovertemplate='Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='PROFESIONAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
 
         
@@ -556,7 +603,73 @@ def mostrar(supabase):
         st.plotly_chart(fig_agru, use_container_width=True)
         
 
-        st.markdown("<h2 style='font-size:24px;'>Composición por Tipo de Permanencia</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:24px;'>Distribución por Tramo</h2>", unsafe_allow_html=True)
+        
+        # Calcular cantidades
+        geral = len(df_agentes[df_agentes["tramo"] == "GENERAL"])
+        inter = len(df_agentes[df_agentes["tramo"] == "INTERMEDIO"])
+        avanz = len(df_agentes[df_agentes["tramo"] == "AVANZADO"])
+        total = geral + inter + avanz
+        pct_geral = geral / total * 100 if total > 0 else 0
+        pct_inter = inter / total * 100 if total > 0 else 0
+        pct_avanz = avanz / total * 100 if total > 0 else 0
+        
+        
+        fig_tram = go.Figure()
+        
+        fig_tram.add_trace(go.Bar(
+            y=[""],
+            x=[geral],
+            name="GENERAL",
+            marker_color='#A19AD3',  # GRAL
+            orientation='h',
+            customdata=[[geral, pct_geral]],
+            hovertemplate='GENERAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+        
+        fig_tram.add_trace(go.Bar(
+            y=[""],
+            x=[inter],
+            name="INTERMEDIO",
+            marker_color='#82E0AA',  
+            orientation='h',
+            customdata=[[inter, pct_inter]],
+            hovertemplate='INTERMEDIO: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+
+        fig_tram.add_trace(go.Bar(
+            y=[""],
+            x=[avanz],
+            name="AVANZADO",
+            marker_color='#F1948A',  
+            orientation='h',
+            customdata=[[avanz, pct_avanz]],
+            hovertemplate='AVANZADO: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+    
+        
+        fig_tram.update_layout(
+            barmode='stack',
+            height=160,
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.6,
+                xanchor="center",
+                x=0.5,
+                font=dict(
+                    size=14  # 🔍 Aumentá este número para hacerlo más grande
+                )        
+            ),
+            margin=dict(l=30, r=30, t=30, b=30),
+            xaxis_title="",
+            yaxis_title=""
+        )
+        st.plotly_chart(fig_tram, use_container_width=True, config={"displayModeBar": False})
+      
+
+        st.markdown("<h2 style='font-size:24px;'>Distribución por Ingreso en Planta Permanente</h2>", unsafe_allow_html=True)
         
         ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
         no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
@@ -569,21 +682,21 @@ def mostrar(supabase):
         fig_ing.add_trace(go.Bar(
             y=[""],
             x=[no_ingresantes],
-            name="No Ingresantes",
+            name="HISTÓRICOS",
             marker_color='#A19AD3',
             orientation='h',
             customdata=[[no_ingresantes, pct_no_ing]],
-            hovertemplate='No Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='HISTÓRICOS: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_ing.add_trace(go.Bar(
             y=[""],
             x=[ingresantes],
-            name="Ingresantes",
+            name="INGRESANTES",
             marker_color='#82E0AA',
             orientation='h',
             customdata=[[ingresantes, pct_ing]],
-            hovertemplate='Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='INGRESANTES: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_ing.update_layout(
@@ -608,48 +721,6 @@ def mostrar(supabase):
         st.plotly_chart(fig_ing, use_container_width=True)
 
 
-        st.markdown("<h2 style='font-size:24px;'>Composición por Nivel Escalafonario</h2>", unsafe_allow_html=True)
-        
-        niveles = ["A", "B", "C", "D", "E"]
-        conteo_niveles = df_agentes["nivel"].value_counts().to_dict()
-        total_niveles = sum(conteo_niveles.get(n, 0) for n in niveles)
-        
-        fig_niv = go.Figure()
-        colores_niveles = ['#F1948A', '#F7DC6F', '#82E0AA', '#85C1E9', '#D7BDE2']
-        
-        for i, nivel in enumerate(niveles):
-            cantidad = conteo_niveles.get(nivel, 0)
-            pct = cantidad / total_niveles * 100 if total_niveles > 0 else 0
-            fig_niv.add_trace(go.Bar(
-                y=[""],
-                x=[cantidad],
-                name=f"Nivel {nivel}",
-                marker_color=colores_niveles[i],
-                orientation='h',
-                customdata=[[cantidad, pct]],
-                hovertemplate=f"📘 Nivel {nivel}: "+"%{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>"
-            ))
-        
-        # --- Niveles ---
-        fig_niv.update_layout(
-            barmode='stack',
-            height=160,
-            showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="top",
-                y=-0.6,
-                xanchor="center",
-                x=0.5,
-                font=dict(
-                    size=16  # 🔍 Aumentá este número para hacerlo más grande
-                )        
-            ),
-            margin=dict(l=30, r=30, t=30, b=30),
-            xaxis_title="",
-            yaxis_title=""
-        )
-        st.plotly_chart(fig_niv, use_container_width=True)
 
         
 
