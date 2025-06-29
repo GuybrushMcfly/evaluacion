@@ -115,7 +115,7 @@ def mostrar(supabase):
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
-        options=["📊 INDICADORES", "✅ EVALUACIONES"],
+        options=["📊 INDICADORES", "✅ EVALUACIONES", "✅ AGENTES EVALUABLES"],
  #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
@@ -494,3 +494,6 @@ def mostrar(supabase):
                 use_container_width=True,
                 hide_index=True
             )
+
+    
+    elif seleccion == "✅ AGENTES":
