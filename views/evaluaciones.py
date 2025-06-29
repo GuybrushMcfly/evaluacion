@@ -117,7 +117,7 @@ def mostrar(supabase):
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
-        options=["📊 INDICADORES", "✅ EVALUACIONES", "✅ AGENTES EVALUABLES"],
+        options=["📊 INDICADORES", "✅ EVALUACIONES", "👥 AGENTES EVALUABLES"],
  #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
@@ -502,7 +502,7 @@ def mostrar(supabase):
     
 
                 
-    elif seleccion == "✅ AGENTES EVALUABLES":
+    elif seleccion == "👥 AGENTES EVALUABLES":
 
 
         st.markdown("<h2 style='font-size:24px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
