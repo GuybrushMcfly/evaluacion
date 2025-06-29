@@ -121,13 +121,15 @@ def mostrar(supabase):
  #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
+
+        
         styles={
-            "container": {"padding": "0!important", "background-color": "#1e1e1e"},
+            "container": {"padding": "0 50px!important", "background-color": "#1e1e1e"},
             "icon": {"color": "white", "font-size": "18px"},
             "nav-link": {
                 "font-size": "17px",
                 "text-align": "center",
-                "margin": "0 50px",
+                "margin": "0 25px",
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#d1484d",
