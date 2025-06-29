@@ -515,7 +515,7 @@ def mostrar(supabase):
         fig_agru = go.Figure()
         
         fig_agru.add_trace(go.Bar(
-            y=["Agentes"],
+            y=[""],
             x=[gral],
             name="General",
             marker_color='#A19AD3',  # GRAL
@@ -525,7 +525,7 @@ def mostrar(supabase):
         ))
         
         fig_agru.add_trace(go.Bar(
-            y=["Agentes"],
+            y=[""],
             x=[prof],
             name="Profesional",
             marker_color='#FFF574',  # PROF
@@ -567,7 +567,7 @@ def mostrar(supabase):
         fig_ing = go.Figure()
         
         fig_ing.add_trace(go.Bar(
-            y=["Agentes"],
+            y=[""],
             x=[no_ingresantes],
             name="No Ingresantes",
             marker_color='#FFB347',
@@ -577,7 +577,7 @@ def mostrar(supabase):
         ))
         
         fig_ing.add_trace(go.Bar(
-            y=["Agentes"],
+            y=[""],
             x=[ingresantes],
             name="Ingresantes",
             marker_color='#FFF574',
