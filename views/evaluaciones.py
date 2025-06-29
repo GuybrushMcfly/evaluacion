@@ -610,14 +610,22 @@ def mostrar(supabase):
                 hovertemplate=f"📘 Nivel {nivel}: "+"%{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>"
             ))
         
-        fig_niv.update_layout(
-            barmode='stack',
-            height=160,
-            showlegend=True,
-            margin=dict(l=30, r=30, t=30, b=30),
-            xaxis_title="Cantidad",
-            yaxis_title="",
-        )
+            fig.update_layout(
+                barmode='stack',
+                height=160,
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                margin=dict(l=30, r=30, t=30, b=30),
+                xaxis_title="",
+                yaxis_title="",
+            )
+
         
         st.plotly_chart(fig_niv, use_container_width=True)
 
