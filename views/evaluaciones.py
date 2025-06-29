@@ -496,4 +496,4 @@ def mostrar(supabase):
             )
 
     
-    elif seleccion == "✅ AGENTES":
+    elif seleccion == "✅ AGENTES EVALUABLES":
