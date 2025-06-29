@@ -517,7 +517,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color=qualitative.Pastel1[0],  # pastel celeste
+            marker_color=qualitative.Pastel[0],  # pastel celeste
             orientation='h'
         ))
         
@@ -525,7 +525,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color=qualitative.Pastel1[1],  # pastel rosa
+            marker_color=qualitative.Pastel[1],  # pastel rosa
             orientation='h'
         ))
         
