@@ -115,29 +115,33 @@ def mostrar(supabase):
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
-        options=["📊 Indicadores", "✅ Evaluaciones"],
+        options=["📊 INDICADORES", "✅ Evaluaciones"],
         icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#f0f2f6"},
+            "container": {"padding": "0!important", "background-color": "#1e1e1e"},
             "icon": {"color": "white", "font-size": "18px"},
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "center",
                 "margin": "0px",
                 "color": "white",
-                "background-color": "#d32f2f",  # rojo inactivo
+                "background-color": "#c62828",  # rojo apagado
+                "border-radius": "8px",
             },
             "nav-link-selected": {
-                "background-color": "#b71c1c",  # rojo más oscuro
+                "background-color": "#2e7d32",  # verde fuerte
                 "color": "white",
+                "font-weight": "bold",
+                "border-radius": "8px",
             },
         }
 
+
     )
     
-    if seleccion == "📊 Indicadores":
+    if seleccion == "📊 INDICADORES":
         st.divider()
         st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
         cols = st.columns(3)
@@ -182,7 +186,7 @@ def mostrar(supabase):
             if col not in df_no_anuladas.columns:
                 df_no_anuladas[col] = ""
     
-    elif seleccion == "✅ Evaluaciones":
+    elif seleccion == "✅ EVALUACIONES":
 
    
   
