@@ -182,9 +182,14 @@ def mostrar(supabase):
     
         st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
     
+        # Asegurar columnas necesarias antes de usar la tabla
+        for col in ["apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"]:
+            if col not in df_no_anuladas.columns:
+                df_no_anuladas[col] = ""
+        
         # ---- TABLA DE EVALUACIONES REGISTRADAS ----
         st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
-        #st.subheader("✅ Evaluaciones registradas:")
+        
         st.dataframe(
             df_no_anuladas[[
                 "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
@@ -198,8 +203,7 @@ def mostrar(supabase):
             use_container_width=True,
             hide_index=True
         )
-    
-    
+
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
             run = para.runs[0] if para.runs else para.add_run(" ")
