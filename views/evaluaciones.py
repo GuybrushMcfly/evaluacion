@@ -123,7 +123,7 @@ def mostrar(supabase):
             "container": {"padding": "0!important", "background-color": "#1e1e1e"},
             "icon": {"color": "white", "font-size": "18px"},
             "nav-link": {
-                "font-size": "16px",
+                "font-size": "17px",
                 "text-align": "center",
                 "margin": "0 8px",
                 "color": "white",
