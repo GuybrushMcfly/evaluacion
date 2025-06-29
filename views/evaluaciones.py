@@ -151,8 +151,8 @@ def mostrar(supabase):
         cols = st.columns(3)
         with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
         with cols[1]: st.metric("✅ Evaluados", evaluados)
-        with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
-        st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
+        with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje}%")
+        st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje}%")
     
         st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
         categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
