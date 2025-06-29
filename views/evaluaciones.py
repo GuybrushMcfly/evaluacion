@@ -503,7 +503,7 @@ def mostrar(supabase):
 
                 
     elif seleccion == "✅ AGENTES EVALUABLES":
-        st.markdown("<h2 style='font-size:24px;'>👥 Composición por Agrupamiento</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:24px;'>Composición por Agrupamiento</h2>", unsafe_allow_html=True)
         
         # Calcular cantidades
         gral = len(df_agentes[df_agentes["agrupamiento"] == "GRAL"])
@@ -521,7 +521,7 @@ def mostrar(supabase):
             marker_color='#A19AD3',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
-            hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_agru.add_trace(go.Bar(
@@ -531,7 +531,7 @@ def mostrar(supabase):
             marker_color='#FFF574',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
-            hovertemplate='👥 Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
 
         
@@ -556,7 +556,7 @@ def mostrar(supabase):
         st.plotly_chart(fig_agru, use_container_width=True)
         
 
-        st.markdown("<h2 style='font-size:24px;'>👤 Ingresantes vs No Ingresantes</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:24px;'>Composición por Tipo de Permanencia</h2>", unsafe_allow_html=True)
         
         ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
         no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
@@ -573,17 +573,17 @@ def mostrar(supabase):
             marker_color='#FFB347',
             orientation='h',
             customdata=[[no_ingresantes, pct_no_ing]],
-            hovertemplate='🙋‍♂️ No Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='No Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_ing.add_trace(go.Bar(
             y=["Agentes"],
             x=[ingresantes],
             name="Ingresantes",
-            marker_color='#77DD77',
+            marker_color='#FFF574',
             orientation='h',
             customdata=[[ingresantes, pct_ing]],
-            hovertemplate='🙋‍♀️ Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+            hovertemplate='Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
         fig_ing.update_layout(
@@ -608,7 +608,7 @@ def mostrar(supabase):
         st.plotly_chart(fig_ing, use_container_width=True)
 
 
-        st.markdown("<h2 style='font-size:24px;'>📚 Distribución por Nivel</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:24px;'>Composición por Nivel Escalafonario</h2>", unsafe_allow_html=True)
         
         niveles = ["A", "B", "C", "D", "E"]
         conteo_niveles = df_agentes["nivel"].value_counts().to_dict()
