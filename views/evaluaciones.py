@@ -416,9 +416,6 @@ def mostrar(supabase):
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
-
-        else:
-            st.warning("⚠️ No hay agentes registrados en esta unidad.")
     
     
         # Obtener configuración global
