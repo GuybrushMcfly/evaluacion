@@ -126,8 +126,8 @@ def mostrar(supabase):
                 "font-size": "17px",
                 "text-align": "center",
                 "margin": "0 8px",
-                "color": "white",
-                "background-color": "#c62828",  # rojo apagado
+                "color": "#000000",
+                "background-color": "#F68E8E",  # rojo apagado
                 "border-radius": "8px",
             },
             "nav-link-selected": {
