@@ -611,18 +611,18 @@ def mostrar(supabase):
             ))
         
             fig.update_layout(
-                barmode='stack',
+                barmode='stack',  # mantiene la barra apilada
                 height=160,
                 showlegend=True,
                 legend=dict(
-                    orientation="h",
+                    orientation="h",     # horizontal
                     yanchor="bottom",
-                    y=-0.3,
+                    y=-0.3,              # lo mueve debajo del gráfico
                     xanchor="center",
                     x=0.5
                 ),
                 margin=dict(l=30, r=30, t=30, b=30),
-                xaxis_title="",
+                xaxis_title="Cantidad",
                 yaxis_title="",
             )
 
