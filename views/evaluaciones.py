@@ -497,4 +497,42 @@ def mostrar(supabase):
 
     
     elif seleccion == "✅ AGENTES EVALUABLES":
-        st.info("🧑‍💼 Esta sección está en construcción.")
+
+        import plotly.graph_objects as go
+        
+        st.markdown("<h2 style='font-size:24px;'>👥 Composición por Agrupamiento</h2>", unsafe_allow_html=True)
+        
+        # Contar agrupamientos
+        conteo = df_agentes["agrupamiento"].value_counts()
+        gral = conteo.get("GRAL", 0)
+        prof = conteo.get("PROF", 0)
+        
+        # Crear gráfico apilado horizontal
+        fig = go.Figure()
+        
+        fig.add_trace(go.Bar(
+            y=["Agentes"],
+            x=[gral],
+            name="General",
+            marker_color="lightblue",
+            orientation='h'
+        ))
+        
+        fig.add_trace(go.Bar(
+            y=["Agentes"],
+            x=[prof],
+            name="Profesional",
+            marker_color="lightgreen",
+            orientation='h'
+        ))
+        
+        fig.update_layout(
+            barmode='stack',
+            height=120,
+            showlegend=True,
+            margin=dict(l=30, r=30, t=30, b=30),
+            xaxis_title="Cantidad",
+            yaxis_title="",
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
