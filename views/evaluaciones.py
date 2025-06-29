@@ -498,19 +498,20 @@ def mostrar(supabase):
             )
 
     
-    elif seleccion == "✅ AGENTES EVALUABLES":
 
                 
+    elif seleccion == "✅ AGENTES EVALUABLES":
         st.markdown("<h2 style='font-size:24px;'>👥 Composición por Agrupamiento</h2>", unsafe_allow_html=True)
         
-        # Datos
+        # Calcular cantidades
+        gral = len(df_agentes[df_agentes["agrupamiento"] == "GRAL"])
+        prof = len(df_agentes[df_agentes["agrupamiento"] == "PROF"])
         total = prof + gral
         pct_gral = gral / total * 100 if total > 0 else 0
         pct_prof = prof / total * 100 if total > 0 else 0
         
         fig = go.Figure()
         
-        # GRAL
         fig.add_trace(go.Bar(
             y=["Agentes"],
             x=[gral],
@@ -521,7 +522,6 @@ def mostrar(supabase):
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
-        # PROF
         fig.add_trace(go.Bar(
             y=["Agentes"],
             x=[prof],
@@ -542,4 +542,5 @@ def mostrar(supabase):
         )
         
         st.plotly_chart(fig, use_container_width=True)
+
 
