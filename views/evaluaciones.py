@@ -70,6 +70,35 @@ def mostrar(supabase):
 
     st.markdown("## ")
     
+    # Obtener evaluaciones filtradas
+    evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
+    df_eval = pd.DataFrame(evaluaciones)
+    
+    if df_eval.empty:
+        df_eval = pd.DataFrame(columns=[
+            "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
+            "puntaje_total", "evaluador", "id_evaluacion", "cuil"
+        ])
+    
+    if "anulada" not in df_eval.columns:
+        df_eval["anulada"] = False
+    else:
+        df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
+    
+    if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
+        hora_arg = timezone('America/Argentina/Buenos_Aires')
+        df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
+        df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
+    else:
+        df_eval["Fecha_formateada"] = ""
+    
+    df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
+    df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+    
+    # Menú horizontal de navegación
+
+
+    
     # Menú horizontal de navegación
     seleccion = option_menu(
         menu_title=None,
@@ -100,30 +129,7 @@ def mostrar(supabase):
         with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
         st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
     
-        # Obtener evaluaciones filtradas
-        evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
-        df_eval = pd.DataFrame(evaluaciones)
-    
-        if df_eval.empty:
-            df_eval = pd.DataFrame(columns=[
-                "formulario", "calificacion", "anulada", "fecha_evaluacion", "apellido_nombre",
-                "puntaje_total", "evaluador", "id_evaluacion", "cuil"
-            ])
-    
-        if "anulada" not in df_eval.columns:
-            df_eval["anulada"] = False
-        else:
-            df_eval["anulada"] = df_eval["anulada"].fillna(False).astype(bool)
-    
-        if "fecha_evaluacion" in df_eval.columns and not df_eval["fecha_evaluacion"].isna().all():
-            hora_arg = timezone('America/Argentina/Buenos_Aires')
-            df_eval["Fecha"] = pd.to_datetime(df_eval["fecha_evaluacion"], utc=True).dt.tz_convert(hora_arg)
-            df_eval["Fecha_formateada"] = df_eval["Fecha"].dt.strftime('%d/%m/%Y %H:%M')
-        else:
-            df_eval["Fecha_formateada"] = ""
-    
-        df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
-        df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
+
     
         # Unir con datos de agentes si no están ya
         agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
