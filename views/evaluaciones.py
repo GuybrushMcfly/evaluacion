@@ -121,23 +121,28 @@ def mostrar(supabase):
  #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
-
         
         styles={
-            "container": {"padding": "0 50px!important", "background-color": "#1e1e1e"},
-            "icon": {"color": "white", "font-size": "18px"},
+            "container": {
+                "padding": "0!important", 
+                "background-color": "transparent",  # ← Cambiar a transparente
+                "max-width": "800px",  # ← Limitar ancho máximo
+                "margin": "0 auto"  # ← Centrar
+            },
             "nav-link": {
                 "font-size": "17px",
                 "text-align": "center",
-                "margin": "0 25px",
+                "margin": "0 15px",  # ← Margin moderado
+                "flex": "1",  # ← Que se distribuyan uniformemente
+                "max-width": "250px",  # ← Ancho máximo por botón
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#d1484d",
                 "border-radius": "8px",
-                "--hover-color": "#b03a3f",  # ← color al pasar el mouse
+                "--hover-color": "#b03a3f",
             },
             "nav-link-selected": {
-                "background-color": "#48d1cc",  # verde fuerte
+                "background-color": "#48d1cc",
                 "color": "#0C0909",
                 "font-weight": "bold",
                 "border-radius": "8px",
