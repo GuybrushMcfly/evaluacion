@@ -125,7 +125,7 @@ def mostrar(supabase):
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "center",
-                "margin": "0px",
+                "margin": "0 8px",
                 "color": "white",
                 "background-color": "#c62828",  # rojo apagado
                 "border-radius": "8px",
