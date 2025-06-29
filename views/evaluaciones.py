@@ -211,19 +211,23 @@ def mostrar(supabase):
         # ---- TABLA DE EVALUACIONES REGISTRADAS ----
         st.markdown("<h2 style='font-size:24px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
         
-        st.dataframe(
-            df_no_anuladas[[
-                "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
-            ]].rename(columns={
-                "apellido_nombre": "Apellido y Nombres",
-                "formulario": "Form.",
-                "calif_puntaje": "Calificación/Puntaje",
-                "evaluador": "Evaluador",
-                "Fecha_formateada": "Fecha"
-            }),
-            use_container_width=True,
-            hide_index=True
-        )
+        if df_no_anuladas.empty:
+            st.info("ℹ️ No hay evaluaciones registradas.")
+        else:
+            st.dataframe(
+                df_no_anuladas[[
+                    "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
+                ]].rename(columns={
+                    "apellido_nombre": "Apellido y Nombres",
+                    "formulario": "Form.",
+                    "calif_puntaje": "Calificación/Puntaje",
+                    "evaluador": "Evaluador",
+                    "Fecha_formateada": "Fecha"
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+
 
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
