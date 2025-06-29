@@ -15,7 +15,7 @@ from streamlit_option_menu import option_menu
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
     #st.header("📋 Evaluaciones realizadas")
-    st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:26px;'>📋 Evaluaciones realizadas</h2>", unsafe_allow_html=True)
     
     # Función para verificar rol activo
     def tiene_rol(*roles):
@@ -95,9 +95,14 @@ def mostrar(supabase):
     df_eval["Estado"] = df_eval["anulada"].apply(lambda x: "Anulada" if x else "Registrada")
     df_no_anuladas = df_eval[df_eval["anulada"] == False].copy()
     
-    # Menú horizontal de navegación
-
-
+    # Unir con datos de agentes si no están ya
+    agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
+    df_agentes = pd.DataFrame(agentes_completos)
+    
+    if not df_agentes.empty:
+        df_no_anuladas = df_no_anuladas.merge(df_agentes[[
+            "cuil", "agrupamiento", "nivel", "ingresante", "apellido_nombre"
+        ]], on="cuil", how="left", suffixes=("", "_agente"))
     
     # Menú horizontal de navegación
     seleccion = option_menu(
@@ -118,10 +123,9 @@ def mostrar(supabase):
             "nav-link-selected": {"background-color": "#0f62fe", "color": "white"},
         }
     )
-
+    
     if seleccion == "📊 Indicadores":
         st.divider()
-        #st.subheader("📊 Indicadores")
         st.markdown("<h2 style='font-size:24px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
         cols = st.columns(3)
         with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
@@ -129,18 +133,40 @@ def mostrar(supabase):
         with cols[2]: st.metric("📊 % Evaluación", f"{porcentaje:.1f}%")
         st.progress(min(100, int(porcentaje)), text=f"Progreso de evaluaciones registradas: {porcentaje:.1f}%")
     
-
+        st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
+        categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
+        calif_counts = {cat: 0 for cat in categorias}
+        if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
+            temp_counts = df_no_anuladas["calificacion"].value_counts()
+            for cat in categorias:
+                calif_counts[cat] = temp_counts.get(cat, 0)
     
-        # Unir con datos de agentes si no están ya
-        agentes_completos = supabase.table("agentes").select("*").in_("cuil", cuils_asignados).execute().data
-        df_agentes = pd.DataFrame(agentes_completos)
-        
-        if not df_agentes.empty:
-            df_no_anuladas = df_no_anuladas.merge(df_agentes[[
-                "cuil", "agrupamiento", "nivel", "ingresante", "apellido_nombre"
-            ]], on="cuil", how="left", suffixes=("", "_agente"))
-        
-        # Reasegurar columnas requeridas por el informe
+        col_cats = st.columns(len(categorias))
+        emojis = ["🌟", "👍", "🟡", "🔴"]
+        for i, cat in enumerate(categorias):
+            col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
+    
+        if "calif_puntaje" not in df_no_anuladas.columns:
+            df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
+                lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
+                if pd.notna(row.get("calificacion")) and pd.notna(row.get("puntaje_total"))
+                else "",
+                axis=1
+            )
+    
+        st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
+        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
+        niveles_eval = {
+            "🔵 Nivel Jerárquico": ["1"],
+            "🟣 Niveles Medios": ["2", "3", "4"],
+            "🟢 Niveles Operativos": ["5", "6"]
+        }
+    
+        cols = st.columns(3)
+        for i, (titulo, formularios) in enumerate(niveles_eval.items()):
+            cantidad = df_no_anuladas["formulario"].isin(formularios).sum()
+            cols[i].metric(titulo, cantidad)
+    
         columnas_necesarias = [
             "cuil", "apellido_nombre", "calificacion", "puntaje_total", "formulario",
             "nivel", "agrupamiento", "ingresante"
@@ -149,48 +175,10 @@ def mostrar(supabase):
             if col not in df_no_anuladas.columns:
                 df_no_anuladas[col] = ""
     
-
     elif seleccion == "✅ Evaluaciones":
-        # ---- INDICADORES DE DISTRIBUCIÓN POR CALIFICACIÓN ----
-        st.markdown("<h2 style='font-size:24px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
-        categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
-        calif_counts = {cat: 0 for cat in categorias}
-        if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
-            temp_counts = df_no_anuladas["calificacion"].value_counts()
-            for cat in categorias:
-                calif_counts[cat] = temp_counts.get(cat, 0)
-        
-        col_cats = st.columns(len(categorias))
-        emojis = ["🌟", "👍", "🟡", "🔴"]
-        for i, cat in enumerate(categorias):
-            col_cats[i].metric(f"{emojis[i]} {cat.title()}", calif_counts[cat])
-        
-        # ---- CREAR calif_puntaje SIEMPRE ANTES DE USARLA EN LA TABLA ----
-        if "calif_puntaje" not in df_no_anuladas.columns:
-            df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-                lambda row: f"{row['calificacion']} ({row['puntaje_total']})"
-                if pd.notna(row.get("calificacion", None)) and pd.notna(row.get("puntaje_total", None))
-                else "",
-                axis=1
-            )
-    
-            #st.subheader("📋 Uso de formularios")
-        # ---- INDICADORES DE USO DE FORMULARIOS AGRUPADOS POR NIVEL ----
-        st.markdown("<h2 style='font-size:24px;'>🗂️ Distribución por Nivel de Evaluación</h2>", unsafe_allow_html=True)
-        
-        df_no_anuladas["formulario"] = df_no_anuladas["formulario"].astype(str)
-        
-        niveles_eval = {
-            "🔵 Nivel Jerárquico": ["1"],
-            "🟣 Niveles Medios": ["2", "3", "4"],
-            "🟢 Niveles Operativos": ["5", "6"]
-        }
-        
-        cols = st.columns(3)
-        for i, (titulo, formularios) in enumerate(niveles_eval.items()):
-            cantidad = df_no_anuladas["formulario"].isin(formularios).sum()
-            cols[i].metric(titulo, cantidad)
-    
+
+   
+  
     
         st.markdown("<br><br>", unsafe_allow_html=True)  # Espacio más grande
     
