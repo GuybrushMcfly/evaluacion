@@ -127,12 +127,13 @@ def mostrar(supabase):
             "nav-link": {
                 "font-size": "17px",
                 "text-align": "center",
-                "margin": "0 8px",
+                "margin": "0 20px",
                 "color": "white",
                 "font-weight": "bold",
-                "background-color": "#d1484d",  # rojo apagado
+                "background-color": "#d1484d",
                 "border-radius": "8px",
-            },
+                "--hover-color": "#b03a3f",  # ← color al pasar el mouse
+            }
             "nav-link-selected": {
                 "background-color": "#48d1cc",  # verde fuerte
                 "color": "#0C0909",
@@ -517,7 +518,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color='rgb(128,177,211)',  # GRAL
+            marker_color='#F6EFBD',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
@@ -527,7 +528,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color='rgb(190,186,218)',  # PROF
+            marker_color='#A2D2DF',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
             hovertemplate='👥 Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
