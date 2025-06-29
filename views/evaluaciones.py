@@ -131,8 +131,8 @@ def mostrar(supabase):
                 "border-radius": "8px",
             },
             "nav-link-selected": {
-                "background-color": "#2e7d32",  # verde fuerte
-                "color": "white",
+                "background-color": "#88C255",  # verde fuerte
+                "color": "#0C0909",
                 "font-weight": "bold",
                 "border-radius": "8px",
             },
