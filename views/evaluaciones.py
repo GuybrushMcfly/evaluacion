@@ -545,7 +545,7 @@ def mostrar(supabase):
             xaxis_title="",
             yaxis_title=""
         )
-        st.plotly_chart(fig_niv, use_container_width=True)
+        st.plotly_chart(fig_niv, use_container_width=True, config={"displayModeBar": False})
 
 
         st.markdown("<h2 style='font-size:24px;'>Distribución por Agrupamiento</h2>", unsafe_allow_html=True)
@@ -591,15 +591,14 @@ def mostrar(supabase):
                 y=-0.6,
                 xanchor="center",
                 x=0.5,
-                font=dict(
-                    size=14  # 🔍 Aumentá este número para hacerlo más grande
-                )        
+                font=dict(size=16),
+                traceorder="reversed"  # 👈 esto revierte el orden de leyenda                     
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
             yaxis_title=""
         )
-        st.plotly_chart(fig_agru, use_container_width=True)
+        st.plotly_chart(fig_agru, use_container_width=True, config={"displayModeBar": False})
         
 
         st.markdown("<h2 style='font-size:24px;'>Distribución por Tramo</h2>", unsafe_allow_html=True)
@@ -717,7 +716,7 @@ def mostrar(supabase):
             yaxis_title=""
         )
        
-        st.plotly_chart(fig_ing, use_container_width=True)
+        st.plotly_chart(fig_ing, use_container_width=True, config={"displayModeBar": False})
 
 
 
