@@ -134,7 +134,7 @@ def mostrar(supabase):
                 "text-align": "center",
                 "margin": "0 15px",  # ← Margin moderado
                 "flex": "1",  # ← Que se distribuyan uniformemente
-                "max-width": "300px",  # ← Ancho máximo por botón
+                "max-width": "280px",  # ← Ancho máximo por botón
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#d1484d",
