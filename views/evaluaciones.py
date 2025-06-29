@@ -559,6 +559,18 @@ def mostrar(supabase):
         
         
         fig_agru = go.Figure()
+
+        fig_agru.add_trace(go.Bar(
+            y=[""],
+            x=[prof],
+            name="PROFESIONAL",
+            marker_color='#82E0AA',  # PROF
+            orientation='h',
+            customdata=[[prof, pct_prof]],
+            hovertemplate='PROFESIONAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
+        ))
+
+        
         
         fig_agru.add_trace(go.Bar(
             y=[""],
@@ -570,15 +582,6 @@ def mostrar(supabase):
             hovertemplate='GENERAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
-        fig_agru.add_trace(go.Bar(
-            y=[""],
-            x=[prof],
-            name="PROFESIONAL",
-            marker_color='#82E0AA',  # PROF
-            orientation='h',
-            customdata=[[prof, pct_prof]],
-            hovertemplate='PROFESIONAL: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
-        ))
 
         
         fig_agru.update_layout(
