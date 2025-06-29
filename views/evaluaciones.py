@@ -125,16 +125,16 @@ def mostrar(supabase):
         styles={
             "container": {
                 "padding": "0!important", 
-                "background-color": "transparent",  # ← Cambiar a transparente
-                "max-width": "800px",  # ← Limitar ancho máximo
-                "margin": "0 auto"  # ← Centrar
+                "background-color": "transparent",
+                # "max-width": "800px",  # ← Eliminar esta línea
+                # "margin": "0 auto"     # ← Eliminar esta línea
             },
             "nav-link": {
                 "font-size": "17px",
                 "text-align": "center",
-                "margin": "0 15px",  # ← Margin moderado
-                "flex": "1",  # ← Que se distribuyan uniformemente
-                "max-width": "280px",  # ← Ancho máximo por botón
+                "margin": "0 15px",
+                "flex": "1",  # ← Esto hace que se distribuyan uniformemente
+                # "max-width": "250px",  # ← Eliminar esta línea
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#d1484d",
@@ -148,7 +148,6 @@ def mostrar(supabase):
                 "border-radius": "8px",
             },
         }
-
 
     )
     
