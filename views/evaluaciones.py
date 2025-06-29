@@ -539,7 +539,7 @@ def mostrar(supabase):
                 xanchor="center",
                 x=0.5,
                 font=dict(size=16),
-                traceorder="reversed"  # 👈 esto revierte el orden de leyenda
+                traceorder='normal'
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
@@ -594,6 +594,7 @@ def mostrar(supabase):
                 xanchor="center",
                 x=0.5,
                 font=dict(size=16),
+                traceorder='normal'
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
