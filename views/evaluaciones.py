@@ -514,7 +514,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color="lightblue",
+            marker_color="mediumturquoise",
             orientation='h'
         ))
         
@@ -522,7 +522,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color="lightgreen",
+            marker_color="salmon",
             orientation='h'
         ))
         
