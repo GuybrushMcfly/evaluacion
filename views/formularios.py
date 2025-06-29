@@ -39,7 +39,8 @@ def mostrar(supabase, formularios, clasificaciones):
     # Selección de agente (con placeholder)
     opciones_agentes = [""] + [a["apellido_nombre"] for a in agentes_data]
     seleccion_agente = st.selectbox(
-        "👤 Seleccione un agente para evaluar",
+        #"👤 Seleccione un agente para evaluar",
+        "",
         opciones_agentes,
         key="select_agente",
         format_func=lambda x: "– Seleccione agente –" if x == "" else x
@@ -47,7 +48,7 @@ def mostrar(supabase, formularios, clasificaciones):
     # Mostrar mensaje SOLO si no se seleccionó aún, pero hay agentes disponibles
     if seleccion_agente == "":
         st.info(f"👥 Tiene {len(agentes_data)} agente/s pendiente/s para evaluar.")
-        st.warning("⚠️ Por favor seleccione un agente")
+        st.warning("⚠️ Por favor seleccione un agente 👤")
         return
 
     agente = next(a for a in agentes_data if a["apellido_nombre"] == seleccion_agente)
