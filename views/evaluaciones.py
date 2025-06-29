@@ -528,7 +528,7 @@ def mostrar(supabase):
             y=[""],
             x=[prof],
             name="Profesional",
-            marker_color='#FFF574',  # PROF
+            marker_color='#82E0AA',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
             hovertemplate='Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
@@ -580,7 +580,7 @@ def mostrar(supabase):
             y=[""],
             x=[ingresantes],
             name="Ingresantes",
-            marker_color='#FFF574',
+            marker_color='#82E0AA',
             orientation='h',
             customdata=[[ingresantes, pct_ing]],
             hovertemplate='Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
