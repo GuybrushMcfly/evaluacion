@@ -518,7 +518,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[gral],
             name="General",
-            marker_color='#A1D6CB',  # GRAL
+            marker_color='#A19AD3',  # GRAL
             orientation='h',
             customdata=[[gral, pct_gral]],
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
