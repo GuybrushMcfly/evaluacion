@@ -684,7 +684,7 @@ def mostrar(supabase):
             name="HISTÓRICOS",
             marker_color='#A19AD3',
             orientation='h',
-            customdata=[[no_ingresantes, pct_no_ing]],
+            customdata=[[no_ingresantes, round(pct_no_ing)]],
             hovertemplate='HISTÓRICOS: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
@@ -694,7 +694,7 @@ def mostrar(supabase):
             name="INGRESANTES",
             marker_color='#82E0AA',
             orientation='h',
-            customdata=[[ingresantes, pct_ing]],
+            customdata=[[ingresantes, round(pct_ing)]],
             hovertemplate='INGRESANTES: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
@@ -708,9 +708,7 @@ def mostrar(supabase):
                 y=-0.6,
                 xanchor="center",
                 x=0.5,
-                font=dict(
-                    size=14  # 🔍 Aumentá este número para hacerlo más grande
-                )        
+                font=dict(size=16)
             ),
             margin=dict(l=30, r=30, t=30, b=30),
             xaxis_title="",
