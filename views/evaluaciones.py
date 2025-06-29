@@ -133,7 +133,7 @@ def mostrar(supabase):
                 "background-color": "#d1484d",
                 "border-radius": "8px",
                 "--hover-color": "#b03a3f",  # ← color al pasar el mouse
-            }
+            },
             "nav-link-selected": {
                 "background-color": "#48d1cc",  # verde fuerte
                 "color": "#0C0909",
