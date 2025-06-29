@@ -512,9 +512,9 @@ def mostrar(supabase):
         pct_gral = gral / total * 100 if total > 0 else 0
         pct_prof = prof / total * 100 if total > 0 else 0
         
-        fig = go.Figure()
+        fig_agru = go.Figure()
         
-        fig.add_trace(go.Bar(
+        fig_agru.add_trace(go.Bar(
             y=["Agentes"],
             x=[gral],
             name="General",
@@ -524,7 +524,7 @@ def mostrar(supabase):
             hovertemplate='👥 General: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
         ))
         
-        fig.add_trace(go.Bar(
+        fig_agru.add_trace(go.Bar(
             y=["Agentes"],
             x=[prof],
             name="Profesional",
@@ -535,16 +535,26 @@ def mostrar(supabase):
         ))
 
         
-        fig.update_layout(
+        fig_agru.update_layout(
             barmode='stack',
-            height=140,
+            height=160,
             showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.6,
+                xanchor="center",
+                x=0.5,
+                font=dict(
+                    size=14  # 🔍 Aumentá este número para hacerlo más grande
+                )        
+            ),
             margin=dict(l=30, r=30, t=30, b=30),
-            xaxis_title="Cantidad",
-            yaxis_title="",
+            xaxis_title="",
+            yaxis_title=""
         )
+        st.plotly_chart(fig_agru, use_container_width=True)
         
-        st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("<h2 style='font-size:24px;'>👤 Ingresantes vs No Ingresantes</h2>", unsafe_allow_html=True)
         
@@ -578,13 +588,23 @@ def mostrar(supabase):
         
         fig_ing.update_layout(
             barmode='stack',
-            height=140,
+            height=160,
             showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.6,
+                xanchor="center",
+                x=0.5,
+                font=dict(
+                    size=14  # 🔍 Aumentá este número para hacerlo más grande
+                )        
+            ),
             margin=dict(l=30, r=30, t=30, b=30),
-            xaxis_title="Cantidad",
-            yaxis_title="",
+            xaxis_title="",
+            yaxis_title=""
         )
-        
+       
         st.plotly_chart(fig_ing, use_container_width=True)
 
 
@@ -620,7 +640,7 @@ def mostrar(supabase):
                 yanchor="top",
                 y=-0.6,
                 xanchor="center",
-                x=0.5
+                x=0.5,
                 font=dict(
                     size=14  # 🔍 Aumentá este número para hacerlo más grande
                 )        
