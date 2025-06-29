@@ -497,3 +497,4 @@ def mostrar(supabase):
 
     
     elif seleccion == "✅ AGENTES EVALUABLES":
+        st.info("🧑‍💼 Esta sección está en construcción.")
