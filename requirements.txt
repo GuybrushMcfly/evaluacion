@@ -22,4 +22,5 @@ xlsxwriter
 pytz
 pdfkit
 python-docx
+streamlit-option-menu
 
