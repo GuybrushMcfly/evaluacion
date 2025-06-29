@@ -570,7 +570,7 @@ def mostrar(supabase):
             y=[""],
             x=[no_ingresantes],
             name="No Ingresantes",
-            marker_color='#FFB347',
+            marker_color='#A19AD3',
             orientation='h',
             customdata=[[no_ingresantes, pct_no_ing]],
             hovertemplate='No Ingresantes: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
