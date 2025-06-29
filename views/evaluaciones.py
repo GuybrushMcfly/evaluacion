@@ -618,12 +618,12 @@ def mostrar(supabase):
             legend=dict(
                 orientation="h",
                 yanchor="top",
-                y=-0.3,
+                y=-0.6,
                 xanchor="center",
                 x=0.5
             ),
             margin=dict(l=30, r=30, t=30, b=30),
-            xaxis_title="Cantidad",
+            xaxis_title="",
             yaxis_title=""
         )
         st.plotly_chart(fig_niv, use_container_width=True)
