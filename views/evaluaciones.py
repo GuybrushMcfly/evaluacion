@@ -528,7 +528,7 @@ def mostrar(supabase):
             y=["Agentes"],
             x=[prof],
             name="Profesional",
-            marker_color='#FF8383',  # PROF
+            marker_color='#FFF574',  # PROF
             orientation='h',
             customdata=[[prof, pct_prof]],
             hovertemplate='👥 Profesional: %{customdata[0]} agentes<br>📊 %{customdata[1]:.1f}%<extra></extra>'
