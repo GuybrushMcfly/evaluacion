@@ -24,4 +24,5 @@ pdfkit
 python-docx
 streamlit-option-menu
 plotly
+extra-streamlit-components
 
