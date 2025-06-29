@@ -24,5 +24,4 @@ pdfkit
 python-docx
 streamlit-option-menu
 plotly
-plotly.colors
 
