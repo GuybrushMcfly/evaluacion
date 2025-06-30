@@ -72,7 +72,7 @@ def mostrar(supabase, formularios, clasificaciones):
         return
 
         if st.session_state.get("rol", {}).get("evaluador_general"):
-            st.markdown("📌 **[PRUEBA]** Este es un mensaje visible solo para evaluador general.")
+            st.info("📌 **[PRUEBA]** Este es un mensaje visible solo para evaluador general.")
 
     
     agente = next(a for a in agentes_data if a["apellido_nombre"] == seleccion_agente)
