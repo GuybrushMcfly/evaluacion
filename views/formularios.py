@@ -159,51 +159,43 @@ def mostrar(supabase, formularios, clasificaciones):
         else:
             st.error("❌ Complete todas las respuestas para previsualizar la calificación")
             st.session_state.previsualizado = False
-    
+
     if st.session_state.get("previsualizado") and st.session_state.get("respuestas_completas"):
         total = sum(st.session_state.puntajes)
         rango = clasificaciones.get(tipo, [])
         clasificacion = next((nombre for nombre, maxv, minv in rango if minv <= total <= maxv), "Sin clasificación")
-    
+
         st.markdown("---")
+    #    st.markdown(f"### 📊 Puntaje: {total}")
+    #    st.markdown(f"### 📌 Calificación: **{clasificacion}**")
+    #    st.markdown("---")
+        
         puntaje_maximo = sum([max(v for _, v in bloque["opciones"]) for bloque in formularios[tipo]["factores"]])
+
+     #    st.markdown(f"### 🔢 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
         st.markdown(f"### 🔢 Puntaje: **{total}** (**de {puntaje_maximo} puntos posibles**)")
         st.markdown(f"### 🏅 Calificación: **{clasificacion}**")
-    
-        # Solo mostrar advertencia de límite de DESTACADOS si corresponde
-        if st.session_state.get("rol", {}).get("evaluador_general") and clasificacion == "DESTACADO":
-            evaluaciones_dependencia = supabase.table("evaluaciones")\
-                .select("calificacion")\
-                .eq("dependencia_general", agente.get("dependencia_general"))\
-                .eq("anio_evaluacion", 2024)\
-                .eq("anulada", False)\
-                .execute().data
-    
-            total_evaluados = len(evaluaciones_dependencia)
-            destacados_actuales = sum(1 for e in evaluaciones_dependencia if e["calificacion"] == "DESTACADO")
-    
-            limite_destacados = int(total_evaluados * 0.30) if total_evaluados >= 6 else 0
-            restantes = max(0, limite_destacados - destacados_actuales)
-    
-            st.markdown(f"### 🎯 <span style='color:white'>DESTACADOS disponibles en esta dependencia general: <strong>{restantes}</strong> de {limite_destacados}</span>", unsafe_allow_html=True)
-    
-            if restantes <= 0:
-                st.warning("⚠️ Ya se alcanzó el máximo permitido de calificaciones DESTACADO en esta dependencia.")
-    
+
+
+        
         st.markdown("---")
+
         col1, col_rangos, col2 = st.columns([1, 1, 1])
-    
+
+        
         with col1:
             if st.button("✅ Sí, enviar evaluación"):
                 tipo_formulario = tipo
                 evaluador = st.session_state.get("usuario", "desconocido")
+             #   puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
+                puntaje_maximo = sum([max(v for _, v in bloque["opciones"]) for bloque in formularios[tipo]["factores"]])
                 puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
-    
+
                 unidad_info = supabase.table("unidades_evaluacion")\
                     .select("unidad_evaluadora, unidad_analisis, dependencia_general")\
                     .eq("dependencia", agente.get("dependencia"))\
                     .maybe_single().execute().data
-    
+
                 supabase.table("evaluaciones").insert({
                     "cuil": cuil,
                     "apellido_nombre": apellido_nombre,
@@ -232,27 +224,27 @@ def mostrar(supabase, formularios, clasificaciones):
                     "motivo_inactivo": agente.get("motivo_inactivo"),
                     "fecha_inactivo": agente.get("fecha_inactivo"),
                 }).execute()
-    
+
                 supabase.table("agentes").update({"evaluado_2024": True}).eq("cuil", cuil).execute()
-    
+
                 st.success(f"📤 Evaluación de {apellido_nombre} enviada correctamente")
                 time.sleep(2)
-    
+
                 for key in list(st.session_state.keys()):
                     if key.startswith("factor_") or key in ["select_tipo", "previsualizado", "confirmado", "puntajes", "respuestas_completas", "last_tipo"]:
                         del st.session_state[key]
-    
+
                 st.rerun()
-    
+
         with col2:
             if st.button("❌ No, revisar opciones"):
                 st.session_state["previsualizado"] = False
                 st.warning("🔄 Por favor revise las opciones seleccionadas")
-    
+
         with col_rangos:
             if st.button("📊 Ver Rangos Puntajes"):
-                st.markdown("**Clasificación según puntaje:**")
+                st.markdown("** Clasificación según puntaje:**")
                 for nombre, maxv, minv in clasificaciones[tipo]:
                     st.markdown(f"- **{nombre}**: entre {minv} y {maxv} puntos")
-    
-        st.session_state["last_tipo"] = tipo
+
+    st.session_state["last_tipo"] = tipo
