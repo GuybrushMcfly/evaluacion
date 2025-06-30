@@ -25,5 +25,5 @@ python-docx
 streamlit-option-menu
 plotly
 extra-streamlit-components
-docx2pdf
+python-docx2pdf
 
