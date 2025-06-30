@@ -251,7 +251,7 @@ def mostrar(supabase):
             df_visual = df_visual.sort_values(by=["apellido_nombre", "Fecha_formateada"])
             
             # Paginación
-            registros_por_pagina = 10
+            registros_por_pagina = 8
             total_registros = len(df_visual)
             total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)
             paginas = list(range(1, total_paginas + 1))
@@ -509,7 +509,7 @@ def mostrar(supabase):
             df_no_anuladas = df_no_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
             
             # --- Paginación con selectbox (versión segura) ---
-            registros_por_pagina = 10
+            registros_por_pagina = 8
             total_registros = len(df_no_anuladas)
             total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)
             paginas = list(range(1, total_paginas + 1))
@@ -612,7 +612,7 @@ def mostrar(supabase):
             df_visual_anuladas = df_visual_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
         
             # Configurar paginación
-            registros_por_pagina = 10
+            registros_por_pagina = 8
             total_registros = len(df_visual_anuladas)
             total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)  # Siempre al menos 1 página
             paginas = list(range(1, total_paginas + 1))
