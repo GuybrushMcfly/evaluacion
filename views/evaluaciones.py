@@ -667,6 +667,11 @@ def mostrar(supabase):
                 
     elif seleccion == "👥 AGENTES":
 
+      #  st.markdown("<h2 style='font-size:20px;'>Agentes evaluables</h2>", unsafe_allow_html=True)
+        cantidad_agentes = len(df_agentes)
+        st.markdown(f"<p style='font-size:16px;'>👥 Total de agentes evaluables: <strong>{cantidad_agentes}</strong></p>", unsafe_allow_html=True)
+
+
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
             run = para.runs[0] if para.runs else para.add_run(" ")
@@ -746,11 +751,11 @@ def mostrar(supabase):
             for _, row in df_agentes_ordenado.iterrows():
                 fila = tabla.add_row().cells
                 fila[0].text = row.get("apellido_nombre", "")
-                fila[1].text = f"{row.get('nivel', '')}/{row.get('grado', '')}"
+                fila[1].text = f"{row.get('nivel', '')}-{row.get('grado', '')}"
                 agrupamiento = row.get("agrupamiento", "")
                 fila[2].text = "Profesional" if agrupamiento == "PROF" else "General" if agrupamiento == "GRAL" else ""
                 fila[3].text = row.get("tramo", "")
-                fila[4].text = "INGRESANTE" if row.get("ingresante") is True else ""
+                fila[4].text = "Sí" if row.get("ingresante") is True else ""
 
                 for celda in fila:
                     set_cell_style(celda, bold=False)
