@@ -153,8 +153,8 @@ def mostrar(supabase):
                 "font-size": "17px",
                 "text-align": "center",
                 "margin": "0 15px",
-                "flex": "1",  # ← Esto hace que se distribuyan uniformemente
-                # "max-width": "250px",  # ← Eliminar esta línea
+               # "flex": "1",  # ← Esto hace que se distribuyan uniformemente
+                "max-width": "250px",  # ← Eliminar esta línea
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#F05A7E",
