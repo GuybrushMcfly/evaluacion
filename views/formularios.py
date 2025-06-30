@@ -176,6 +176,31 @@ def mostrar(supabase, formularios, clasificaciones):
         st.markdown(f"### 🔢 Puntaje: **{total}** (**de {puntaje_maximo} puntos posibles**)")
         st.markdown(f"### 🏅 Calificación: **{clasificacion}**")
 
+    # Solo para evaluador general
+    if st.session_state.get("rol", {}).get("evaluador_general") and clasificacion == "DESTACADO":
+        # Buscar todas las evaluaciones de esa dependencia_general
+        evaluaciones_dependencia = supabase.table("evaluaciones")\
+            .select("calificacion")\
+            .eq("dependencia_general", agente.get("dependencia_general"))\
+            .eq("anio_evaluacion", 2024)\
+            .eq("anulada", False)\
+            .execute().data
+    
+        total_evaluados = len(evaluaciones_dependencia)
+        destacados_actuales = sum(1 for e in evaluaciones_dependencia if e["calificacion"] == "DESTACADO")
+    
+        # Cálculo del límite según normativa
+        if total_evaluados >= 6:
+            limite_destacados = int(total_evaluados * 0.30)
+        else:
+            limite_destacados = 0
+    
+        restantes = max(0, limite_destacados - destacados_actuales)
+    
+        st.markdown(f"### 🎯 <span style='color:white'>DESTACADOS disponibles en esta dependencia general: <strong>{restantes}</strong> de {limite_destacados}</span>", unsafe_allow_html=True)
+    
+        if restantes <= 0:
+            st.warning("⚠️ Ya se alcanzó el máximo permitido de calificaciones DESTACADO en esta dependencia.")
 
         
         st.markdown("---")
