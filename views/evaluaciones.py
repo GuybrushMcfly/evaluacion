@@ -90,7 +90,7 @@ def mostrar(supabase):
     evaluados = sum(1 for a in agentes if a.get("evaluado_2024") is True)
     porcentaje = (evaluados / total_asignados * 100) if total_asignados > 0 else 0
 
-    st.markdown("# ")
+  #  st.markdown("# ")
     
     # Obtener evaluaciones filtradas
     evaluaciones = supabase.table("evaluaciones").select("*").in_("cuil", cuils_asignados).execute().data
