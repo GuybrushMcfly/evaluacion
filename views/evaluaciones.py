@@ -553,7 +553,7 @@ def mostrar(supabase):
             df_visual_anuladas = df_visual_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
         
             # --- Paginación manual ---
-            registros_por_pagina = 12
+            registros_por_pagina = 9
             total_registros = len(df_visual_anuladas)
             total_paginas = (total_registros - 1) // registros_por_pagina + 1
         
