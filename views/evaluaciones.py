@@ -541,7 +541,7 @@ def mostrar(supabase):
         if not df_anuladas.empty:
             st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
         
-            # Crear copia para visualización sin afectar lógica
+            # Crear copia visual
             df_visual_anuladas = df_anuladas.copy()
             df_visual_anuladas["Nivel Eval"] = df_visual_anuladas["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
             df_visual_anuladas["Puntaje/Máximo"] = df_visual_anuladas.apply(
@@ -552,19 +552,28 @@ def mostrar(supabase):
             # Ordenar
             df_visual_anuladas = df_visual_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
         
-            # --- Paginación manual ---
-            registros_por_pagina = 9
+            # Configurar paginación
+            registros_por_pagina = 8
             total_registros = len(df_visual_anuladas)
             total_paginas = (total_registros - 1) // registros_por_pagina + 1
         
-            pagina_actual = st.number_input(
-                "Página", min_value=1, max_value=total_paginas, value=1, step=1, key="pagina_anuladas"
-            )
+            # Control de sesión para recordar página
+            if "pagina_anuladas" not in st.session_state:
+                st.session_state["pagina_anuladas"] = 1
         
-            inicio = (pagina_actual - 1) * registros_por_pagina
+            col1, col2, col3 = st.columns([1, 1, 6])
+            with col1:
+                if st.button("⬅️ Anterior", disabled=st.session_state["pagina_anuladas"] == 1):
+                    st.session_state["pagina_anuladas"] -= 1
+            with col2:
+                if st.button("Siguiente ➡️", disabled=st.session_state["pagina_anuladas"] == total_paginas):
+                    st.session_state["pagina_anuladas"] += 1
+            with col3:
+                st.markdown(f"<p style='margin-top:8px;'>Página {st.session_state['pagina_anuladas']} de {total_paginas}</p>", unsafe_allow_html=True)
+        
+            # Mostrar subset paginado
+            inicio = (st.session_state["pagina_anuladas"] - 1) * registros_por_pagina
             fin = inicio + registros_por_pagina
-        
-            # Subset paginado
             subset = df_visual_anuladas.iloc[inicio:fin][[
                 "apellido_nombre", "Nivel Eval", "calificacion",
                 "Puntaje/Máximo", "evaluador", "Fecha_formateada", "Estado"
