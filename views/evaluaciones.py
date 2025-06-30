@@ -157,7 +157,7 @@ def mostrar(supabase):
                 # "max-width": "250px",  # ← Eliminar esta línea
                 "color": "white",
                 "font-weight": "bold",
-                "background-color": "#d1484d",
+                "background-color": "#F05A7E",
                 "border-radius": "8px",
                 "--hover-color": "#b03a3f",
             },
