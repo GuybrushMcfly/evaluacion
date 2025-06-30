@@ -186,7 +186,8 @@ def mostrar(supabase, formularios, clasificaciones):
             if st.button("✅ Sí, enviar evaluación"):
                 tipo_formulario = tipo
                 evaluador = st.session_state.get("usuario", "desconocido")
-                puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
+             #   puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
+                puntaje_maximo = sum([max(v for _, v in bloque["opciones"]) for bloque in formularios[tipo]["factores"]])
                 puntaje_relativo = round((total / puntaje_maximo) * 10, 3) if puntaje_maximo else None
 
                 unidad_info = supabase.table("unidades_evaluacion")\
