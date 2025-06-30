@@ -242,8 +242,8 @@ def mostrar(supabase, formularios, clasificaciones):
                 st.warning("🔄 Por favor revise las opciones seleccionadas")
 
         with col_rangos:
-            if st.button("📈 Rangos Puntajes"):
-                st.markdown("**📊 Clasificación según puntaje:**")
+            if st.button("📊 Ver Rangos Puntajes"):
+                st.markdown("** Clasificación según puntaje:**")
                 for nombre, maxv, minv in clasificaciones[tipo]:
                     st.markdown(f"- **{nombre}**: entre {minv} y {maxv} puntos")
 
