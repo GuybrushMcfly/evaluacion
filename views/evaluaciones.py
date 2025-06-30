@@ -491,7 +491,7 @@ def mostrar(supabase):
         # Mostrar bloque de anulaciones solo si está habilitado
         if not df_no_anuladas.empty and anulacion_activa:
             st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
-        
+            
             # Columnas auxiliares
             df_no_anuladas["Seleccionar"] = False
             df_no_anuladas["Nivel Eval"] = df_no_anuladas["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
@@ -499,25 +499,38 @@ def mostrar(supabase):
                 lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
                 axis=1
             )
-        
+            
             # Ordenar
             df_no_anuladas = df_no_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
-        
-            # --- Paginación con selectbox ---
+            
+            # --- Paginación con selectbox (versión segura) ---
             registros_por_pagina = 8
             total_registros = len(df_no_anuladas)
-            total_paginas = (total_registros - 1) // registros_por_pagina + 1
+            total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)
             paginas = list(range(1, total_paginas + 1))
-        
-            pagina_actual = st.selectbox("Seleccionar página:", paginas, index=0, key="pagina_anulables")
+            
+            if (
+                "pagina_anulables" not in st.session_state
+                or st.session_state["pagina_anulables"] not in paginas
+            ):
+                st.session_state["pagina_anulables"] = 1
+            
+            pagina_actual = st.selectbox(
+                "Seleccionar página:",
+                options=paginas,
+                index=paginas.index(st.session_state["pagina_anulables"]),
+                key="pagina_anulables_select"
+            )
+            
+            st.session_state["pagina_anulables"] = pagina_actual
+            
             inicio = (pagina_actual - 1) * registros_por_pagina
             fin = inicio + registros_por_pagina
-        
+            
             # Subset paginado
             df_pagina = df_no_anuladas.iloc[inicio:fin][[
                 "Seleccionar", "apellido_nombre", "Nivel Eval",
-                "calificacion", "Puntaje/Max", "evaluador",
-                "id_evaluacion"
+                "calificacion", "Puntaje/Max", "evaluador", "id_evaluacion"
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
                 "apellido_nombre": "Apellido y Nombres",
@@ -527,7 +540,7 @@ def mostrar(supabase):
                 "evaluador": "Evaluador",
                 "id_evaluacion": "id_evaluacion"
             })
-        
+            
             # Editor con id_evaluacion oculta pero disponible
             seleccion = st.data_editor(
                 df_pagina,
@@ -542,6 +555,7 @@ def mostrar(supabase):
                     "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
                 }
             )
+
 
 
             
@@ -565,8 +579,10 @@ def mostrar(supabase):
                     st.success(f"✅ {len(ids_seleccionados)} evaluaciones anuladas.")
                     time.sleep(2)
                     st.rerun()
-        elif not anulacion_activa:
-            st.info("🔒 La anulación de evaluaciones está cerrada.")
+  #      elif not anulacion_activa:
+  #          st.info("🔒 La anulación de evaluaciones está cerrada.")
+        # Si la anulación no está activa, no se muestra ningún bloque
+        pass
 
         st.markdown("---")
 
