@@ -490,7 +490,8 @@ def mostrar(supabase):
                 ],
                 column_config={
                     "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
-                    "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
+                    "id_evaluacion": None  # ⛔ Oculta visualmente esta columna,
+                    "Estado": None  # ⛔ Oculta visualmente esta columna
                 }
             )
 
