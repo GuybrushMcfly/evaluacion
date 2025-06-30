@@ -452,9 +452,14 @@ def mostrar(supabase):
         ).fillna("")
     
     
-        st.markdown("---")
+       # st.markdown("---")
        # st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True) #linea divisora
-        st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
+       # st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
+        if not df_no_anuladas.empty:
+            st.markdown("---")
+            st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
+
+
         
         if df_informe.empty:
             st.warning("⚠️ No hay agentes registrados en esta unidad.")
