@@ -472,10 +472,10 @@ def mostrar(supabase):
                 "apellido_nombre": "Apellido y Nombres",
                 "Nivel Eval": "Nivel Eval",
                 "calificacion": "Calificación",
-                "Puntaje/Max": "Puntaje",
+                "Puntaje/Max": "Puntaje/Máximo",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
-                "Estado": "Estado",
+                #"Estado": "Estado",
                 "id_evaluacion": "id_evaluacion"
             })
         
