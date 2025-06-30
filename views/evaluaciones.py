@@ -13,6 +13,9 @@ from docx.shared import Cm
 from streamlit_option_menu import option_menu
 import plotly.graph_objects as go
 from plotly.colors import qualitative
+import tempfile
+import os
+from docx2pdf import convert
 
 MAPA_NIVEL_EVALUACION = {
     "1": "Jerárquico (1)",
@@ -350,12 +353,10 @@ def mostrar(supabase):
             run.font.color.rgb = RGBColor.from_string("104f8e")
             p_header.alignment = 1
             p_header.paragraph_format.line_spacing = Pt(12)
-    
-    
-            
+        
             # AGRUPAMIENTO
             doc.add_paragraph()
-    
+        
             titulo("PERSONAL TOTAL POR TIPO DE AGRUPAMIENTO")
             gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
             prof = len(df_base[df_base["agrupamiento"] == "PROF"])
@@ -442,50 +443,98 @@ def mostrar(supabase):
             agregar_tabla_por_formulario("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
         
             return doc
-    
         
-       
+        # NUEVA FUNCIÓN PARA GENERAR PDF
+        def generar_informe_pdf(df_base, df_eval, dependencia_nombre):
+            """
+            Genera un informe en PDF convirtiendo desde DOCX
+            """
+            # Generar el documento DOCX usando tu función existente
+            doc = generar_informe_docx(df_base, df_eval, dependencia_nombre)
+            
+            # Crear archivo temporal para DOCX
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_docx:
+                doc.save(tmp_docx.name)
+                docx_path = tmp_docx.name
+            
+            # Crear ruta para PDF
+            pdf_path = docx_path.replace('.docx', '.pdf')
+            
+            try:
+                # Convertir DOCX a PDF
+                convert(docx_path, pdf_path)
+                return pdf_path
+            except Exception as e:
+                st.error(f"Error al convertir a PDF: {e}")
+                st.error("Asegúrate de tener Microsoft Word instalado (Windows) o LibreOffice (Linux/Mac)")
+                return None
+            finally:
+                # Limpiar archivo temporal DOCX
+                if os.path.exists(docx_path):
+                    os.unlink(docx_path)
+        
+        # TUS VARIABLES SE MANTIENEN IGUAL
         df_informe = df_agentes.copy()  # todos los agentes asignados
         
         df_evaluados = df_agentes[["cuil", "apellido_nombre"]].merge(
             df_no_anuladas[["cuil", "formulario", "calificacion", "puntaje_total"]],
             on="cuil", how="left"
         ).fillna("")
-    
-    
-       # st.markdown("---")
-       # st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True) #linea divisora
-       # st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
+        
+        # CÓDIGO STREAMLIT MODIFICADO CON DOS BOTONES
         if not df_no_anuladas.empty:
             st.markdown("---")
             st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
-
-
         
         if df_informe.empty:
             st.warning("⚠️ No hay agentes registrados en esta unidad.")
         elif df_no_anuladas.empty:
             st.info("ℹ️ No hay evaluaciones registradas para generar el informe.")
         else:
+            # Preparar datos
             for col in ["formulario", "calificacion", "puntaje_total", "apellido_nombre"]:
                 if col not in df_evaluados.columns:
                     df_evaluados[col] = ""
-        
-            with st.spinner("✏️ Generando documento..."):
-                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                    doc.save(tmp.name)
-                    tmp_path = tmp.name
-        
-            with open(tmp_path, "rb") as file:
-                st.download_button(
-                    label="📥 Descargar Informe",
-                    data=file,
-                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
-
-     
+            
+            # Crear dos columnas para los botones
+            col1, col2 = st.columns(2)
+            
+            # BOTÓN DOCX (columna 1)
+            with col1:
+                with st.spinner("✏️ Generando documento DOCX..."):
+                    doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                        doc.save(tmp.name)
+                        tmp_path = tmp.name
+                
+                with open(tmp_path, "rb") as file:
+                    st.download_button(
+                        label="📥 Descargar DOCX",
+                        data=file,
+                        file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key="download_docx"
+                    )
+            
+            # BOTÓN PDF (columna 2)
+            with col2:
+                with st.spinner("📄 Generando documento PDF..."):
+                    pdf_path = generar_informe_pdf(df_informe, df_evaluados, dependencia_filtro)
+                
+                if pdf_path and os.path.exists(pdf_path):
+                    with open(pdf_path, "rb") as file:
+                        st.download_button(
+                            label="📥 Descargar PDF",
+                            data=file,
+                            file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.pdf",
+                            mime="application/pdf",
+                            key="download_pdf"
+                        )
+                    # Limpiar archivo temporal PDF
+                    os.unlink(pdf_path)
+                else:
+                    st.error("No se pudo generar el archivo PDF")
+             
         # Obtener configuración global
         config_items = supabase.table("configuracion").select("*").execute().data
         config_map = {item["id"]: item for item in config_items}
