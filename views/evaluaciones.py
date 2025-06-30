@@ -669,7 +669,7 @@ def mostrar(supabase):
 
       #  st.markdown("<h2 style='font-size:20px;'>Agentes evaluables</h2>", unsafe_allow_html=True)
         cantidad_agentes = len(df_agentes)
-        st.markdown(f"<p style='font-size:16px;'>👥 Total de agentes evaluables: <strong>{cantidad_agentes}</strong></p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:20px;'>👥 Total de agentes evaluables: <strong>{cantidad_agentes}</strong></p>", unsafe_allow_html=True)
 
 
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
