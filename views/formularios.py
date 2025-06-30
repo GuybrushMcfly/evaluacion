@@ -169,21 +169,15 @@ def mostrar(supabase, formularios, clasificaciones):
     #    st.markdown(f"### 📌 Calificación: **{clasificacion}**")
     #    st.markdown("---")
 
-        puntaje_maximo = MAXIMO_PUNTAJE_FORMULARIO.get(str(tipo), sum(st.session_state.puntajes))
-        st.markdown(f"### 📊 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
-        st.markdown(f"### 📌 Calificación: **{clasificacion}**")
-        # Mostrar tabla con rangos de calificación del formulario seleccionado
-        rango_data = clasificaciones.get(tipo, [])
-        df_rangos = pd.DataFrame(rango_data, columns=["Calificación", "Máximo", "Mínimo"])
-        df_rangos = df_rangos[["Calificación", "Mínimo", "Máximo"]]  # ordenar columnas
-        st.markdown("#### 📈 Tabla de rangos para este formulario")
-        st.dataframe(df_rangos, hide_index=True, use_container_width=True)
-
         
         st.markdown("---")
-        
 
-        col1, col2 = st.columns(2)
+        col1, col_rangos, col2 = st.columns([1, 1, 1])
+
+        with col1:
+            if st.button("✅ Sí, enviar evaluación"):
+                # ... [todo tu código de envío actual]
+        
         with col1:
             if st.button("✅ Sí, enviar evaluación"):
                 tipo_formulario = tipo
@@ -240,5 +234,11 @@ def mostrar(supabase, formularios, clasificaciones):
             if st.button("❌ No, revisar opciones"):
                 st.session_state["previsualizado"] = False
                 st.warning("🔄 Por favor revise las opciones seleccionadas")
+
+        with col_rangos:
+            if st.button("📈 Rangos Puntajes"):
+                st.markdown("**📊 Clasificación según puntaje:**")
+                for nombre, maxv, minv in clasificaciones[tipo]:
+                    st.markdown(f"- **{nombre}**: entre {minv} y {maxv} puntos")
 
     st.session_state["last_tipo"] = tipo
