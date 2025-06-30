@@ -541,7 +541,7 @@ def mostrar(supabase):
         if not df_anuladas.empty:
             st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
         
-            # Agregar columnas visuales sin modificar la fuente
+            # Crear copia para visualización sin afectar lógica
             df_visual_anuladas = df_anuladas.copy()
             df_visual_anuladas["Nivel Eval"] = df_visual_anuladas["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
             df_visual_anuladas["Puntaje/Máximo"] = df_visual_anuladas.apply(
@@ -552,22 +552,34 @@ def mostrar(supabase):
             # Ordenar
             df_visual_anuladas = df_visual_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
         
-            # Mostrar tabla formateada
-            st.dataframe(
-                df_visual_anuladas[[
-                    "apellido_nombre", "Nivel Eval", "calificacion",
-                    "Puntaje/Máximo", "evaluador", "Fecha_formateada"
-                ]].rename(columns={
-                    "apellido_nombre": "Apellido y Nombres",
-                    "Nivel Eval": "Nivel Evaluación",
-                    "calificacion": "Calificación",
-                    "Puntaje/Máximo": "Puntaje/Máximo",
-                    "evaluador": "Evaluador",
-                    "Fecha_formateada": "Fecha"
-                }),
-                use_container_width=True,
-                hide_index=True
+            # --- Paginación manual ---
+            registros_por_pagina = 12
+            total_registros = len(df_visual_anuladas)
+            total_paginas = (total_registros - 1) // registros_por_pagina + 1
+        
+            pagina_actual = st.number_input(
+                "Página", min_value=1, max_value=total_paginas, value=1, step=1, key="pagina_anuladas"
             )
+        
+            inicio = (pagina_actual - 1) * registros_por_pagina
+            fin = inicio + registros_por_pagina
+        
+            # Subset paginado
+            subset = df_visual_anuladas.iloc[inicio:fin][[
+                "apellido_nombre", "Nivel Eval", "calificacion",
+                "Puntaje/Máximo", "evaluador", "Fecha_formateada", "Estado"
+            ]].rename(columns={
+                "apellido_nombre": "Apellido y Nombres",
+                "Nivel Eval": "Nivel Evaluación",
+                "calificacion": "Calificación",
+                "Puntaje/Máximo": "Puntaje",
+                "evaluador": "Evaluador",
+                "Fecha_formateada": "Fecha",
+                "Estado": "Estado"
+            })
+        
+            st.dataframe(subset, use_container_width=True, hide_index=True)
+
 
 
                 
