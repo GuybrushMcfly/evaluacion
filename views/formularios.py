@@ -69,11 +69,11 @@ def mostrar(supabase, formularios, clasificaciones):
     if seleccion_agente == "":
         st.info(f"👥 Tiene {len(agentes_data)} agente/s pendiente/s para evaluar.")
         st.warning("⚠️ Por favor seleccione un agente 👤")
-        return
+        
 
         if st.session_state.get("rol", {}).get("evaluador_general"):
             st.info("📌 **[PRUEBA]** Este es un mensaje visible solo para evaluador general.")
-
+        return
     
     agente = next(a for a in agentes_data if a["apellido_nombre"] == seleccion_agente)
     
