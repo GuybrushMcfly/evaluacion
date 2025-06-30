@@ -565,27 +565,31 @@ def mostrar(supabase):
             # Configurar paginación
             registros_por_pagina = 8
             total_registros = len(df_visual_anuladas)
-            total_paginas = (total_registros - 1) // registros_por_pagina + 1
+            total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)  # Siempre al menos 1 página
             paginas = list(range(1, total_paginas + 1))
-                    
-            # Selector de página
-            if "pagina_anuladas" not in st.session_state:
+            
+            # Inicializar página en session_state si no existe o es inválida
+            if (
+                "pagina_anuladas" not in st.session_state
+                or st.session_state["pagina_anuladas"] not in paginas
+            ):
                 st.session_state["pagina_anuladas"] = 1
             
+            # Selector de página con index seguro
             pagina_actual = st.selectbox(
                 "Seleccionar página:",
                 options=paginas,
-                index=st.session_state["pagina_anuladas"] - 1,
+                index=paginas.index(st.session_state["pagina_anuladas"]),
                 key="pagina_anuladas_select"
             )
             
+            # Actualizar session_state
             st.session_state["pagina_anuladas"] = pagina_actual
-
-
-        
+            
             # Subset paginado
             inicio = (pagina_actual - 1) * registros_por_pagina
             fin = inicio + registros_por_pagina
+
         
             subset = df_visual_anuladas.iloc[inicio:fin][[
                 "apellido_nombre", "Nivel Eval", "calificacion",
