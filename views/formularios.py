@@ -173,6 +173,7 @@ def mostrar(supabase, formularios, clasificaciones):
         st.markdown(f"### 📊 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
         st.markdown(f"### 📌 Calificación: **{clasificacion}**")
 
+
         
         st.markdown("---")
 
