@@ -70,11 +70,38 @@ def mostrar(supabase, formularios, clasificaciones):
         st.info(f"👥 Tiene {len(agentes_data)} agente/s pendiente/s para evaluar.")
     
         if st.session_state.get("rol", {}).get("evaluador_general"):
-            st.info("📌 **[PRUEBA]** Este es un mensaje visible solo para evaluador general.")
+            dependencia_general_actual = agentes_data[0].get("dependencia_general")
+            
+            # Obtener total de agentes activos en esa dependencia_general
+            agentes_dependencia = supabase.table("agentes")\
+                .select("cuil")\
+                .eq("dependencia_general", dependencia_general_actual)\
+                .eq("activo", True)\
+                .execute().data
+    
+            total_agentes = len(agentes_dependencia)
+    
+            if total_agentes >= 3:
+                import math
+                max_destacados = math.floor(total_agentes * 0.3)
+    
+                # Obtener cantidad de DESTACADOS ya asignados en esa dependencia_general
+                destacados_actuales = supabase.table("evaluaciones")\
+                    .select("id_evaluacion")\
+                    .eq("anio_evaluacion", 2024)\
+                    .eq("calificacion", "DESTACADO")\
+                    .eq("anulada", False)\
+                    .eq("dependencia_general", dependencia_general_actual)\
+                    .execute().data
+    
+                usados = len(destacados_actuales)
+                disponibles = max(0, max_destacados - usados)
+    
+                st.info(f"🏅 Tiene {disponibles} calificación/es DESTACADO disponible/s de un máximo de {max_destacados} para la unidad **{dependencia_general_actual}**.")
     
         st.warning("⚠️ Por favor seleccione un agente 👤")
         return
-    
+
     agente = next(a for a in agentes_data if a["apellido_nombre"] == seleccion_agente)
     
     # Variables base
