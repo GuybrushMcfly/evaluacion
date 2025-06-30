@@ -494,7 +494,8 @@ def mostrar(supabase):
         
     
         # Mostrar bloque de anulaciones solo si está habilitado
-        if not df_no_anuladas.empty and anulacion_activa:
+        if anulacion_activa and not df_no_anuladas.empty:
+            st.markdown("---")
             st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
             
             # Columnas auxiliares
