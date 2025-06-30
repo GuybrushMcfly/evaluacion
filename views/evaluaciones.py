@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 from plotly.colors import qualitative
 import tempfile
 import os
-from docx2pdf import convert
+from weasyprint import HTML, CSS  
 
 MAPA_NIVEL_EVALUACION = {
     "1": "Jerárquico (1)",
@@ -313,6 +313,7 @@ def mostrar(supabase):
         
             para.alignment = 1  # Centrado
         
+
         
         def generar_informe_docx(df_base, df_eval, dependencia_nombre):
             doc = Document()
@@ -444,34 +445,179 @@ def mostrar(supabase):
         
             return doc
         
-        # NUEVA FUNCIÓN PARA GENERAR PDF
+        # NUEVA FUNCIÓN PARA GENERAR PDF CON WEASYPRINT
         def generar_informe_pdf(df_base, df_eval, dependencia_nombre):
             """
-            Genera un informe en PDF convirtiendo desde DOCX
+            Genera un informe en PDF usando HTML y WeasyPrint
             """
-            # Generar el documento DOCX usando tu función existente
-            doc = generar_informe_docx(df_base, df_eval, dependencia_nombre)
-            
-            # Crear archivo temporal para DOCX
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_docx:
-                doc.save(tmp_docx.name)
-                docx_path = tmp_docx.name
-            
-            # Crear ruta para PDF
-            pdf_path = docx_path.replace('.docx', '.pdf')
-            
             try:
-                # Convertir DOCX a PDF
-                convert(docx_path, pdf_path)
-                return pdf_path
+                # Calcular datos para el informe
+                gral = len(df_base[df_base["agrupamiento"] == "GRAL"])
+                prof = len(df_base[df_base["agrupamiento"] == "PROF"])
+                
+                niveles = ["A", "B", "C", "D", "E"]
+                conteo_niveles = df_base["nivel"].value_counts()
+                
+                df_evaluable = df_base[df_base["ingresante"].isin([True, False])]
+                no_ingresantes = len(df_evaluable[df_evaluable["ingresante"] == False])
+                ingresantes = len(df_evaluable[df_evaluable["ingresante"] == True])
+                total_evaluable = no_ingresantes + ingresantes
+                evaluados = df_eval["calificacion"].apply(lambda x: x != "").sum()
+                
+                # Generar HTML
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body {{
+                            font-family: Calibri, Arial, sans-serif;
+                            font-size: 10pt;
+                            margin: 2cm;
+                            line-height: 1.2;
+                        }}
+                        .header {{
+                            text-align: center;
+                            color: #104f8e;
+                            font-weight: bold;
+                            margin-bottom: 30px;
+                            line-height: 1.3;
+                        }}
+                        .titulo {{
+                            color: #104f8e;
+                            font-weight: bold;
+                            margin: 20px 0 10px 0;
+                            font-size: 10pt;
+                        }}
+                        table {{
+                            border-collapse: collapse;
+                            width: 100%;
+                            margin-bottom: 20px;
+                        }}
+                        th, td {{
+                            border: 1px solid black;
+                            padding: 8px;
+                            text-align: center;
+                            font-size: 10pt;
+                        }}
+                        th {{
+                            background-color: #104f8e;
+                            color: white;
+                            font-weight: bold;
+                        }}
+                        .no-data {{
+                            text-align: center;
+                            font-style: italic;
+                            margin: 10px 0;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        INSTITUTO NACIONAL DE ESTADÍSTICA Y CENSOS<br>
+                        DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL<br>
+                        EVALUACIÓN DE DESEMPEÑO 2024<br>
+                        UNIDAD DE ANÁLISIS: {dependencia_nombre}
+                    </div>
+                    
+                    <div class="titulo">PERSONAL TOTAL POR TIPO DE AGRUPAMIENTO</div>
+                    <table>
+                        <tr>
+                            <th>GENERAL</th>
+                            <th>PROFESIONAL</th>
+                        </tr>
+                        <tr>
+                            <td>{gral}</td>
+                            <td>{prof}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="titulo">PERSONAL TOTAL POR TIPO DE NIVEL ESCALAFONARIO</div>
+                    <table>
+                        <tr>
+                            {''.join([f'<th>{nivel}</th>' for nivel in niveles])}
+                        </tr>
+                        <tr>
+                            {''.join([f'<td>{conteo_niveles.get(nivel, 0)}</td>' for nivel in niveles])}
+                        </tr>
+                    </table>
+                    
+                    <div class="titulo">PERSONAL PARA EVALUAR/EVALUADO</div>
+                    <table>
+                        <tr>
+                            <th>PERMANENTES NO INGRESANTE</th>
+                            <th>PERMANENTES INGRESANTES</th>
+                            <th>TOTAL A EVALUAR</th>
+                            <th>TOTAL EVALUADO</th>
+                        </tr>
+                        <tr>
+                            <td>{no_ingresantes}</td>
+                            <td>{ingresantes}</td>
+                            <td>{total_evaluable}</td>
+                            <td>{evaluados}</td>
+                        </tr>
+                    </table>
+                """
+                
+                # Función auxiliar para agregar tablas de evaluaciones
+                def generar_tabla_evaluaciones(titulo_texto, formularios):
+                    subset = df_eval[df_eval["formulario"].astype(str).isin(formularios)].sort_values("apellido_nombre")
+                    
+                    html_tabla = f'<div class="titulo">{titulo_texto}</div>'
+                    
+                    if subset.empty:
+                        html_tabla += '<div class="no-data">No hay evaluaciones registradas en este nivel.</div>'
+                        return html_tabla
+                    
+                    html_tabla += '''
+                    <table>
+                        <tr>
+                            <th>APELLIDOS Y NOMBRES</th>
+                            <th>CALIFICACIÓN</th>
+                            <th>PUNTAJE</th>
+                        </tr>
+                    '''
+                    
+                    for _, row in subset.iterrows():
+                        nombre = row.get("apellido_nombre", "")
+                        calificacion = row.get("calificacion", "")
+                        puntaje = row.get("puntaje_total", "")
+                        try:
+                            puntaje_float = float(puntaje)
+                            puntaje = int(puntaje_float) if puntaje_float.is_integer() else puntaje_float
+                        except:
+                            pass
+                        
+                        html_tabla += f'''
+                        <tr>
+                            <td style="text-align: left;">{nombre}</td>
+                            <td>{calificacion}</td>
+                            <td>{puntaje}</td>
+                        </tr>
+                        '''
+                    
+                    html_tabla += '</table>'
+                    return html_tabla
+                
+                # Agregar tablas de evaluaciones
+                html_content += generar_tabla_evaluaciones("EVALUACIONES - NIVEL JERÁRQUICO (FORMULARIO 1)", ["1"])
+                html_content += generar_tabla_evaluaciones("EVALUACIONES - NIVELES MEDIO (FORMULARIOS 2, 3 y 4)", ["2", "3", "4"])
+                html_content += generar_tabla_evaluaciones("EVALUACIONES - NIVELES OPERATIVOS (FORMULARIOS 5 Y 6)", ["5", "6"])
+                
+                html_content += '''
+                </body>
+                </html>
+                '''
+                
+                # Crear archivo temporal para PDF
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+                    HTML(string=html_content).write_pdf(tmp_pdf.name)
+                    return tmp_pdf.name
+                    
             except Exception as e:
-                st.error(f"Error al convertir a PDF: {e}")
-                st.error("Asegúrate de tener Microsoft Word instalado (Windows) o LibreOffice (Linux/Mac)")
+                st.error(f"Error al generar PDF: {e}")
                 return None
-            finally:
-                # Limpiar archivo temporal DOCX
-                if os.path.exists(docx_path):
-                    os.unlink(docx_path)
         
         # TUS VARIABLES SE MANTIENEN IGUAL
         df_informe = df_agentes.copy()  # todos los agentes asignados
@@ -515,6 +661,9 @@ def mostrar(supabase):
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                         key="download_docx"
                     )
+                
+                # Limpiar archivo temporal DOCX
+                os.unlink(tmp_path)
             
             # BOTÓN PDF (columna 2)
             with col2:
