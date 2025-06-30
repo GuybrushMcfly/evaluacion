@@ -4,6 +4,25 @@ import yaml
 from datetime import date
 import time
 
+MAPA_NIVEL_EVALUACION = {
+    "1": "Jerárquico (1)",
+    "2": "Medio (2)",
+    "3": "Medio (3)",
+    "4": "Medio (4)",
+    "5": "Operativo (5)",
+    "6": "Operativo (6)"
+}
+
+MAXIMO_PUNTAJE_FORMULARIO = {
+    "1": 56,
+    "2": 48,
+    "3": 48,
+    "4": 44,
+    "5": 40,
+    "6": 36
+}
+
+
 def cargar_formularios():
     with open("formularios.yaml", "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
@@ -146,7 +165,12 @@ def mostrar(supabase, formularios, clasificaciones):
         clasificacion = next((nombre for nombre, maxv, minv in rango if minv <= total <= maxv), "Sin clasificación")
 
         st.markdown("---")
-        st.markdown(f"### 📊 Puntaje: {total}")
+    #    st.markdown(f"### 📊 Puntaje: {total}")
+    #    st.markdown(f"### 📌 Calificación: **{clasificacion}**")
+    #    st.markdown("---")
+
+        puntaje_maximo = max(st.session_state.puntajes) * len(st.session_state.puntajes)
+        st.markdown(f"### 📊 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
         st.markdown(f"### 📌 Calificación: **{clasificacion}**")
         st.markdown("---")
 
