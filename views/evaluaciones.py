@@ -133,8 +133,15 @@ def mostrar(supabase):
         df_no_anuladas = df_no_anuladas.merge(df_agentes[[
             "cuil", "agrupamiento", "nivel", "ingresante", "apellido_nombre"
         ]], on="cuil", how="left", suffixes=("", "_agente"))
+
+
     
     # Menú horizontal de navegación
+    st.markdown(
+        "<p style='font-size:16px; color:#333;'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
+        unsafe_allow_html=True
+    )
+    
     seleccion = option_menu(
         menu_title=None,
         options=["📊 INDICADORES", "✅ EVALUACIONES", "👥 AGENTES"],
