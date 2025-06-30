@@ -484,9 +484,7 @@ def mostrar(supabase):
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
-        st.markdown("---")
-   
-    
+     
         # Obtener configuración global
         config_items = supabase.table("configuracion").select("*").execute().data
         config_map = {item["id"]: item for item in config_items}
