@@ -533,23 +533,31 @@ def mostrar(supabase):
             st.info("🔒 La anulación de evaluaciones está cerrada.")
     
         df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+        
         if not df_anuladas.empty:
-            df_anuladas["calif_puntaje"] = df_anuladas.apply(
-                lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
-            )
-    
-            #st.subheader("❌ Evaluaciones ya anuladas:")
             st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
-           
+        
+            # Agregar columnas visuales sin modificar la fuente
+            df_visual_anuladas = df_anuladas.copy()
+            df_visual_anuladas["Nivel Eval"] = df_visual_anuladas["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
+            df_visual_anuladas["Puntaje/Máximo"] = df_visual_anuladas.apply(
+                lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
+                axis=1
+            )
+        
+            # Ordenar
+            df_visual_anuladas = df_visual_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
+        
+            # Mostrar tabla formateada
             st.dataframe(
-                df_anuladas[[
-                    "apellido_nombre", "formulario",
-                    "calif_puntaje", "evaluador",
-                    "Fecha_formateada", "Estado"
+                df_visual_anuladas[[
+                    "apellido_nombre", "Nivel Eval", "calificacion",
+                    "Puntaje/Máximo", "evaluador", "Fecha_formateada", "Estado"
                 ]].rename(columns={
                     "apellido_nombre": "Apellido y Nombres",
-                    "formulario": "Form.",
-                    "calif_puntaje": "Calificación/Puntaje",
+                    "Nivel Eval": "Nivel Evaluación",
+                    "calificacion": "Calificación",
+                    "Puntaje/Máximo": "Puntaje",
                     "evaluador": "Evaluador",
                     "Fecha_formateada": "Fecha",
                     "Estado": "Estado"
@@ -558,7 +566,6 @@ def mostrar(supabase):
                 hide_index=True
             )
 
-    
 
                 
     elif seleccion == "👥 AGENTES":
