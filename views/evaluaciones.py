@@ -453,7 +453,8 @@ def mostrar(supabase):
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
-    
+        st.markdown("---")
+   
     
         # Obtener configuración global
         config_items = supabase.table("configuracion").select("*").execute().data
@@ -531,6 +532,9 @@ def mostrar(supabase):
                     st.rerun()
         elif not anulacion_activa:
             st.info("🔒 La anulación de evaluaciones está cerrada.")
+
+        st.markdown("---")
+
     
         df_anuladas = df_eval[df_eval["anulada"] == True].copy()
         
@@ -552,15 +556,14 @@ def mostrar(supabase):
             st.dataframe(
                 df_visual_anuladas[[
                     "apellido_nombre", "Nivel Eval", "calificacion",
-                    "Puntaje/Máximo", "evaluador", "Fecha_formateada", "Estado"
+                    "Puntaje/Máximo", "evaluador", "Fecha_formateada"
                 ]].rename(columns={
                     "apellido_nombre": "Apellido y Nombres",
                     "Nivel Eval": "Nivel Evaluación",
                     "calificacion": "Calificación",
                     "Puntaje/Máximo": "Puntaje",
                     "evaluador": "Evaluador",
-                    "Fecha_formateada": "Fecha",
-                    "Estado": "Estado"
+                    "Fecha_formateada": "Fecha"
                 }),
                 use_container_width=True,
                 hide_index=True
