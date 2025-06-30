@@ -584,7 +584,8 @@ def mostrar(supabase):
         # Si la anulación no está activa, no se muestra ningún bloque
         pass
 
-        st.markdown("---")
+        if not df_anuladas.empty:
+            st.markdown("---")
 
     
         df_anuladas = df_eval[df_eval["anulada"] == True].copy()
