@@ -14,6 +14,25 @@ from streamlit_option_menu import option_menu
 import plotly.graph_objects as go
 from plotly.colors import qualitative
 
+MAPA_NIVEL_EVALUACION = {
+    "1": "Jerárquico (1)",
+    "2": "Medio (2)",
+    "3": "Medio (3)",
+    "4": "Medio (4)",
+    "5": "Operativo (5)",
+    "6": "Operativo (6)"
+}
+
+MAXIMO_PUNTAJE_FORMULARIO = {
+    "1": 56,
+    "2": 48,
+    "3": 48,
+    "4": 44,
+    "5": 40,
+    "6": 36
+}
+
+
 # ---- Vista: Evaluaciones ----
 def mostrar(supabase):
     #st.header("📋 Evaluaciones realizadas")
@@ -431,41 +450,50 @@ def mostrar(supabase):
         # Mostrar bloque de anulaciones solo si está habilitado
         if not df_no_anuladas.empty and anulacion_activa:
             st.markdown("<h2 style='font-size:24px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
-            df_no_anuladas["Seleccionar"] = False
-            df_no_anuladas["calif_puntaje"] = df_no_anuladas.apply(
-                lambda row: f"{row['calificacion']} ({row['puntaje_total']})", axis=1
-            )
-    
         
-           # Incluí id_evaluacion antes de construir df_para_mostrar
+            # Columnas auxiliares
+            df_no_anuladas["Seleccionar"] = False
+            df_no_anuladas["Nivel Eval"] = df_no_anuladas["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
+            df_no_anuladas["Puntaje/Max"] = df_no_anuladas.apply(
+                lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
+                axis=1
+            )
+        
+            # Ordenar
+            df_no_anuladas = df_no_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
+        
+            # Incluir id_evaluacion antes de construir df_para_mostrar
             df_para_mostrar = df_no_anuladas[[
-                "Seleccionar", "apellido_nombre", "formulario",
-                "calif_puntaje", "evaluador", "Fecha_formateada", "Estado", "id_evaluacion"
+                "Seleccionar", "apellido_nombre", "Nivel Eval",
+                "calificacion", "Puntaje/Max", "evaluador",
+                "Fecha_formateada", "Estado", "id_evaluacion"
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
                 "apellido_nombre": "Apellido y Nombres",
-                "formulario": "Form.",
-                "calif_puntaje": "Calificación/Puntaje",
+                "Nivel Eval": "Nivel Eval",
+                "calificacion": "Calificación",
+                "Puntaje/Max": "Puntaje",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
                 "Estado": "Estado",
                 "id_evaluacion": "id_evaluacion"
             })
-            
+        
             # Editor con id_evaluacion oculta pero disponible
             seleccion = st.data_editor(
                 df_para_mostrar,
                 use_container_width=True,
                 hide_index=True,
                 disabled=[
-                    "Apellido y Nombres", "Form.", "Calificación/Puntaje",
-                    "Evaluador", "Fecha", "Estado", "id_evaluacion"
+                    "Apellido y Nombres", "Nivel Eval", "Calificación",
+                    "Puntaje", "Evaluador", "Fecha", "Estado", "id_evaluacion"
                 ],
                 column_config={
                     "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
                     "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
                 }
             )
+
             
             # Botón para anular seleccionadas
             if st.button("❌ Anular seleccionadas"):
