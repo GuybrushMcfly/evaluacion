@@ -236,21 +236,35 @@ def mostrar(supabase):
         if df_no_anuladas.empty:
             st.info("ℹ️ No hay evaluaciones registradas.")
         else:
+            # Crear copia para visualización sin afectar el original
+            df_visual = df_no_anuladas.copy()
+        
+            # Agregar columnas visuales
+            df_visual["Nivel Eval"] = df_visual["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
+            df_visual["Puntaje/Máximo"] = df_visual.apply(
+                lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
+                axis=1
+            )
+        
+            # Ordenar para visualización
+            df_visual = df_visual.sort_values(by=["apellido_nombre", "Fecha_formateada"])
+        
+            # Mostrar tabla formateada
             st.dataframe(
-                df_no_anuladas[[
-                    "apellido_nombre", "formulario", "calif_puntaje", "evaluador", "Fecha_formateada"
+                df_visual[[
+                    "apellido_nombre", "Nivel Eval", "calificacion",
+                    "Puntaje/Máximo", "evaluador", "Fecha_formateada"
                 ]].rename(columns={
                     "apellido_nombre": "Apellido y Nombres",
-                    "formulario": "Form.",
-                    "calif_puntaje": "Calificación/Puntaje",
+                    "Nivel Eval": "Nivel Evaluación",
+                    "calificacion": "Calificación",
+                    "Puntaje/Máximo": "Puntaje",
                     "evaluador": "Evaluador",
                     "Fecha_formateada": "Fecha"
                 }),
                 use_container_width=True,
                 hide_index=True
             )
-
-
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
             run = para.runs[0] if para.runs else para.add_run(" ")
@@ -470,7 +484,7 @@ def mostrar(supabase):
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
                 "apellido_nombre": "Apellido y Nombres",
-                "Nivel Eval": "Nivel Eval",
+                "Nivel Eval": "Nivel Evaluación",
                 "calificacion": "Calificación",
                 "Puntaje/Max": "Puntaje/Máximo",
                 "evaluador": "Evaluador",
