@@ -492,6 +492,59 @@ def mostrar(supabase):
             
 
 
+        # Mostrar tabla solo para evaluador_general con destacados y si hay al menos 4 agentes activos
+        if tiene_rol("evaluador_general") and not df_no_anuladas.empty:
+            dependencia_actual = df_agentes["dependencia_general"].dropna().unique()
+            dependencia_actual = dependencia_actual[0] if len(dependencia_actual) > 0 else ""
+        
+            if dependencia_actual:
+                try:
+                    # Obtener total de agentes activos en esa dependencia_general
+                    agentes_dependencia = supabase.table("agentes")\
+                        .select("cuil, activo")\
+                        .eq("dependencia_general", dependencia_actual)\
+                        .execute().data
+        
+                    total_activos = sum(1 for a in agentes_dependencia if a.get("activo") == True)
+        
+                    if total_activos > 3:  # Mostrar solo si hay más de 3
+                        import math
+                        max_destacados = math.floor(total_activos * 0.3)
+        
+                        df_destacados = df_no_anuladas[df_no_anuladas["calificacion"] == "DESTACADO"].copy()
+                        usados = len(df_destacados)
+        
+                        st.markdown("---")
+                        st.markdown(f"<h2 style='font-size:20px;'>🌟 Evaluaciones con calificación DESTACADO ({usados} / {max_destacados})</h2>", unsafe_allow_html=True)
+        
+                        df_destacados["Nivel Eval"] = df_destacados["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
+                        df_destacados["Puntaje/Máximo"] = df_destacados.apply(
+                            lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
+                            axis=1
+                        )
+        
+                        df_destacados = df_destacados.sort_values(by=["apellido_nombre", "Fecha_formateada"])
+        
+                        st.dataframe(
+                            df_destacados[[
+                                "apellido_nombre", "Nivel Eval", "calificacion",
+                                "Puntaje/Máximo", "evaluador", "Fecha_formateada"
+                            ]].rename(columns={
+                                "apellido_nombre": "Apellido y Nombres",
+                                "Nivel Eval": "Nivel Evaluación",
+                                "calificacion": "Calificación",
+                                "Puntaje/Máximo": "Puntaje/Máximo",
+                                "evaluador": "Evaluador",
+                                "Fecha_formateada": "Fecha"
+                            }),
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                except Exception as e:
+                    st.warning(f"⚠️ Error al calcular destacados disponibles: {e}")
+
+        
+
      
         # Obtener configuración global
         config_items = supabase.table("configuracion").select("*").execute().data
