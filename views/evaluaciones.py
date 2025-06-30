@@ -517,7 +517,7 @@ def mostrar(supabase):
             df_pagina = df_no_anuladas.iloc[inicio:fin][[
                 "Seleccionar", "apellido_nombre", "Nivel Eval",
                 "calificacion", "Puntaje/Max", "evaluador",
-                "Fecha_formateada", "id_evaluacion"
+                "id_evaluacion"
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
                 "apellido_nombre": "Apellido y Nombres",
@@ -525,7 +525,6 @@ def mostrar(supabase):
                 "calificacion": "Calificación",
                 "Puntaje/Max": "Puntaje",
                 "evaluador": "Evaluador",
-                "Fecha_formateada": "Fecha",
                 "id_evaluacion": "id_evaluacion"
             })
         
@@ -536,7 +535,7 @@ def mostrar(supabase):
                 hide_index=True,
                 disabled=[
                     "Apellido y Nombres", "Nivel Evaluación", "Calificación",
-                    "Puntaje", "Evaluador", "Fecha", "id_evaluacion"
+                    "Puntaje", "Evaluador", "id_evaluacion"
                 ],
                 column_config={
                     "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
