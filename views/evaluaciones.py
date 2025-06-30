@@ -298,6 +298,19 @@ def mostrar(supabase):
                 hide_index=True
             )
 
+            with st.spinner("✏️ Generando documento..."):
+                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                    doc.save(tmp.name)
+                    tmp_path = tmp.name
+        
+            with open(tmp_path, "rb") as file:
+                st.download_button(
+                    label="📥 Descargar Informe",
+                    data=file,
+                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )        
             
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
@@ -463,9 +476,6 @@ def mostrar(supabase):
        # st.markdown("---")
        # st.markdown("<hr style='border:2px solid #136ac1;'>", unsafe_allow_html=True) #linea divisora
        # st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
-        if not df_no_anuladas.empty:
-            st.markdown("---")
-            st.markdown("<h3 style='font-size:22px;'>📋 Informe Evaluaciones Realizadas</h3>", unsafe_allow_html=True)
 
 
         
@@ -478,19 +488,7 @@ def mostrar(supabase):
                 if col not in df_evaluados.columns:
                     df_evaluados[col] = ""
         
-            with st.spinner("✏️ Generando documento..."):
-                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                    doc.save(tmp.name)
-                    tmp_path = tmp.name
-        
-            with open(tmp_path, "rb") as file:
-                st.download_button(
-                    label="📥 Descargar Informe",
-                    data=file,
-                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+
 
      
         # Obtener configuración global
