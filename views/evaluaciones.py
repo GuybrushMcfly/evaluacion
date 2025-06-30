@@ -138,7 +138,7 @@ def mostrar(supabase):
     
     # Menú horizontal de navegación
     st.markdown(
-        "<p style='font-size:16px; color:#333;'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
+        "<p style='font-size:16px; color:#104f8e;'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
         unsafe_allow_html=True
     )
     
