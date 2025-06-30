@@ -172,7 +172,16 @@ def mostrar(supabase, formularios, clasificaciones):
         puntaje_maximo = MAXIMO_PUNTAJE_FORMULARIO.get(str(tipo), sum(st.session_state.puntajes))
         st.markdown(f"### 📊 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
         st.markdown(f"### 📌 Calificación: **{clasificacion}**")
+        # Mostrar tabla con rangos de calificación del formulario seleccionado
+        rango_data = clasificaciones.get(tipo, [])
+        df_rangos = pd.DataFrame(rango_data, columns=["Calificación", "Máximo", "Mínimo"])
+        df_rangos = df_rangos[["Calificación", "Mínimo", "Máximo"]]  # ordenar columnas
+        st.markdown("#### 📈 Tabla de rangos para este formulario")
+        st.dataframe(df_rangos, hide_index=True, use_container_width=True)
+
+        
         st.markdown("---")
+        
 
         col1, col2 = st.columns(2)
         with col1:
