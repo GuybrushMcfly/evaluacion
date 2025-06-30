@@ -567,9 +567,21 @@ def mostrar(supabase):
             total_registros = len(df_visual_anuladas)
             total_paginas = (total_registros - 1) // registros_por_pagina + 1
             paginas = list(range(1, total_paginas + 1))
-        
+                    
             # Selector de página
-            pagina_actual = st.selectbox("Seleccionar página:", paginas, index=0, key="pagina_anuladas")
+            if "pagina_anuladas" not in st.session_state:
+                st.session_state["pagina_anuladas"] = 1
+            
+            pagina_actual = st.selectbox(
+                "Seleccionar página:",
+                options=paginas,
+                index=st.session_state["pagina_anuladas"] - 1,
+                key="pagina_anuladas_select"
+            )
+            
+            st.session_state["pagina_anuladas"] = pagina_actual
+
+
         
             # Subset paginado
             inicio = (pagina_actual - 1) * registros_por_pagina
