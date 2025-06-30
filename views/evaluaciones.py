@@ -667,6 +667,25 @@ def mostrar(supabase):
                 
     elif seleccion == "👥 AGENTES":
 
+        def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
+            para = cell.paragraphs[0]
+            run = para.runs[0] if para.runs else para.add_run(" ")
+            run.text = run.text if run.text.strip() else " "
+            run.font.name = "Calibri"
+            run.font.size = Pt(10)
+            run.font.bold = bold
+            run.font.color.rgb = RGBColor.from_string(font_color.upper())
+
+            tc = cell._tc
+            tcPr = tc.get_or_add_tcPr()
+            if bg_color:
+                shd = OxmlElement("w:shd")
+                shd.set(qn("w:fill"), bg_color)
+                tcPr.append(shd)
+
+            para.alignment = 1  # Centrado
+
+
 
         def generar_informe_agentes_docx(df_agentes, dependencia_nombre):
             doc = Document()
@@ -689,7 +708,7 @@ def mostrar(supabase):
             run = p_header.add_run(
                 f"INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS\n"
                 f"DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL\n"
-                f"EVALUACIÓN DE DESEMPEÑO 2024\n"
+                f"LISTADO DE AGENTES PARA EVALUACIÓN DE DESEMPEÑO 2024\n"
                 f"UNIDAD DE ANÁLISIS: {dependencia_nombre}"
             )
             run.font.name = "Calibri"
@@ -755,6 +774,8 @@ def mostrar(supabase):
                 )
 
 
+
+        
 
         st.markdown("<h2 style='font-size:20px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
         
