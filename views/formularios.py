@@ -174,9 +174,6 @@ def mostrar(supabase, formularios, clasificaciones):
 
         col1, col_rangos, col2 = st.columns([1, 1, 1])
 
-        with col1:
-            if st.button("✅ Sí, enviar evaluación"):
-                # ... [todo tu código de envío actual]
         
         with col1:
             if st.button("✅ Sí, enviar evaluación"):
