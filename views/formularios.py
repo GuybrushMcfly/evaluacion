@@ -169,7 +169,8 @@ def mostrar(supabase, formularios, clasificaciones):
     #    st.markdown(f"### 📌 Calificación: **{clasificacion}**")
     #    st.markdown("---")
         
-        puntaje_maximo = MAXIMO_PUNTAJE_FORMULARIO.get(str(tipo), sum(st.session_state.puntajes))
+        puntaje_maximo = sum([max(v for _, v in bloque["opciones"]) for bloque in formularios[tipo]["factores"]])
+
         st.markdown(f"### 📊 Puntaje: **{total}** de {puntaje_maximo} puntos posibles")
         st.markdown(f"### 📌 Calificación: **{clasificacion}**")
 
