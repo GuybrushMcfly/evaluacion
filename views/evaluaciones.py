@@ -138,7 +138,7 @@ def mostrar(supabase):
     
     # Menú horizontal de navegación
     st.markdown(
-        "<p style='font-size:15px; color:white'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
+        "<p style='font-size:14px; color:white'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
         unsafe_allow_html=True
     )
     
@@ -180,7 +180,7 @@ def mostrar(supabase):
     
     if seleccion == "📊 INDICADORES":
         st.divider()
-        st.markdown("<h2 style='font-size:22px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>📊 Indicadores</h2>", unsafe_allow_html=True)
         cols = st.columns(3)
         with cols[0]: st.metric("👥 Total a Evaluar", total_asignados)
         with cols[1]: st.metric("✅ Evaluados", evaluados)
@@ -189,7 +189,7 @@ def mostrar(supabase):
 
         st.markdown("---")
 
-        st.markdown("<h2 style='font-size:22px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>🏅 Distribución por Calificación</h2>", unsafe_allow_html=True)
         categorias = ["DESTACADO", "BUENO", "REGULAR", "DEFICIENTE"]
         calif_counts = {cat: 0 for cat in categorias}
         if not df_no_anuladas.empty and "calificacion" in df_no_anuladas.columns:
@@ -239,7 +239,7 @@ def mostrar(supabase):
                 df_no_anuladas[col] = ""
         
         # ---- TABLA DE EVALUACIONES REGISTRADAS ----
-        st.markdown("<h2 style='font-size:22px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>✅ Evaluaciones registradas:</h2>", unsafe_allow_html=True)
         
         if df_no_anuladas.empty:
             st.info("ℹ️ No hay evaluaciones registradas.")
@@ -502,7 +502,7 @@ def mostrar(supabase):
         # Mostrar bloque de anulaciones solo si está habilitado
         if anulacion_activa and not df_no_anuladas.empty:
             st.markdown("---")
-            st.markdown("<h2 style='font-size:22px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-size:20px;'>🔄 Evaluaciones que pueden anularse:</h2>", unsafe_allow_html=True)
             
             # Columnas auxiliares
             df_no_anuladas["Seleccionar"] = False
@@ -605,7 +605,7 @@ def mostrar(supabase):
 
         
         if not df_anuladas.empty:
-            st.markdown("<h2 style='font-size:22px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-size:20px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
         
             # Crear copia visual
             df_visual_anuladas = df_anuladas.copy()
@@ -668,7 +668,7 @@ def mostrar(supabase):
     elif seleccion == "👥 AGENTES":
 
 
-        st.markdown("<h2 style='font-size:22px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
         
         niveles = ["A", "B", "C", "D", "E"]
         conteo_niveles = df_agentes["nivel"].value_counts().to_dict()
@@ -711,7 +711,7 @@ def mostrar(supabase):
         st.plotly_chart(fig_niv, use_container_width=True, config={"displayModeBar": False})
 
 
-        st.markdown("<h2 style='font-size:22px;'>Distribución por Agrupamiento</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>Distribución por Agrupamiento</h2>", unsafe_allow_html=True)
         
         # Calcular cantidades
         gral = len(df_agentes[df_agentes["agrupamiento"] == "GRAL"])
@@ -766,7 +766,7 @@ def mostrar(supabase):
         st.plotly_chart(fig_agru, use_container_width=True, config={"displayModeBar": False})
         
 
-        st.markdown("<h2 style='font-size:22px;'>Distribución por Tramo</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>Distribución por Tramo</h2>", unsafe_allow_html=True)
         
         # Calcular cantidades
         geral = len(df_agentes[df_agentes["tramo"] == "GENERAL"])
@@ -832,7 +832,7 @@ def mostrar(supabase):
       
 
 
-        st.markdown("<h2 style='font-size:22px;'>Distribución por Ingreso en Planta Permanente</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size:20px;'>Distribución por Ingreso en Planta Permanente</h2>", unsafe_allow_html=True)
         
         ingresantes = len(df_agentes[df_agentes["ingresante"] == True])
         no_ingresantes = len(df_agentes[df_agentes["ingresante"] == False])
