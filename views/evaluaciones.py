@@ -466,7 +466,7 @@ def mostrar(supabase):
             df_para_mostrar = df_no_anuladas[[
                 "Seleccionar", "apellido_nombre", "Nivel Eval",
                 "calificacion", "Puntaje/Max", "evaluador",
-                "Fecha_formateada", "Estado", "id_evaluacion"
+                "Fecha_formateada", "id_evaluacion"
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
                 "apellido_nombre": "Apellido y Nombres",
@@ -486,7 +486,7 @@ def mostrar(supabase):
                 hide_index=True,
                 disabled=[
                     "Apellido y Nombres", "Nivel Eval", "Calificación",
-                    "Puntaje", "Evaluador", "Fecha", "Estado", "id_evaluacion"
+                    "Puntaje", "Evaluador", "Fecha", "id_evaluacion"
                 ],
                 column_config={
                     "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
