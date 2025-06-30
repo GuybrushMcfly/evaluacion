@@ -238,33 +238,59 @@ def mostrar(supabase):
         else:
             # Crear copia para visualización sin afectar el original
             df_visual = df_no_anuladas.copy()
-        
+            
             # Agregar columnas visuales
             df_visual["Nivel Eval"] = df_visual["formulario"].astype(str).map(MAPA_NIVEL_EVALUACION)
             df_visual["Puntaje/Máximo"] = df_visual.apply(
                 lambda row: f"{row['puntaje_total']}/{MAXIMO_PUNTAJE_FORMULARIO.get(str(row['formulario']), '-')}",
                 axis=1
             )
-        
+            
             # Ordenar para visualización
             df_visual = df_visual.sort_values(by=["apellido_nombre", "Fecha_formateada"])
-        
-            # Mostrar tabla formateada
+            
+            # Paginación
+            registros_por_pagina = 8
+            total_registros = len(df_visual)
+            total_paginas = max(1, (total_registros - 1) // registros_por_pagina + 1)
+            paginas = list(range(1, total_paginas + 1))
+            
+            if (
+                "pagina_evaluadas" not in st.session_state
+                or st.session_state["pagina_evaluadas"] not in paginas
+            ):
+                st.session_state["pagina_evaluadas"] = 1
+            
+            pagina_actual = st.selectbox(
+                "Seleccionar página:",
+                options=paginas,
+                index=paginas.index(st.session_state["pagina_evaluadas"]),
+                key="pagina_evaluadas_select"
+            )
+            
+            st.session_state["pagina_evaluadas"] = pagina_actual
+            
+            # Mostrar tabla formateada con paginación
+            inicio = (pagina_actual - 1) * registros_por_pagina
+            fin = inicio + registros_por_pagina
+            
             st.dataframe(
-                df_visual[[
+                df_visual.iloc[inicio:fin][[
                     "apellido_nombre", "Nivel Eval", "calificacion",
                     "Puntaje/Máximo", "evaluador", "Fecha_formateada"
                 ]].rename(columns={
                     "apellido_nombre": "Apellido y Nombres",
                     "Nivel Eval": "Nivel Evaluación",
                     "calificacion": "Calificación",
-                    "Puntaje/Máximo": "Puntaje",
+                    "Puntaje/Máximo": "Puntaje/Máximo",
                     "evaluador": "Evaluador",
                     "Fecha_formateada": "Fecha"
                 }),
                 use_container_width=True,
                 hide_index=True
             )
+
+            
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
             run = para.runs[0] if para.runs else para.add_run(" ")
@@ -598,7 +624,7 @@ def mostrar(supabase):
                 "apellido_nombre": "Apellido y Nombres",
                 "Nivel Eval": "Nivel Evaluación",
                 "calificacion": "Calificación",
-                "Puntaje/Máximo": "Puntaje",
+                "Puntaje/Máximo": "Puntaje/Máximo",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
             })
