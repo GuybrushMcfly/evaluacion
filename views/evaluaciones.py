@@ -477,8 +477,18 @@ def mostrar(supabase):
             # Ordenar
             df_no_anuladas = df_no_anuladas.sort_values(by=["apellido_nombre", "Fecha_formateada"])
         
-            # Incluir id_evaluacion antes de construir df_para_mostrar
-            df_para_mostrar = df_no_anuladas[[
+            # --- Paginación con selectbox ---
+            registros_por_pagina = 8
+            total_registros = len(df_no_anuladas)
+            total_paginas = (total_registros - 1) // registros_por_pagina + 1
+            paginas = list(range(1, total_paginas + 1))
+        
+            pagina_actual = st.selectbox("Seleccionar página:", paginas, index=0, key="pagina_anulables")
+            inicio = (pagina_actual - 1) * registros_por_pagina
+            fin = inicio + registros_por_pagina
+        
+            # Subset paginado
+            df_pagina = df_no_anuladas.iloc[inicio:fin][[
                 "Seleccionar", "apellido_nombre", "Nivel Eval",
                 "calificacion", "Puntaje/Max", "evaluador",
                 "Fecha_formateada", "id_evaluacion"
@@ -487,27 +497,27 @@ def mostrar(supabase):
                 "apellido_nombre": "Apellido y Nombres",
                 "Nivel Eval": "Nivel Evaluación",
                 "calificacion": "Calificación",
-                "Puntaje/Max": "Puntaje/Máximo",
+                "Puntaje/Max": "Puntaje",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
-                #"Estado": "Estado",
                 "id_evaluacion": "id_evaluacion"
             })
         
             # Editor con id_evaluacion oculta pero disponible
             seleccion = st.data_editor(
-                df_para_mostrar,
+                df_pagina,
                 use_container_width=True,
                 hide_index=True,
                 disabled=[
-                    "Apellido y Nombres", "Nivel Eval", "Calificación",
+                    "Apellido y Nombres", "Nivel Evaluación", "Calificación",
                     "Puntaje", "Evaluador", "Fecha", "id_evaluacion"
                 ],
                 column_config={
                     "Seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
-                    "id_evaluacion": None  # ⛔ Oculta visualmente esta columna,
+                    "id_evaluacion": None  # ⛔ Oculta visualmente esta columna
                 }
             )
+
 
             
             # Botón para anular seleccionadas
@@ -567,7 +577,7 @@ def mostrar(supabase):
         
             subset = df_visual_anuladas.iloc[inicio:fin][[
                 "apellido_nombre", "Nivel Eval", "calificacion",
-                "Puntaje/Máximo", "evaluador", "Fecha_formateada", "Estado"
+                "Puntaje/Máximo", "evaluador", "Fecha_formateada"
             ]].rename(columns={
                 "apellido_nombre": "Apellido y Nombres",
                 "Nivel Eval": "Nivel Evaluación",
@@ -575,7 +585,6 @@ def mostrar(supabase):
                 "Puntaje/Máximo": "Puntaje",
                 "evaluador": "Evaluador",
                 "Fecha_formateada": "Fecha",
-                "Estado": "Estado"
             })
         
             st.dataframe(subset, use_container_width=True, hide_index=True)
