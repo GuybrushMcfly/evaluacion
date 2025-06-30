@@ -667,6 +667,95 @@ def mostrar(supabase):
                 
     elif seleccion == "👥 AGENTES":
 
+        fsad
+
+        def generar_informe_agentes_docx(df_agentes, dependencia_nombre):
+            doc = Document()
+
+            # Márgenes
+            section = doc.sections[0]
+            section.top_margin = Cm(2)
+            section.bottom_margin = Cm(2)
+            section.left_margin = Cm(2)
+            section.right_margin = Cm(2)
+
+            # Fuente general
+            doc.styles["Normal"].font.name = "Calibri"
+            doc.styles["Normal"].font.size = Pt(10)
+
+            # Encabezado
+            header = section.header
+            p_header = header.paragraphs[0]
+            p_header.clear()
+            run = p_header.add_run(
+                f"INSTITUTO NACIONAL DE ESTADISTICA Y CENSOS\n"
+                f"DIRECCIÓN DE CAPACITACIÓN Y CARRERA DE PERSONAL\n"
+                f"EVALUACIÓN DE DESEMPEÑO 2024\n"
+                f"UNIDAD DE ANÁLISIS: {dependencia_nombre}"
+            )
+            run.font.name = "Calibri"
+            run.font.size = Pt(10)
+            run.font.bold = True
+            run.font.color.rgb = RGBColor.from_string("104f8e")
+            p_header.alignment = 1
+            p_header.paragraph_format.line_spacing = Pt(12)
+
+            doc.add_paragraph()
+
+            # Título
+            p_title = doc.add_paragraph()
+            run = p_title.add_run("LISTADO DE AGENTES")
+            run.bold = True
+            run.font.size = Pt(10)
+            run.font.color.rgb = RGBColor.from_string("104f8e")
+            p_title.alignment = 1
+
+            doc.add_paragraph()
+
+            # Tabla
+            columnas = ["APELLIDO Y NOMBRE", "NIVEL/GRADO", "AGRUPAMIENTO", "TRAMO", "INGRESANTE"]
+            tabla = doc.add_table(rows=1, cols=len(columnas))
+            tabla.style = 'Table Grid'
+
+            for i, col in enumerate(columnas):
+                celda = tabla.cell(0, i)
+                celda.text = col
+                set_cell_style(celda, bg_color="104f8e", font_color="FFFFFF")
+
+            # Filtrado y orden
+            df_agentes_ordenado = df_agentes.sort_values("apellido_nombre")
+
+            for _, row in df_agentes_ordenado.iterrows():
+                fila = tabla.add_row().cells
+                fila[0].text = row.get("apellido_nombre", "")
+                fila[1].text = f"{row.get('nivel', '')}/{row.get('grado', '')}"
+                agrupamiento = row.get("agrupamiento", "")
+                fila[2].text = "Profesional" if agrupamiento == "PROF" else "General" if agrupamiento == "GRAL" else ""
+                fila[3].text = row.get("tramo", "")
+                fila[4].text = "INGRESANTE" if row.get("ingresante") is True else ""
+
+                for celda in fila:
+                    set_cell_style(celda, bold=False)
+
+            return doc
+
+        # 🔽 Botón de descarga
+        if not df_agentes.empty:
+            with st.spinner("✏️ Generando documento..."):
+                doc = generar_informe_agentes_docx(df_agentes, dependencia_filtro)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                    doc.save(tmp.name)
+                    tmp_path = tmp.name
+
+            with open(tmp_path, "rb") as file:
+                st.download_button(
+                    label="📥 Descargar Informe de Agentes",
+                    data=file,
+                    file_name=f"agentes_{dependencia_filtro.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+
+
 
         st.markdown("<h2 style='font-size:20px;'>Distribución por Nivel Escalafonario</h2>", unsafe_allow_html=True)
         
