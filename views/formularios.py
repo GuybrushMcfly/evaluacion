@@ -97,7 +97,7 @@ def mostrar(supabase, formularios, clasificaciones):
                         usados = sum(1 for e in destacados_actuales if not e.get("anulada", False))
                         disponibles = max(0, max_destacados - usados)
     
-                        st.info(f"🏅 {disponibles} calificación/es DESTACADO disponible/s de un máximo de {max_destacados} en su Dirección Nacional/General.")
+                        st.info(f"🏅 Dispone de {disponibles} calificación/es DESTACADO de un máximo de {max_destacados} para su Dirección Nacional/General.")
                 except Exception as e:
                     st.warning(f"⚠️ Error al calcular cupo de destacados: {e}")
     
