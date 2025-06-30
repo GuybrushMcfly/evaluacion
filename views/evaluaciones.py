@@ -584,11 +584,13 @@ def mostrar(supabase):
         # Si la anulación no está activa, no se muestra ningún bloque
         pass
 
+    
+        df_anuladas = df_eval[df_eval["anulada"] == True].copy()
+
+        
         if not df_anuladas.empty:
             st.markdown("---")
 
-    
-        df_anuladas = df_eval[df_eval["anulada"] == True].copy()
         
         if not df_anuladas.empty:
             st.markdown("<h2 style='font-size:24px;'>❌ Evaluaciones anuladas:</h2>", unsafe_allow_html=True)
