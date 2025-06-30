@@ -297,21 +297,6 @@ def mostrar(supabase):
                 use_container_width=True,
                 hide_index=True
             )
-
-            with st.spinner("✏️ Generando documento..."):
-                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                    doc.save(tmp.name)
-                    tmp_path = tmp.name
-        
-            with open(tmp_path, "rb") as file:
-                st.download_button(
-                    label="📥 Descargar Informe",
-                    data=file,
-                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )        
-            
         def set_cell_style(cell, bold=True, bg_color=None, font_color="000000"):
             para = cell.paragraphs[0]
             run = para.runs[0] if para.runs else para.add_run(" ")
@@ -488,6 +473,23 @@ def mostrar(supabase):
                 if col not in df_evaluados.columns:
                     df_evaluados[col] = ""
         
+
+
+            
+            with st.spinner("✏️ Generando documento..."):
+                doc = generar_informe_docx(df_informe, df_evaluados, dependencia_filtro)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                    doc.save(tmp.name)
+                    tmp_path = tmp.name
+        
+            with open(tmp_path, "rb") as file:
+                st.download_button(
+                    label="📥 Descargar Informe",
+                    data=file,
+                    file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )        
+            
 
 
      
