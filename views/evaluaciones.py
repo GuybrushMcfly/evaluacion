@@ -667,7 +667,6 @@ def mostrar(supabase):
                 
     elif seleccion == "👥 AGENTES":
 
-        fsad
 
         def generar_informe_agentes_docx(df_agentes, dependencia_nombre):
             doc = Document()
