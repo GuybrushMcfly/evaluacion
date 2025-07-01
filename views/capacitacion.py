@@ -138,7 +138,7 @@ def mostrar(supabase):
         st.info("🔧 Esta sección está en construcción.")
 
     elif seleccion == "🌟 DESTACADOS":
-        st.markdown("### 🌟 Seguimiento de Cupo DESTACADOS por Dependencia General")
+        st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
 
         # --- Preparar dataframes
         df_agentes = pd.DataFrame(agentes)
@@ -189,10 +189,10 @@ def mostrar(supabase):
         total_cupo = resumen["cupo_destacados"].sum()
         total_usados = resumen["evaluados_con_destacado"].sum()
 
-        st.markdown("### 📊 Métricas Globales")
+        st.markdown("### 📊 Indicadores")
         col1, col2, col3 = st.columns(3)
         col1.metric("👥 Total de Agentes", total_agentes)
-        col2.metric("🏅 Cupo Total de DESTACADOS", total_cupo)
+        col2.metric("🏅 Cupo total de DESTACADOS", total_cupo)
         col3.metric("✅ DESTACADOS Asignados", total_usados)
 
 
