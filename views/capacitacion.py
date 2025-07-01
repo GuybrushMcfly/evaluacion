@@ -22,7 +22,7 @@ def mostrar(supabase):
 
     # --- Carga inicial de datos
     evals = supabase.table("evaluaciones").select("*").execute().data or []
-    agentes = supabase.table("agentes").select("cuil, apellido_nombre").execute().data or []
+    agentes = supabase.table("agentes").select("cuil, apellido_nombre, activo, dependencia_general").execute().data or []
     unids = supabase.table("unidades_evaluacion").select("*").execute().data or []
 
     if not evals or not unids:
