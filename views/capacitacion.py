@@ -139,3 +139,4 @@ def mostrar(supabase):
 
     elif seleccion == "🌟 DESTACADOS":
         st.info("🌟 Esta sección está en construcción.")
+
