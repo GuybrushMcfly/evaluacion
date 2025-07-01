@@ -142,7 +142,7 @@ def mostrar(supabase):
 
         # --- Preparar dataframes
         df_agentes = pd.DataFrame(agentes)
-        df_agentes = df_agentes[df_agentes["activo"] == True]
+     #   df_agentes = df_agentes[df_agentes["activo"] == True]
 
         df_eval_validas = df_evals[
             (df_evals["calificacion"] == "DESTACADO") & (df_evals["anulada"] != True)
