@@ -184,6 +184,19 @@ def mostrar(supabase):
             hide_index=True
         )
 
+
+        # --- Descargar Excel para DESTACADOS
+        df_destacados_excel = resumen.copy()
+        buffer_destacados = io.BytesIO()
+        with pd.ExcelWriter(buffer_destacados, engine="xlsxwriter") as writer:
+            df_destacados_excel.to_excel(writer, index=False, sheet_name="Destacados")
+        st.download_button(
+            label="📥 Descargar Cupo DESTACADOS (Excel)",
+            data=buffer_destacados.getvalue(),
+            file_name="cupo_destacados.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
         # --- Métricas globales
         total_agentes = resumen["total_agentes"].sum()
         total_cupo = resumen["cupo_destacados"].sum()
