@@ -186,7 +186,21 @@ def mostrar(supabase):
 
 
         # --- Descargar Excel para DESTACADOS
+        # --- Descargar Excel para DESTACADOS
         df_destacados_excel = resumen.copy()
+        # Convertir emojis a texto para Excel
+        def estado_texto(row):
+            if row["evaluados_con_destacado"] == 0:
+                return "SIN EVALUACIONES"
+            elif row["evaluados_con_destacado"] <= row["cupo_destacados"]:
+                return "DENTRO DEL CUPO"
+            else:
+                return "EXCEDE CUPO"
+        
+        df_destacados_excel["Estado_Excel"] = df_destacados_excel.apply(estado_texto, axis=1)
+        df_destacados_excel = df_destacados_excel.drop("Estado", axis=1)
+        df_destacados_excel = df_destacados_excel.rename(columns={"Estado_Excel": "ESTADO"})
+        
         buffer_destacados = io.BytesIO()
         with pd.ExcelWriter(buffer_destacados, engine="xlsxwriter") as writer:
             df_destacados_excel.to_excel(writer, index=False, sheet_name="Destacados")
