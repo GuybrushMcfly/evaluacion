@@ -22,6 +22,7 @@ name, authentication_status, username, authenticator, supabase = auth.cargar_usu
 
 # ---- MANEJO DE SESIÓN ----
 if authentication_status:
+    # tu código original para cargar sesión y mostrar interfaz
     try:
         usuario_data = supabase.table("usuarios")\
             .select("apellido_nombre, rol")\
@@ -56,6 +57,15 @@ if authentication_status:
         st.warning("⚠️ La sesión ha expirado o es inválida. Por favor, vuelva a iniciar sesión.")
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
+
+elif authentication_status is False:
+    # Aquí solo muestro error si no hay usuario en sesión (evita mostrar error al forzar cambio clave)
+    if st.session_state.get("usuario") is None:
+        st.error("❌ Usuario o contraseña incorrectos.")
+
+elif authentication_status is None:
+    st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
+
 
     # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
