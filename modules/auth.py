@@ -43,7 +43,7 @@ def cargar_usuarios_y_autenticar():
     credentials = {
         "usernames": {},
         "cookie": {
-            "expiry_days": 0.0014,  # ~2 minutos
+            "expiry_days": 0.0014,
             "key": "clave_segura_super_oculta",
             "name": "evaluacion_app"
         }
@@ -55,7 +55,7 @@ def cargar_usuarios_y_autenticar():
         nombre = u.get("apellido_nombre", "")
         if not usuario or not password or not nombre:
             continue
-        if not password.startswith("$2b$"):  # bcrypt hash
+        if not password.startswith("$2b$"):
             continue
         credentials["usernames"][usuario] = {
             "name": nombre,
@@ -81,9 +81,7 @@ def cargar_usuarios_y_autenticar():
         st.error(f"❌ Usuario inválido: {e}")
         st.stop()
 
-    cambiar_password = False
-
-    # ---- Post-login: Cargar datos del usuario ----
+    # ---- Post-login ----
     if authentication_status:
         usuario_data = supabase.table("usuarios")\
             .select("dependencia, dependencia_general, apellido_nombre, rol, cambiar_password")\
@@ -93,12 +91,37 @@ def cargar_usuarios_y_autenticar():
             st.error("❌ No se pudieron cargar los datos del usuario.")
             st.stop()
 
-        # ---- Requiere cambio de contraseña ----
+        # ---- CAMBIO DE CONTRASEÑA OBLIGATORIO ----
         if usuario_data.get("cambiar_password", False):
-            cambiar_password = True
-            # No continuar la app mientras no cambie la clave
-            # Podés retornar authentication_status=False para evitar avanzar
-            return name, False, username, authenticator, supabase, cambiar_password
+            st.warning("🔐 Debe cambiar su contraseña para continuar.")
+
+            st.markdown("""
+            **⚠️ Requisitos de la nueva contraseña:**
+            - Mínimo 6 caracteres  
+            - Debe contener al menos **un número**
+            """)
+
+            nueva = st.text_input("Nueva contraseña", type="password")
+            repetir = st.text_input("Repetir contraseña", type="password")
+
+            if nueva and repetir:
+                if nueva != repetir:
+                    st.error("❌ Las contraseñas no coinciden.")
+                elif not contraseña_valida(nueva):
+                    st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
+                elif st.button("Guardar nueva contraseña"):
+                    hashed = hashear_password(nueva)
+                    supabase.table("usuarios").update({
+                        "password": hashed,
+                        "cambiar_password": False
+                    }).eq("usuario", username).execute()
+
+                    st.success("✅ Contraseña actualizada correctamente.")
+                    st.rerun()  # Relanza la app ya sin el flag cambiar_password
+
+            else:
+                st.info("Ingrese su nueva contraseña dos veces para confirmar.")
+            return name, False, username, authenticator, supabase, True  # no continuar la app todavía
 
         # ---- Guardar datos de sesión ----
         for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
@@ -119,7 +142,4 @@ def cargar_usuarios_y_autenticar():
         else:
             st.session_state["dependencia_general"] = ""
 
-        return name, authentication_status, username, authenticator, supabase, cambiar_password
-
-    # Si no autenticó correctamente, devolver cambiar_password = False
-    return name, authentication_status, username, authenticator, supabase, cambiar_password
+    return name, authentication_status, username, authenticator, supabase, False  # False = no requiere cambio
