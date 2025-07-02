@@ -5,23 +5,46 @@ from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, co
 import bcrypt
 
 st.set_page_config(
-    page_title="Evaluación",
+    page_title="Evaluación de Desempeño",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
-# ---- CONFIGURACIÓN DE PÁGINA ----
-st.set_page_config(page_title="Evaluación de Desempeño", layout="wide")
 
 # Mostrar logo siempre, incluso antes de login
 st.sidebar.image("logo-cap.png", use_container_width=True)
 
 # ---- AUTENTICACIÓN ----
-name, authentication_status, username, authenticator, supabase = auth.cargar_usuarios_y_autenticar()
+# Ahora cargamos también cambiar_password, que indica si debe cambiar clave
+name, authentication_status, username, authenticator, supabase, cambiar_password = auth.cargar_usuarios_y_autenticar()
 
-# ---- MANEJO DE SESIÓN ----
-if authentication_status:
+if cambiar_password:
+    st.warning("🔐 Debe cambiar su contraseña para continuar.")
+    st.markdown("⚠️ Requisitos de la nueva contraseña:\n- Mínimo 6 caracteres\n- Debe contener al menos un número")
+    
+    nueva = st.text_input("Nueva contraseña", type="password")
+    repetir = st.text_input("Repetir contraseña", type="password")
+    
+    if nueva and repetir:
+        if nueva != repetir:
+            st.error("❌ Las contraseñas no coinciden.")
+        elif len(nueva) < 6 or not any(c.isdigit() for c in nueva):
+            st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
+        elif st.button("Guardar nueva contraseña"):
+            hashed = bcrypt.hashpw(nueva.encode(), bcrypt.gensalt()).decode()
+            supabase.table("usuarios").update({
+                "password": hashed,
+                "cambiar_password": False
+            }).eq("usuario", username).execute()
+            st.success("✅ Contraseña actualizada correctamente. Vuelva a iniciar sesión.")
+            authenticator.logout("🔁 Cerrar sesión", "main")
+            st.stop()
+    else:
+        st.info("Ingrese su nueva contraseña dos veces para confirmar.")
+    
+    st.stop()
+
+elif authentication_status:
+    # Usuario autenticado, cargar datos y mostrar interfaz
     try:
         usuario_data = supabase.table("usuarios")\
             .select("apellido_nombre, rol")\
@@ -57,12 +80,11 @@ if authentication_status:
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
 
-    # Mostrar sidebar con nombre y botón logout
-    if "nombre_completo" in st.session_state:
-        st.sidebar.success(f"{st.session_state['nombre_completo']}")
+    # ---- INTERFAZ DE USUARIO ----
+    st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
-    # Menú de navegación
+    # ---- NAVEGACIÓN ----
     opcion = st.sidebar.radio("📂 Navegación", [
         "📝 Instructivo",
         "📄 Formularios",
@@ -72,7 +94,6 @@ if authentication_status:
         "⚙️ Configuración"
     ])
 
-    # Mostrar vistas según opción y rol
     if opcion == "📝 Instructivo":
         instructivo.mostrar()
 
@@ -108,7 +129,8 @@ if authentication_status:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
 elif authentication_status is False:
-    st.error("❌ Usuario o contraseña incorrectos.")
+    if st.session_state.get("usuario") is None:
+        st.error("❌ Usuario o contraseña incorrectos.")
 
 elif authentication_status is None:
     st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
