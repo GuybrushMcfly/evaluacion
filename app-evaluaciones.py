@@ -4,30 +4,25 @@ from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 import bcrypt
 
-st.set_page_config(
-    page_title="Evaluación de Desempeño",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Evaluación de Desempeño", layout="wide", initial_sidebar_state="expanded")
 
-# Mostrar logo siempre, incluso antes de login
 st.sidebar.image("logo-cap.png", use_container_width=True)
 
 # ---- AUTENTICACIÓN ----
-# Ahora cargamos también cambiar_password, que indica si debe cambiar clave
 name, authentication_status, username, authenticator, supabase, cambiar_password = auth.cargar_usuarios_y_autenticar()
 
+# ---- CAMBIO DE CONTRASEÑA FORZADO ----
 if cambiar_password:
     st.warning("🔐 Debe cambiar su contraseña para continuar.")
-    st.markdown("⚠️ Requisitos de la nueva contraseña:\n- Mínimo 6 caracteres\n- Debe contener al menos un número")
-    
-    nueva = st.text_input("Nueva contraseña", type="password")
-    repetir = st.text_input("Repetir contraseña", type="password")
-    
+    st.markdown("**⚠️ Requisitos de la nueva contraseña:**\n- Mínimo 6 caracteres\n- Debe contener al menos un número")
+
+    nueva = st.text_input("Nueva contraseña", type="password", key="nueva_password")
+    repetir = st.text_input("Repetir contraseña", type="password", key="repetir_password")
+
     if nueva and repetir:
         if nueva != repetir:
             st.error("❌ Las contraseñas no coinciden.")
-        elif len(nueva) < 6 or not any(c.isdigit() for c in nueva):
+        elif not auth.contraseña_valida(nueva):
             st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
         elif st.button("Guardar nueva contraseña"):
             hashed = bcrypt.hashpw(nueva.encode(), bcrypt.gensalt()).decode()
@@ -35,12 +30,13 @@ if cambiar_password:
                 "password": hashed,
                 "cambiar_password": False
             }).eq("usuario", username).execute()
-            st.success("✅ Contraseña actualizada correctamente. Vuelva a iniciar sesión.")
-            authenticator.logout("🔁 Cerrar sesión", "main")
-            st.stop()
+
+            st.success("✅ Contraseña actualizada correctamente.")
+            st.rerun()  # vuelve a autenticar ahora sin cambiar_password
+
     else:
         st.info("Ingrese su nueva contraseña dos veces para confirmar.")
-    
+
     st.stop()
 
 elif authentication_status:
