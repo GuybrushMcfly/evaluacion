@@ -115,15 +115,16 @@ def cargar_usuarios_y_autenticar():
                         "password": hashed,
                         "cambiar_password": False
                     }).eq("usuario", username).execute()
-
+            
                     st.success("✅ Contraseña actualizada correctamente. Vuelva a iniciar sesión.")
                     authenticator.logout("🔁 Cerrar sesión", "main")
-                    st.experimental_rerun()
-
+                    st.stop()  # NO usar st.experimental_rerun() aquí
+            
             else:
                 st.info("Ingrese su nueva contraseña dos veces para confirmar.")
-
+            
             return None, False, username, authenticator, supabase  # No continúa hasta cambiar contraseña
+
 
         # ---- Guardar datos de sesión ----
         for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
