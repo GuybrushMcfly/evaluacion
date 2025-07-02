@@ -26,4 +26,5 @@ streamlit-option-menu
 plotly
 extra-streamlit-components
 streamlit-option-menu
+bcrypt
 
