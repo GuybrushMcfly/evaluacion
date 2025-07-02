@@ -35,7 +35,7 @@ if cambiar_password:
             st.rerun()  # vuelve a autenticar ahora sin cambiar_password
 
     else:
-        st.info("Ingrese su nueva contraseña dos veces para confirmar.")
+        st.info("Ingrese su nueva contraseña dos veces, y pulse para confirmar.")
 
     st.stop()
 
