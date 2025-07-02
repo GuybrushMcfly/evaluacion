@@ -18,7 +18,6 @@ def hashear_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def contraseña_valida(pwd: str) -> bool:
-    """Debe tener al menos 6 caracteres y al menos un número."""
     return len(pwd) >= 6 and re.search(r"\d", pwd) is not None
 
 def cargar_usuarios_y_autenticar():
@@ -67,7 +66,6 @@ def cargar_usuarios_y_autenticar():
         st.error("❌ No se encontraron usuarios válidos.")
         st.stop()
 
-    # ---- Autenticación ----
     authenticator = stauth.Authenticate(
         credentials=credentials,
         cookie_name=credentials["cookie"]["name"],
@@ -82,6 +80,7 @@ def cargar_usuarios_y_autenticar():
         st.stop()
 
     # ---- Post-login ----
+    cambiar_password = False
     if authentication_status:
         usuario_data = supabase.table("usuarios")\
             .select("dependencia, dependencia_general, apellido_nombre, rol, cambiar_password")\
@@ -91,56 +90,24 @@ def cargar_usuarios_y_autenticar():
             st.error("❌ No se pudieron cargar los datos del usuario.")
             st.stop()
 
-        # ---- CAMBIO DE CONTRASEÑA OBLIGATORIO ----
         if usuario_data.get("cambiar_password", False):
-            st.warning("🔐 Debe cambiar su contraseña para continuar.")
+            cambiar_password = True
 
-            st.markdown("""
-            **⚠️ Requisitos de la nueva contraseña:**
-            - Mínimo 6 caracteres  
-            - Debe contener al menos **un número**
-            """)
+        # Guardar datos en sesión solo si no requiere cambio de clave
+        if not cambiar_password:
+            st.session_state["usuario"] = username
+            st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
+            st.session_state["dependencia"] = usuario_data.get("dependencia", "")
 
-            nueva = st.text_input("Nueva contraseña", type="password", key="nueva_password")
-            repetir = st.text_input("Repetir contraseña", type="password", key="repetir_password")
+            rol_raw = usuario_data.get("rol", "")
+            try:
+                st.session_state["rol"] = json.loads(rol_raw) if isinstance(rol_raw, str) else rol_raw
+            except Exception:
+                st.session_state["rol"] = {}
 
-
-            if nueva and repetir:
-                if nueva != repetir:
-                    st.error("❌ Las contraseñas no coinciden.")
-                elif not contraseña_valida(nueva):
-                    st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
-                elif st.button("Guardar nueva contraseña"):
-                    hashed = hashear_password(nueva)
-                    supabase.table("usuarios").update({
-                        "password": hashed,
-                        "cambiar_password": False
-                    }).eq("usuario", username).execute()
-
-                    st.success("✅ Contraseña actualizada correctamente.")
-                    st.rerun()  # Relanza la app ya sin el flag cambiar_password
-
+            if any(st.session_state["rol"].get(r) for r in ["rrhh", "coordinador", "evaluador_general"]):
+                st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
             else:
-                st.info("Ingrese su nueva contraseña dos veces para confirmar.")
-            return name, False, username, authenticator, supabase, True  # no continuar la app todavía
+                st.session_state["dependencia_general"] = ""
 
-        # ---- Guardar datos de sesión ----
-        for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
-            st.session_state.pop(key, None)
-
-        st.session_state["usuario"] = username
-        st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
-        st.session_state["dependencia"] = usuario_data.get("dependencia", "")
-
-        rol_raw = usuario_data.get("rol", "")
-        try:
-            st.session_state["rol"] = json.loads(rol_raw) if isinstance(rol_raw, str) else rol_raw
-        except Exception:
-            st.session_state["rol"] = {}
-
-        if any(st.session_state["rol"].get(r) for r in ["rrhh", "coordinador", "evaluador_general"]):
-            st.session_state["dependencia_general"] = usuario_data.get("dependencia_general") or ""
-        else:
-            st.session_state["dependencia_general"] = ""
-
-    return name, authentication_status, username, authenticator, supabase, False  # False = no requiere cambio
+    return name, authentication_status, username, authenticator, supabase, cambiar_password
