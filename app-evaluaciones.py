@@ -3,7 +3,6 @@ import json
 from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 import bcrypt
-st.success("bcrypt funciona correctamente ✅")
 
 st.set_page_config(
     page_title="Evaluación",
