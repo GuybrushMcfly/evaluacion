@@ -506,13 +506,14 @@ def mostrar(supabase):
                         .execute().data
         
                     total_activos = sum(1 for a in agentes_dependencia if a.get("activo") == True)
-        
+                    
                     if total_activos > 3:  # Mostrar solo si hay más de 3
-                        import math
-                        max_destacados = math.floor(total_activos * 0.3)
-        
-                        df_destacados = df_no_anuladas[df_no_anuladas["calificacion"] == "DESTACADO"].copy()
-                        usados = len(df_destacados)
+                       import math
+                       cupo_exacto = total_activos * 0.3
+                       max_destacados = math.floor(cupo_exacto) if (cupo_exacto - math.floor(cupo_exacto)) <= 0.5 else math.floor(cupo_exacto) + 1
+                    
+                       df_destacados = df_no_anuladas[df_no_anuladas["calificacion"] == "DESTACADO"].copy()
+                       usados = len(df_destacados)
         
                         st.markdown("---")
                         st.markdown(f"<h2 style='font-size:20px;'>🌟 Evaluaciones con calificación DESTACADO ({usados} / {max_destacados})</h2>", unsafe_allow_html=True)
