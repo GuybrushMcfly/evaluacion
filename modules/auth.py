@@ -4,8 +4,9 @@ import streamlit_authenticator as stauth
 import json
 import datetime
 import bcrypt
+import re
 
-TIEMPO_MAX_SESION_MIN = 10
+TIEMPO_MAX_SESION_MIN = 10  # Logout automático tras 10 minutos
 
 @st.cache_resource
 def init_connection():
@@ -16,10 +17,14 @@ def init_connection():
 def hashear_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
+def contraseña_valida(pwd: str) -> bool:
+    """Debe tener al menos 6 caracteres y al menos un número."""
+    return len(pwd) >= 6 and re.search(r"\d", pwd) is not None
+
 def cargar_usuarios_y_autenticar():
     supabase = init_connection()
 
-    # Logout automático por inactividad
+    # ---- Logout automático por inactividad ----
     ahora = datetime.datetime.now()
     if "last_activity" in st.session_state:
         if (ahora - st.session_state["last_activity"]).total_seconds() > TIEMPO_MAX_SESION_MIN * 60:
@@ -30,7 +35,7 @@ def cargar_usuarios_y_autenticar():
             st.stop()
     st.session_state["last_activity"] = ahora
 
-    # Cargar usuarios activos
+    # ---- Cargar usuarios activos ----
     usuarios_result = supabase.table("usuarios")\
         .select("usuario, password, apellido_nombre, rol, activo")\
         .eq("activo", True).execute()
@@ -38,7 +43,7 @@ def cargar_usuarios_y_autenticar():
     credentials = {
         "usernames": {},
         "cookie": {
-            "expiry_days": 0.0014,
+            "expiry_days": 0.0014,  # ~2 minutos
             "key": "clave_segura_super_oculta",
             "name": "evaluacion_app"
         }
@@ -50,7 +55,7 @@ def cargar_usuarios_y_autenticar():
         nombre = u.get("apellido_nombre", "")
         if not usuario or not password or not nombre:
             continue
-        if not password.startswith("$2b$"):
+        if not password.startswith("$2b$"):  # bcrypt hash
             continue
         credentials["usernames"][usuario] = {
             "name": nombre,
@@ -62,7 +67,7 @@ def cargar_usuarios_y_autenticar():
         st.error("❌ No se encontraron usuarios válidos.")
         st.stop()
 
-    # Autenticación
+    # ---- Autenticación ----
     authenticator = stauth.Authenticate(
         credentials=credentials,
         cookie_name=credentials["cookie"]["name"],
@@ -76,6 +81,7 @@ def cargar_usuarios_y_autenticar():
         st.error(f"❌ Usuario inválido: {e}")
         st.stop()
 
+    # ---- Post-login: Cargar datos del usuario ----
     if authentication_status:
         usuario_data = supabase.table("usuarios")\
             .select("dependencia, dependencia_general, apellido_nombre, rol, cambiar_password")\
@@ -85,29 +91,41 @@ def cargar_usuarios_y_autenticar():
             st.error("❌ No se pudieron cargar los datos del usuario.")
             st.stop()
 
+        # ---- Requiere cambio de contraseña ----
         if usuario_data.get("cambiar_password", False):
             st.warning("🔐 Debe cambiar su contraseña para continuar.")
+
+            st.markdown("""
+            **⚠️ Requisitos de la nueva contraseña:**
+            - Mínimo 6 caracteres  
+            - Debe contener al menos **un número**
+            """)
+
             nueva = st.text_input("Nueva contraseña", type="password")
             repetir = st.text_input("Repetir contraseña", type="password")
+
             if nueva and repetir:
                 if nueva != repetir:
                     st.error("❌ Las contraseñas no coinciden.")
-                elif len(nueva) < 6:
-                    st.error("❌ La contraseña debe tener al menos 6 caracteres.")
+                elif not contraseña_valida(nueva):
+                    st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
                 elif st.button("Guardar nueva contraseña"):
                     hashed = hashear_password(nueva)
                     supabase.table("usuarios").update({
                         "password": hashed,
                         "cambiar_password": False
                     }).eq("usuario", username).execute()
-                    st.success("✅ Contraseña actualizada. Por favor, vuelva a iniciar sesión.")
+
+                    st.success("✅ Contraseña actualizada correctamente. Vuelva a iniciar sesión.")
                     authenticator.logout("🔁 Cerrar sesión", "main")
-                    st.stop()
+                    st.experimental_rerun()
+
             else:
                 st.info("Ingrese su nueva contraseña dos veces para confirmar.")
-            return None, False, username, authenticator, supabase  # Previene continuar sin cambiar clave
 
-        # Guardar datos de sesión como antes
+            return None, False, username, authenticator, supabase  # No continúa hasta cambiar contraseña
+
+        # ---- Guardar datos de sesión ----
         for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
             st.session_state.pop(key, None)
 
