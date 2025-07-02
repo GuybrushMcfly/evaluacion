@@ -81,6 +81,8 @@ def cargar_usuarios_y_autenticar():
         st.error(f"❌ Usuario inválido: {e}")
         st.stop()
 
+    cambiar_password = False
+
     # ---- Post-login: Cargar datos del usuario ----
     if authentication_status:
         usuario_data = supabase.table("usuarios")\
@@ -93,38 +95,10 @@ def cargar_usuarios_y_autenticar():
 
         # ---- Requiere cambio de contraseña ----
         if usuario_data.get("cambiar_password", False):
-            st.warning("🔐 Debe cambiar su contraseña para continuar.")
-
-            st.markdown("""
-            **⚠️ Requisitos de la nueva contraseña:**
-            - Mínimo 6 caracteres  
-            - Debe contener al menos **un número**
-            """)
-
-            nueva = st.text_input("Nueva contraseña", type="password")
-            repetir = st.text_input("Repetir contraseña", type="password")
-
-            if nueva and repetir:
-                if nueva != repetir:
-                    st.error("❌ Las contraseñas no coinciden.")
-                elif not contraseña_valida(nueva):
-                    st.error("❌ La contraseña debe tener al menos 6 caracteres y contener al menos un número.")
-                elif st.button("Guardar nueva contraseña"):
-                    hashed = hashear_password(nueva)
-                    supabase.table("usuarios").update({
-                        "password": hashed,
-                        "cambiar_password": False
-                    }).eq("usuario", username).execute()
-            
-                    st.success("✅ Contraseña actualizada correctamente. Vuelva a iniciar sesión.")
-                    authenticator.logout("🔁 Cerrar sesión", "main")
-                    st.stop()  # NO usar st.experimental_rerun() aquí
-            
-            else:
-                st.info("Ingrese su nueva contraseña dos veces para confirmar.")
-            
-            return None, False, username, authenticator, supabase  # No continúa hasta cambiar contraseña
-
+            cambiar_password = True
+            # No continuar la app mientras no cambie la clave
+            # Podés retornar authentication_status=False para evitar avanzar
+            return name, False, username, authenticator, supabase, cambiar_password
 
         # ---- Guardar datos de sesión ----
         for key in ["usuario", "nombre_completo", "rol", "dependencia", "dependencia_general"]:
@@ -145,4 +119,7 @@ def cargar_usuarios_y_autenticar():
         else:
             st.session_state["dependencia_general"] = ""
 
-    return name, authentication_status, username, authenticator, supabase
+        return name, authentication_status, username, authenticator, supabase, cambiar_password
+
+    # Si no autenticó correctamente, devolver cambiar_password = False
+    return name, authentication_status, username, authenticator, supabase, cambiar_password
