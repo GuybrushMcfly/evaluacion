@@ -64,9 +64,6 @@ if authentication_status:
     # ---- NAVEGACIÓN ----
 
 
-   
-
-    
     with st.sidebar:
         opcion = option_menu(
             menu_title="📂 Navegación",
@@ -78,12 +75,36 @@ if authentication_status:
                 "📘 Capacitación",
                 "⚙️ Configuración"
             ],
+            icons=[
+                "file-text", "file-earmark-text", "clipboard-data", "people", "book", "gear"
+            ],  # si querés íconos (usa nombres de bootstrap-icons)
             default_index=0,
+            menu_icon="cast",  # ícono del título, opcional
             styles={
-                "nav-link-selected": {"background-color": "#31333F"},
-                "nav-link": {"font-size": "12px", "padding": "10px 20px"},
-            }
+                "container": {"padding": "10px", "background-color": "#111111"},
+                "icon": {"color": "white", "font-size": "18px"},
+                "nav-link": {
+                    "font-size": "16px",
+                    "text-align": "left",
+                    "margin": "8px 0",
+                    "padding": "10px 20px",
+                    "border-radius": "8px",
+                },
+                "nav-link-selected": {
+                    "background-color": "#31333F",
+                    "color": "white",
+                    "font-weight": "bold",
+                    "border-radius": "8px",
+                },
+                "nav-link:hover": {
+                    "background-color": "#45475A",
+                    "color": "white",
+                },
+                "submenu-icon": {"font-size": "12px"},
+                "submenu-item": {"padding-left": "30px"},
+            },
         )
+
 
 
     if opcion == "📝 Instructivo":
