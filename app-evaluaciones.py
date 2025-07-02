@@ -2,6 +2,7 @@ import streamlit as st
 import json
 from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
+from streamlit_option_menu import option_menu
 
 st.set_page_config(
     page_title="Evaluación",
@@ -63,15 +64,27 @@ if authentication_status:
     # ---- NAVEGACIÓN ----
 
 
+   
+
     
-    opcion = st.sidebar.radio("📂 Navegación", [
-        "📝 Instructivo",
-        "📄 Formularios",
-        "📋 Evaluaciones",
-        "👥 RRHH",
-        "📘 Capacitación",
-        "⚙️ Configuración"
-    ])
+    with st.sidebar:
+        opcion = option_menu(
+            menu_title="📂 Navegación",
+            options=[
+                "📝 Instructivo",
+                "📄 Formularios",
+                "📋 Evaluaciones",
+                "👥 RRHH",
+                "📘 Capacitación",
+                "⚙️ Configuración"
+            ],
+            default_index=0,
+            styles={
+                "nav-link-selected": {"background-color": "#31333F"},
+                "nav-link": {"font-size": "16px", "padding": "10px 20px"},
+            }
+        )
+
 
     if opcion == "📝 Instructivo":
         instructivo.mostrar()
