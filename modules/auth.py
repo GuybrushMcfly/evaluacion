@@ -101,8 +101,9 @@ def cargar_usuarios_y_autenticar():
             - Debe contener al menos **un número**
             """)
 
-            nueva = st.text_input("Nueva contraseña", type="password")
-            repetir = st.text_input("Repetir contraseña", type="password")
+            nueva = st.text_input("Nueva contraseña", type="password", key="nueva_password")
+            repetir = st.text_input("Repetir contraseña", type="password", key="repetir_password")
+
 
             if nueva and repetir:
                 if nueva != repetir:
