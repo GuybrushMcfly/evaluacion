@@ -81,7 +81,7 @@ if authentication_status:
             default_index=0,
             styles={
                 "nav-link-selected": {"background-color": "#31333F"},
-                "nav-link": {"font-size": "16px", "padding": "10px 20px"},
+                "nav-link": {"font-size": "12px", "padding": "10px 20px"},
             }
         )
 
