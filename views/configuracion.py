@@ -37,7 +37,7 @@ def mostrar(supabase):
     )
 
     #if st.button("💾 Guardar cambios", use_container_width=True):
-    if st.button("💾 Guardar cambios", kind = "primary"):
+    if st.button("💾 Guardar cambios", type = "primary"):
         usuario = st.session_state.get("usuario", "desconocido")
         for i, row in edit_config.iterrows():
             id_config = df_config.loc[i, "ID"]
@@ -96,7 +96,7 @@ def mostrar(supabase):
             )
 
             #if st.button("🔁 Actualizar asignación", use_container_width=True):
-            if st.button("🔁 Actualizar asignación", use_container_width=True, kind="primary"):
+            if st.button("🔁 Actualizar asignación", use_container_width=True, type="primary"):
                 nuevo_usuario = opciones_evaluador[nombre_evaluador]
                 dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
                 supabase.table("agentes").update({
@@ -129,7 +129,7 @@ def mostrar(supabase):
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
 #            if st.button("🔐 Generar contraseña", use_container_width=True):
-            if st.button("🔐 Generar contraseña", kind="primary"):
+            if st.button("🔐 Generar contraseña", type="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
         
