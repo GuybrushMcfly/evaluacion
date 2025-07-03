@@ -107,17 +107,21 @@ def cargar_usuarios_y_autenticar():
             cambiar_password = True
 
         if not cambiar_password:
-            # Registrar login exitoso
-            try:
-                supabase.table("logs_accesos").insert({
-                    "usuario": username,
-                    "fecha_hora": ahora.isoformat(),
-                    "evento": "login",
-                    "exito": True,
-                    "detalles": "Login exitoso"
-                }).execute()
-            except Exception as e:
-                st.error(f"Error al registrar login: {e}")
+            # Registrar login solo si no se registró ya en esta sesión
+            if not st.session_state.get("login_registrado"):
+                try:
+                    supabase.table("logs_accesos").insert({
+                        "usuario": username,
+                        "fecha_hora": ahora.isoformat(),
+                        "evento": "login",
+                        "exito": True,
+                        "detalles": "Login exitoso"
+                    }).execute()
+                    st.session_state["login_registrado"] = True
+                except Exception as e:
+                    st.error(f"Error al registrar login: {e}")
+
+
 
             st.session_state["usuario"] = username
             st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
