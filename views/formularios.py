@@ -155,7 +155,8 @@ def mostrar(supabase, formularios, clasificaciones):
 
     # Selección de tipo de formulario (con placeholder)
     tipo = st.selectbox(
-        "📄 Seleccione el tipo de formulario",
+        #"📄 Seleccione el tipo de formulario",
+        "",
         options=[""] + list(formularios.keys()),
         key="select_tipo",
         format_func=lambda x: "– Seleccione formulario –" if x == "" else f"Formulario {x} – {formularios[x]['titulo']}"
