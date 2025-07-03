@@ -491,7 +491,7 @@ def mostrar(supabase):
                     data=file,
                     file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True,
+                 #   use_container_width=True,
                     type="primary"
                 )        
             
@@ -635,7 +635,7 @@ def mostrar(supabase):
            # if st.button("❌ Anular seleccionadas", use_container_width=True, type="primary"):
             if st.button(
                 "❌ Anular seleccionadas",
-                use_container_width=True,
+           #     use_container_width=True,
                 type="primary",
                 help="⚠️ Esto eliminará las entradas seleccionadas. No se puede deshacer.",  # Tooltip
             ):
@@ -844,7 +844,7 @@ def mostrar(supabase):
                     data=file,
                     file_name=f"agentes_{dependencia_filtro.replace(' ', '_')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True,
+       #             use_container_width=True,
                     type="primary"
                 )
 
