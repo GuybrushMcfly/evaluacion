@@ -151,9 +151,7 @@ def mostrar(supabase):
         st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
     
         # Obtener datos desde Supabase
-        evaluaciones_data = supabase.table("evaluaciones").select("*").neq("anulada", True).execute().data
-        
-        # Por esta:
+
         evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
         df = pd.DataFrame(evaluaciones_data)
         df = df[df["anulada"] != True]  # Aplicar el mismo filtro que en LISTADOS
