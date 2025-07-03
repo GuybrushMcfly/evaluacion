@@ -79,58 +79,63 @@ elif authentication_status:
         st.stop()
 
     # ---- INTERFAZ DE USUARIO ----
+    # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
 
-    # ---- NAVEGACIÓN ----
-    opcion = st.sidebar.radio("📂 Navegación", [
+    # ---- NAVEGACIÓN (con opción predeterminada según rol) ----
+    opciones_menu = [
         "📝 Instructivo",
         "📄 Formularios",
         "📋 Evaluaciones",
         "👥 RRHH",
         "📘 Capacitación",
         "⚙️ Configuración"
-    ])
+    ]
+
+    rol = st.session_state.get("rol", {})
+
+    if rol.get("evaluador") or rol.get("evaluador_general"):
+        indice_default = opciones_menu.index("📄 Formularios")
+    elif rol.get("coordinador"):
+        indice_default = opciones_menu.index("📘 Capacitación")
+    else:
+        indice_default = opciones_menu.index("📝 Instructivo")
+
+    opcion = st.sidebar.radio("📂 Navegación", opciones_menu, index=indice_default)
 
     if opcion == "📝 Instructivo":
         instructivo.mostrar()
 
     elif opcion == "📄 Formularios":
-        if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
+        if rol.get("evaluador") or rol.get("evaluador_general"):
             formularios_data, clasificaciones_data = formularios.cargar_formularios()
             formularios.mostrar(supabase, formularios_data, clasificaciones_data)
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
     elif opcion == "📋 Evaluaciones":
-        if st.session_state["rol"].get("evaluador") or st.session_state["rol"].get("evaluador_general"):
+        if rol.get("evaluador") or rol.get("evaluador_general"):
             evaluaciones.mostrar(supabase)
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
     elif opcion == "👥 RRHH":
-        if st.session_state["rol"].get("rrhh"):
+        if rol.get("rrhh"):
             rrhh.mostrar(supabase)
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
     elif opcion == "📘 Capacitación":
-        if st.session_state["rol"].get("coordinador"):
+        if rol.get("coordinador"):
             capacitacion.mostrar(supabase)
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
     elif opcion == "⚙️ Configuración":
-        if st.session_state["rol"].get("coordinador"):
+        if rol.get("coordinador"):
             configuracion.mostrar(supabase)
         else:
             st.warning("⚠️ Esta sección está habilitada para otro rol.")
-
-elif authentication_status is False:
-    if st.session_state.get("usuario") is None:
-        st.error("❌ Usuario o contraseña incorrectos.")
-
-elif authentication_status is None:
-    st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
 
 
