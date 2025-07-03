@@ -151,12 +151,15 @@ def mostrar(supabase):
         st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
     
         # Obtener datos desde Supabase
-        evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
+        evaluaciones_data = supabase.table("evaluaciones").select("*").neq("anulada", True).execute().data
         df = pd.DataFrame(evaluaciones_data)
     
         if df.empty or "dependencia_general" not in df.columns:
             st.warning("No hay datos disponibles.")
             st.stop()
+    
+        df["nivel"] = df["formulario"].astype(int)
+        df["residual"] = False  # Inicializamos como no residual
     
         # Lista de direcciones únicas
         direcciones = sorted(df["dependencia_general"].dropna().unique())
@@ -166,9 +169,6 @@ def mostrar(supabase):
     
         if seleccion_dir != "- Seleccionar Dirección -":
             if st.button("🔍 Analizar"):
-                df["nivel"] = df["formulario"].astype(int)
-                df["residual"] = False  # inicializamos todos como no residual
-    
                 if seleccion_dir == "Unidad Residual":
                     df_filtrada = df[df["nivel"] == 1].copy()
                     df_filtrada["residual"] = True
@@ -179,40 +179,32 @@ def mostrar(supabase):
     
                 st.write(f"👥 Evaluaciones encontradas: {len(df_filtrada)}")
     
-                # Nivel medio (2,3,4)
-                df_medios = df_filtrada[df_filtrada["nivel"].isin([2, 3, 4])].copy()
-                st.markdown("### 🔹 Niveles Medios (2, 3, 4)")
-                if df_medios.empty:
-                    st.info("No se calificaron con niveles medios.")
-                elif len(df_medios) < 6:
-                    st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
-                    df.loc[df_medios.index, "residual"] = True
-                    st.dataframe(df_medios)
-                else:
-                    st.success("Grupo válido. No Residual.")
-                    df.loc[df_medios.index, "residual"] = False
-                    st.dataframe(df_medios)
+                def mostrar_tabla(df_subset, titulo, niveles):
+                    subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
+                    st.markdown(f"### 🔹 {titulo}")
+                    if subset.empty:
+                        st.info("No se calificaron con esos niveles.")
+                    elif len(subset) < 6:
+                        st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
+                        df.loc[subset.index, "residual"] = True
+                        st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
+                    else:
+                        st.success("Grupo válido. No Residual.")
+                        df.loc[subset.index, "residual"] = False
+                        st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
     
-                # Nivel operativo (5,6)
-                df_operativos = df_filtrada[df_filtrada["nivel"].isin([5, 6])].copy()
-                st.markdown("### 🔹 Niveles Operativos (5, 6)")
-                if df_operativos.empty:
-                    st.info("No se calificaron con niveles operativos.")
-                elif len(df_operativos) < 6:
-                    st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
-                    df.loc[df_operativos.index, "residual"] = True
-                    st.dataframe(df_operativos)
-                else:
-                    st.success("Grupo válido. No Residual.")
-                    df.loc[df_operativos.index, "residual"] = False
-                    st.dataframe(df_operativos)
+                # Nivel Medio (2, 3, 4)
+                mostrar_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
+    
+                # Nivel Operativo (5, 6)
+                mostrar_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
     
                 # Nivel 1: siempre residual
                 df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1].copy()
                 if not df_nivel1.empty:
                     df.loc[df_nivel1.index, "residual"] = True
     
-                # Actualización en Supabase
+                # Actualizar en Supabase solo los evaluados en esta dependencia
                 cambios = df.loc[df_filtrada.index, ["id_evaluacion", "residual"]]
                 for _, row in cambios.iterrows():
                     supabase.table("evaluaciones").update({
