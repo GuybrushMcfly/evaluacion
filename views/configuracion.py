@@ -36,7 +36,8 @@ def mostrar(supabase):
         column_config={"Activo": st.column_config.CheckboxColumn("Activo")}
     )
 
-    if st.button("💾 Guardar cambios", use_container_width=True):
+    #if st.button("💾 Guardar cambios", use_container_width=True):
+    if st.button("💾 Guardar cambios", kind = "primary"):
         usuario = st.session_state.get("usuario", "desconocido")
         for i, row in edit_config.iterrows():
             id_config = df_config.loc[i, "ID"]
@@ -94,7 +95,8 @@ def mostrar(supabase):
                 index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual)
             )
 
-            if st.button("🔁 Actualizar asignación", use_container_width=True):
+            #if st.button("🔁 Actualizar asignación", use_container_width=True):
+            if st.button("🔁 Actualizar asignación", use_container_width=True, kind="primary"):
                 nuevo_usuario = opciones_evaluador[nombre_evaluador]
                 dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
                 supabase.table("agentes").update({
@@ -126,7 +128,8 @@ def mostrar(supabase):
         nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
-            if st.button("🔐 Generar contraseña", use_container_width=True):
+#            if st.button("🔐 Generar contraseña", use_container_width=True):
+            if st.button("🔐 Generar contraseña", kind="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
         
