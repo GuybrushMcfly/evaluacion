@@ -145,7 +145,7 @@ def mostrar(supabase, formularios, clasificaciones):
             if fecha_inactivo != '-':
                 try:
                     from datetime import datetime
-                    fecha_formateada = datetime.strptime(fecha_inactivo, "%Y-%d-%m").strftime("%d/%m/%Y")
+                    fecha_formateada = datetime.strptime(fecha_inactivo, "%Y-%m-%d").strftime("%d/%m/%Y")
                 except (ValueError, TypeError):
                     fecha_formateada = fecha_inactivo  # Mantiene el valor original si hay error
             else:
