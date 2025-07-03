@@ -129,15 +129,29 @@ def mostrar(supabase, formularios, clasificaciones):
     st.dataframe(df_info, use_container_width=True, hide_index=True)
     
     # Mostrar datos de inactividad debajo si no está activo
+
     if not agente.get("activo", True):
-        st.markdown("### ⚠️ Información de inactividad")
+        st.markdown("<h3 style='font-size:20px; margin-bottom:0.5rem;'>⚠️ Información de inactividad</h3>", 
+                    unsafe_allow_html=True)
+        
         col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown(f"**Activo:** No")
         with col2:
             st.markdown(f"**Motivo de inactividad:** {agente.get('motivo_inactivo', '-')}")
         with col3:
-            st.markdown(f"**Fecha de baja:** {agente.get('fecha_inactivo', '-')}")
+            fecha_inactivo = agente.get('fecha_inactivo', '-')
+            # Formateo de fecha (con manejo de errores)
+            if fecha_inactivo != '-':
+                try:
+                    from datetime import datetime
+                    fecha_formateada = datetime.strptime(fecha_inactivo, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except (ValueError, TypeError):
+                    fecha_formateada = fecha_inactivo  # Mantiene el valor original si hay error
+            else:
+                fecha_formateada = '-'
+            
+            st.markdown(f"**Fecha de baja:** {fecha_formateada}")
 
     # Selección de tipo de formulario (con placeholder)
     tipo = st.selectbox(
