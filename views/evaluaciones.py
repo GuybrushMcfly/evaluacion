@@ -487,7 +487,8 @@ def mostrar(supabase):
                     label="📥 Descargar Informe",
                     data=file,
                     file_name=f"informe_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
                 )        
             
 
@@ -627,7 +628,7 @@ def mostrar(supabase):
 
             
             # Botón para anular seleccionadas
-            if st.button("❌ Anular seleccionadas"):
+            if st.button("❌ Anular seleccionadas", use_container_width=True):
                 if "Seleccionar" in seleccion.columns:
                     seleccionados = seleccion[seleccion["Seleccionar"] == True]
                     ids_seleccionados = seleccionados["id_evaluacion"].tolist()
@@ -831,7 +832,8 @@ def mostrar(supabase):
                     label="📥 Descargar Informe de Agentes",
                     data=file,
                     file_name=f"agentes_{dependencia_filtro.replace(' ', '_')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
                 )
 
 
