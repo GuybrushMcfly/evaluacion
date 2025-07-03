@@ -148,7 +148,78 @@ def mostrar(supabase):
         )
 
     elif seleccion == "📊 ANÁLISIS":
-        st.info("🔧 Esta sección está en construcción.")
+        st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
+    
+        # Obtener datos desde Supabase
+        evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
+        df = pd.DataFrame(evaluaciones_data)
+    
+        if df.empty or "dependencia_general" not in df.columns:
+            st.warning("No hay datos disponibles.")
+            st.stop()
+    
+        # Lista de direcciones únicas
+        direcciones = sorted(df["dependencia_general"].dropna().unique())
+        opciones = ["- Seleccionar Dirección -"] + direcciones + ["Unidad Residual", "Todas"]
+    
+        seleccion_dir = st.selectbox("📍 Seleccione Dirección", opciones)
+    
+        if seleccion_dir != "- Seleccionar Dirección -":
+            if st.button("🔍 Analizar"):
+                df["nivel"] = df["formulario"].astype(int)
+                df["residual"] = False  # inicializamos todos como no residual
+    
+                if seleccion_dir == "Unidad Residual":
+                    df_filtrada = df[df["nivel"] == 1].copy()
+                    df_filtrada["residual"] = True
+                elif seleccion_dir == "Todas":
+                    df_filtrada = df.copy()
+                else:
+                    df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
+    
+                st.write(f"👥 Evaluaciones encontradas: {len(df_filtrada)}")
+    
+                # Nivel medio (2,3,4)
+                df_medios = df_filtrada[df_filtrada["nivel"].isin([2, 3, 4])].copy()
+                st.markdown("### 🔹 Niveles Medios (2, 3, 4)")
+                if df_medios.empty:
+                    st.info("No se calificaron con niveles medios.")
+                elif len(df_medios) < 6:
+                    st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
+                    df.loc[df_medios.index, "residual"] = True
+                    st.dataframe(df_medios)
+                else:
+                    st.success("Grupo válido. No Residual.")
+                    df.loc[df_medios.index, "residual"] = False
+                    st.dataframe(df_medios)
+    
+                # Nivel operativo (5,6)
+                df_operativos = df_filtrada[df_filtrada["nivel"].isin([5, 6])].copy()
+                st.markdown("### 🔹 Niveles Operativos (5, 6)")
+                if df_operativos.empty:
+                    st.info("No se calificaron con niveles operativos.")
+                elif len(df_operativos) < 6:
+                    st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
+                    df.loc[df_operativos.index, "residual"] = True
+                    st.dataframe(df_operativos)
+                else:
+                    st.success("Grupo válido. No Residual.")
+                    df.loc[df_operativos.index, "residual"] = False
+                    st.dataframe(df_operativos)
+    
+                # Nivel 1: siempre residual
+                df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1].copy()
+                if not df_nivel1.empty:
+                    df.loc[df_nivel1.index, "residual"] = True
+    
+                # Actualización en Supabase
+                cambios = df.loc[df_filtrada.index, ["id_evaluacion", "residual"]]
+                for _, row in cambios.iterrows():
+                    supabase.table("evaluaciones").update({
+                        "residual": row["residual"]
+                    }).eq("id_evaluacion", row["id_evaluacion"]).execute()
+    
+                st.success("✅ Evaluaciones analizadas y actualizadas correctamente.")
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
