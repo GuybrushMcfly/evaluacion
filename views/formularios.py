@@ -219,7 +219,11 @@ def mostrar(supabase, formularios, clasificaciones):
 
         
         with col1:
-            if st.button("✅ Sí, enviar evaluación"):
+            if st.button(
+                "✅ Sí, enviar evaluación", 
+                type="primary",  
+                help="Confirma el envío de la evaluación."  # Texto de ayuda
+            ):        
                 tipo_formulario = tipo
                 evaluador = st.session_state.get("usuario", "desconocido")
              #   puntaje_maximo = max(puntajes) * len(puntajes) if puntajes else None
@@ -272,12 +276,20 @@ def mostrar(supabase, formularios, clasificaciones):
                 st.rerun()
 
         with col2:
-            if st.button("❌ No, revisar opciones"):
+            if st.button(
+                "❌ No, revisar opciones",
+                help="Modificar las selecciones antes de enviar." 
+            ):
                 st.session_state["previsualizado"] = False
                 st.warning("🔄 Por favor revise las opciones seleccionadas")
 
         with col_rangos:
-            if st.button("📊 Ver Rangos Puntajes"):
+            if st.button(
+                "📊 Ver Rangos Puntajes",
+                help="Visualizar los rangos de puntajes y calificaciones.",
+                type = "primary"
+            ):
+                
                 st.markdown("** Clasificación según puntaje:**")
                 for nombre, maxv, minv in clasificaciones[tipo]:
                     st.markdown(f"- **{nombre}**: entre {minv} y {maxv} puntos")
