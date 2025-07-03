@@ -290,7 +290,7 @@ def mostrar(supabase):
                     "apellido_nombre", "Nivel Eval", "calificacion",
                     "Puntaje/Máximo", "evaluador", "Fecha_formateada"
                 ]].rename(columns={
-                    "apellido_nombre": "Apellido y Nombres",
+                    "apellido_nombre": "Apellido/s y Nombre/s",
                     "Nivel Eval": "Nivel Evaluación",
                     "calificacion": "Calificación",
                     "Puntaje/Máximo": "Puntaje/Máximo",
@@ -537,7 +537,7 @@ def mostrar(supabase):
                                 "apellido_nombre", "Nivel Eval", "calificacion",
                                 "Puntaje/Máximo", "evaluador", "Fecha_formateada"
                             ]].rename(columns={
-                                "apellido_nombre": "Apellido y Nombres",
+                                "apellido_nombre": "Apellido/s y Nombre/s",
                                 "Nivel Eval": "Nivel Evaluación",
                                 "calificacion": "Calificación",
                                 "Puntaje/Máximo": "Puntaje/Máximo",
@@ -605,7 +605,7 @@ def mostrar(supabase):
                 "calificacion", "Puntaje/Max", "evaluador", "id_evaluacion"
             ]].rename(columns={
                 "Seleccionar": "Seleccionar",
-                "apellido_nombre": "Apellido y Nombres",
+                "apellido_nombre": "Apellido/s y Nombre/s",
                 "Nivel Eval": "Nivel Evaluación",
                 "calificacion": "Calificación",
                 "Puntaje/Max": "Puntaje/Máximo",
@@ -619,7 +619,7 @@ def mostrar(supabase):
                 use_container_width=True,
                 hide_index=True,
                 disabled=[
-                    "Apellido y Nombres", "Nivel Evaluación", "Calificación",
+                    "Apellido/s y Nombre/s", "Nivel Evaluación", "Calificación",
                     "Puntaje", "Evaluador", "id_evaluacion"
                 ],
                 column_config={
@@ -718,7 +718,7 @@ def mostrar(supabase):
                 "apellido_nombre", "Nivel Eval", "calificacion",
                 "Puntaje/Máximo", "evaluador", "Fecha_formateada"
             ]].rename(columns={
-                "apellido_nombre": "Apellido y Nombres",
+                "apellido_nombre": "Apellido/s y Nombre/s",
                 "Nivel Eval": "Nivel Evaluación",
                 "calificacion": "Calificación",
                 "Puntaje/Máximo": "Puntaje/Máximo",
