@@ -77,8 +77,24 @@ elif authentication_status:
         st.stop()
 
     # ---- INTERFAZ DE USUARIO ----
+    # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
+    
+    # 🔒 Registrar logout manual si el usuario lo cerró desde el botón
+    if "usuario" in st.session_state and authentication_status is False:
+        try:
+            supabase.table("logs_accesos").insert({
+                "usuario": st.session_state["usuario"],
+                "fecha_hora": datetime.datetime.now().isoformat(),
+                "evento": "logout",
+                "exito": True,
+                "detalles": "Logout manual desde menú"
+            }).execute()
+        except Exception as e:
+            st.error(f"Error al registrar logout manual: {e}")
+        st.session_state.clear()
+        st.rerun()
 
     # ---- NAVEGACIÓN ----
     opcion = st.sidebar.radio("📂 Navegación", [
