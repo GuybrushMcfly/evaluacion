@@ -23,15 +23,29 @@ def contraseña_valida(pwd: str) -> bool:
 def cargar_usuarios_y_autenticar():
     supabase = init_connection()
 
-    # ---- Logout automático por inactividad ----
     ahora = datetime.datetime.now()
+
+    # ---- Logout automático por inactividad ----
     if "last_activity" in st.session_state:
         if (ahora - st.session_state["last_activity"]).total_seconds() > TIEMPO_MAX_SESION_MIN * 60:
+            # Registrar logout automático
+            if "usuario" in st.session_state:
+                try:
+                    supabase.table("logs_accesos").insert({
+                        "usuario": st.session_state["usuario"],
+                        "fecha_hora": ahora.isoformat(),
+                        "evento": "logout",
+                        "exito": True,
+                        "detalles": "Logout automático por inactividad"
+                    }).execute()
+                except Exception as e:
+                    st.error(f"Error al registrar logout automático: {e}")
             st.session_state.clear()
             st.warning("🔐 Sesión cerrada por inactividad.")
             if st.button("🔁 Volver al login"):
                 st.rerun()
             st.stop()
+
     st.session_state["last_activity"] = ahora
 
     # ---- Cargar usuarios activos ----
@@ -79,7 +93,6 @@ def cargar_usuarios_y_autenticar():
         st.error(f"❌ Usuario inválido: {e}")
         st.stop()
 
-    # ---- Post-login ----
     cambiar_password = False
     if authentication_status:
         usuario_data = supabase.table("usuarios")\
@@ -93,8 +106,19 @@ def cargar_usuarios_y_autenticar():
         if usuario_data.get("cambiar_password", False):
             cambiar_password = True
 
-        # Guardar datos en sesión solo si no requiere cambio de clave
         if not cambiar_password:
+            # Registrar login exitoso
+            try:
+                supabase.table("logs_accesos").insert({
+                    "usuario": username,
+                    "fecha_hora": ahora.isoformat(),
+                    "evento": "login",
+                    "exito": True,
+                    "detalles": "Login exitoso"
+                }).execute()
+            except Exception as e:
+                st.error(f"Error al registrar login: {e}")
+
             st.session_state["usuario"] = username
             st.session_state["nombre_completo"] = usuario_data.get("apellido_nombre", "")
             st.session_state["dependencia"] = usuario_data.get("dependencia", "")
