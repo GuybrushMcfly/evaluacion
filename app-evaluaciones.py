@@ -79,29 +79,20 @@ elif authentication_status:
     # ---- INTERFAZ DE USUARIO ----
     # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
-    authenticator.logout("Cerrar sesión", "sidebar")
     
-    # 🔒 Registrar logout manual si el usuario cerró sesión desde el botón
-    if (
-        st.session_state.get("authentication_status") is False
-        and st.session_state.get("logout_registrado") is not True
-        and st.session_state.get("usuario")
-    ):
-        try:
-            supabase.table("logs_accesos").insert({
-                "usuario": st.session_state["usuario"],
-                "fecha_hora": datetime.datetime.now().isoformat(),
-                "evento": "logout",
-                "exito": True,
-                "detalles": "Logout botón"
-            }).execute()
-            st.session_state["logout_registrado"] = True
-        except Exception as e:
-            st.error(f"Error al registrar logout manual: {e}")
-    
-    # 🔁 Limpiar sesión luego de registrar logout
-    if st.session_state.get("logout_registrado"):
-        st.session_state.clear()
+    if st.sidebar.button("Cerrar sesión"):
+        if st.session_state.get("usuario"):
+            try:
+                supabase.table("logs_accesos").insert({
+                    "usuario": st.session_state["usuario"],
+                    "fecha_hora": datetime.datetime.now().isoformat(),
+                    "evento": "logout",
+                    "exito": True,
+                    "detalles": "Logout botón"
+                }).execute()
+            except Exception as e:
+                st.error(f"Error al registrar logout manual: {e}")
+        authenticator.logout("Cerrar sesión", "sidebar")  # mantiene limpieza de cookie
         st.rerun()
 
 
