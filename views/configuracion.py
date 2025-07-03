@@ -5,7 +5,7 @@ import secrets
 import bcrypt
 
 def mostrar(supabase):
-    st.markdown("<h1 style='font-size:28px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-size:26px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
 
     # --- CONSULTA CONFIGURACIÓN ACTUAL ---
     config_items = supabase.table("configuracion").select("*").execute().data
@@ -50,7 +50,9 @@ def mostrar(supabase):
     st.divider()
 
     # --- EDICIÓN DE EVALUADOR POR AGENTE ---
-    st.markdown("### 👥 Asignación de Evaluadores")
+    st.markdown("<h2 style='font-size:20px;'>👥 Asignación de Evaluadores</h2>", unsafe_allow_html=True)
+
+    #st.markdown("### 👥 Asignación de Evaluadores")
 
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
     usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
@@ -88,7 +90,9 @@ def mostrar(supabase):
 
 
     st.divider()
-    st.markdown("### 🔐 Generar contraseña para evaluador")
+    #st.markdown("### 🔐 Generar contraseña para evaluador")
+    st.markdown("<h2 style='font-size:20px;'>🔐 Generar contraseña para evaluador</h2>", unsafe_allow_html=True)
+
     
     # Listado de evaluadores activos
     evaluadores_disponibles = {u["apellido_nombre"]: u for u in usuarios_data if u["activo"]}
