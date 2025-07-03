@@ -16,12 +16,12 @@ def mostrar(supabase):
     df_config = pd.DataFrame([
         {
             "ID": "formulario_activo",
-            "Descripción": "📝 Formulario habilitado",
+            "Descripción": "📝 FORMULARIO HABILITADO",
             "Activo": config_map.get("formulario_activo", {}).get("valor", True)
         },
         {
             "ID": "anulacion_activa",
-            "Descripción": "❌ Permitir anulación de evaluaciones",
+            "Descripción": "❌ ANULACIÓN DE EVALUACIONES",
             "Activo": config_map.get("anulacion_activa", {}).get("valor", True)
         }
     ])
