@@ -1,9 +1,3 @@
-import streamlit as st
-from datetime import datetime
-import pandas as pd
-import secrets
-import bcrypt
-
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:26px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
 
@@ -25,9 +19,7 @@ def mostrar(supabase):
         }
     ])
 
-   # st.markdown("### 🔧 Parámetros del sistema")
     st.markdown("<h2 style='font-size:20px;'>🔧 Parámetros del sistema</h2>", unsafe_allow_html=True)
-
     
     edit_config = st.data_editor(
         df_config[["Descripción", "Activo"]],
@@ -55,91 +47,93 @@ def mostrar(supabase):
     # --- EDICIÓN DE EVALUADOR POR AGENTE ---
     st.markdown("<h2 style='font-size:20px;'>👥 Asignación de Evaluadores</h2>", unsafe_allow_html=True)
 
-    #st.markdown("### 👥 Asignación de Evaluadores")
-
-    # --- Cargar datos ---
-    agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
-    usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+    # Cargar datos (si falla, mostramos un error pero seguimos mostrando el resto)
+    try:
+        agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
+        usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+    except Exception as e:
+        st.error(f"Error al cargar datos: {e}")
+        agentes_data = []
+        usuarios_data = []
 
     if not agentes_data or not usuarios_data:
-        st.warning("⚠️ No hay datos disponibles.")
-        return
+        st.warning("⚠️ No hay datos disponibles para la asignación de evaluadores.")
+    else:
+        mapa_agentes = {a["apellido_nombre"]: a for a in agentes_data}
+        mapa_usuarios = {u["usuario"]: u for u in usuarios_data if u["activo"]}
 
-    mapa_agentes = {a["apellido_nombre"]: a for a in agentes_data}
-    mapa_usuarios = {u["usuario"]: u for u in usuarios_data if u["activo"]}
+        lista_agentes = ["- Seleccioná a un agente -"] + list(mapa_agentes.keys())
+        nombre_seleccionado = st.selectbox("👤 Agente a modificar", lista_agentes)
 
-    lista_agentes = ["- Seleccioná a un agente -"] + list(mapa_agentes.keys())
-    nombre_seleccionado = st.selectbox("👤 Agente a modificar", lista_agentes)
+        if nombre_seleccionado != "- Seleccioná a un agente -":
+            agente = mapa_agentes[nombre_seleccionado]
 
-    if nombre_seleccionado == "- Seleccioná a un agente -":
-        st.info("Por favor, seleccioná un agente para modificar.")
-        return
+            dependencias_disponibles = sorted({u["dependencia"] for u in usuarios_data if u["activo"] and u["dependencia"]})
+            nueva_dependencia = st.selectbox(
+                "🏢 Nueva dependencia",
+                dependencias_disponibles,
+                index=dependencias_disponibles.index(agente.get("dependencia", "")) if agente.get("dependencia") in dependencias_disponibles else 0
+            )
 
-    # --- Continuar con selección válida ---
-    agente = mapa_agentes[nombre_seleccionado]
+            evaluadores_opciones = [u for u in usuarios_data if u["dependencia"] == nueva_dependencia and u["activo"]]
+            opciones_evaluador = {u["apellido_nombre"]: u["usuario"] for u in evaluadores_opciones}
 
-    dependencias_disponibles = sorted({u["dependencia"] for u in usuarios_data if u["activo"] and u["dependencia"]})
-    nueva_dependencia = st.selectbox(
-        "🏢 Nueva dependencia",
-        dependencias_disponibles,
-        index=dependencias_disponibles.index(agente.get("dependencia", ""))
-    )
+            usuario_actual = agente.get("evaluador_2024", "")
+            nombre_actual = next((u["apellido_nombre"] for u in usuarios_data if u["usuario"] == usuario_actual), "[No asignado]")
 
-    evaluadores_opciones = [u for u in usuarios_data if u["dependencia"] == nueva_dependencia and u["activo"]]
-    opciones_evaluador = {u["apellido_nombre"]: u["usuario"] for u in evaluadores_opciones}
+            nombre_evaluador = st.selectbox(
+                "🧑‍🏫 Evaluador asignado (2024)",
+                list(opciones_evaluador.keys()),
+                index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual)
+            )
 
-    usuario_actual = agente.get("evaluador_2024", "")
-    nombre_actual = next((u["apellido_nombre"] for u in usuarios_data if u["usuario"] == usuario_actual), "[No asignado]")
-
-    nombre_evaluador = st.selectbox(
-        "🧑‍🏫 Evaluador asignado (2024)",
-        list(opciones_evaluador.keys()),
-        index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual)
-    )
-
-    if st.button("🔁 Actualizar asignación", use_container_width=True):
-        nuevo_usuario = opciones_evaluador[nombre_evaluador]
-        dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
-        supabase.table("agentes").update({
-            "dependencia": nueva_dependencia,
-            "dependencia_general": dependencia_gral,
-            "evaluador_2024": nuevo_usuario
-        }).eq("cuil", agente["cuil"]).execute()
-        st.success("✅ Datos actualizados correctamente.")
-
-
+            if st.button("🔁 Actualizar asignación", use_container_width=True):
+                nuevo_usuario = opciones_evaluador[nombre_evaluador]
+                dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
+                supabase.table("agentes").update({
+                    "dependencia": nueva_dependencia,
+                    "dependencia_general": dependencia_gral,
+                    "evaluador_2024": nuevo_usuario
+                }).eq("cuil", agente["cuil"]).execute()
+                st.success("✅ Datos actualizados correctamente.")
 
     st.divider()
-    #st.markdown("### 🔐 Generar contraseña para evaluador")
+
+    # --- BLOQUE DE CONTRASEÑAS (SIEMPRE VISIBLE) ---
     st.markdown("<h2 style='font-size:20px;'>🔐 Generar contraseña para evaluador</h2>", unsafe_allow_html=True)
 
-    
-    # Listado de evaluadores activos
-    evaluadores_disponibles = {u["apellido_nombre"]: u for u in usuarios_data if u["activo"]}
-    opciones_nombres = ["- Seleccioná a un evaluador -"] + sorted(evaluadores_disponibles.keys())
-    
-    nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
-    
-    if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
-        if st.button("🔐 Generar contraseña", use_container_width=True):
-            usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
-            nuevo_usuario = usuario_seleccionado["usuario"]
-    
-            # Generar clave aleatoria de 5 dígitos
-            nueva_password = str(secrets.randbelow(10**5)).zfill(5)  # Siempre 5 dígitos
-            hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
-    
-            # Guardar en Supabase
-            supabase.table("usuarios").update({
-                "password": hashed,
-                "cambiar_password": True
-            }).eq("usuario", nuevo_usuario).execute()
-    
-            # Mostrar usuario y clave
-            st.success(f"""
-            ✅ Contraseña generada correctamente:
-    
-            - **Usuario**: `{nuevo_usuario}`  
-            - **Contraseña temporal**: `{nueva_password}`
-            """)
+    # Cargar usuarios activos (si no se cargaron antes)
+    if not usuarios_data:
+        try:
+            usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+        except Exception as e:
+            st.error(f"Error al cargar usuarios: {e}")
+            usuarios_data = []
 
+    if not usuarios_data:
+        st.warning("No se pudieron cargar los usuarios. Intenta recargar la página.")
+    else:
+        evaluadores_disponibles = {u["apellido_nombre"]: u for u in usuarios_data if u["activo"]}
+        opciones_nombres = ["- Seleccioná a un evaluador -"] + sorted(evaluadores_disponibles.keys())
+        
+        nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
+        
+        if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
+            if st.button("🔐 Generar contraseña", use_container_width=True):
+                usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
+                nuevo_usuario = usuario_seleccionado["usuario"]
+        
+                nueva_password = str(secrets.randbelow(10**5)).zfill(5)
+                hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
+        
+                supabase.table("usuarios").update({
+                    "password": hashed,
+                    "cambiar_password": True
+                }).eq("usuario", nuevo_usuario).execute()
+        
+                st.success(f"""
+                ✅ Contraseña generada correctamente:
+        
+                - **Usuario**: `{nuevo_usuario}`  
+                - **Contraseña temporal**: `{nueva_password}`
+                """)
