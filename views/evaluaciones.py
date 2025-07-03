@@ -632,7 +632,13 @@ def mostrar(supabase):
 
             
             # Botón para anular seleccionadas
-            if st.button("❌ Anular seleccionadas", use_container_width=True, type="primary"):
+           # if st.button("❌ Anular seleccionadas", use_container_width=True, type="primary"):
+            if st.button(
+                "❌ Anular seleccionadas",
+                use_container_width=True,
+                type="primary",
+                help="⚠️ Esto eliminará las entradas seleccionadas. No se puede deshacer.",  # Tooltip
+            ):
 
                 if "Seleccionar" in seleccion.columns:
                     seleccionados = seleccion[seleccion["Seleccionar"] == True]
