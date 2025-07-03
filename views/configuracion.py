@@ -1,3 +1,10 @@
+import streamlit as st
+from datetime import datetime
+import pandas as pd
+import secrets
+import bcrypt
+
+
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:26px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
 
