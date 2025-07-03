@@ -1,3 +1,5 @@
+
+
 import streamlit as st
 import json
 from modules import auth
@@ -77,24 +79,8 @@ elif authentication_status:
         st.stop()
 
     # ---- INTERFAZ DE USUARIO ----
-    # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
-    
-    if st.sidebar.button("Cerrar sesión"):
-        if st.session_state.get("usuario"):
-            try:
-                supabase.table("logs_accesos").insert({
-                    "usuario": st.session_state["usuario"],
-                    "fecha_hora": datetime.datetime.now().isoformat(),
-                    "evento": "logout",
-                    "exito": True,
-                    "detalles": "Logout botón"
-                }).execute()
-            except Exception as e:
-                st.error(f"Error al registrar logout manual: {e}")
-        authenticator.logout("Cerrar sesión", "sidebar")  # mantiene limpieza de cookie
-        st.rerun()
-
+    authenticator.logout("Cerrar sesión", "sidebar")
 
     # ---- NAVEGACIÓN ----
     opcion = st.sidebar.radio("📂 Navegación", [
@@ -146,3 +132,5 @@ elif authentication_status is False:
 
 elif authentication_status is None:
     st.warning("🔐 Ingrese las credenciales para acceder al sistema.")
+
+
