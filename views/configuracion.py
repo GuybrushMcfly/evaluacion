@@ -25,7 +25,10 @@ def mostrar(supabase):
         }
     ])
 
-    st.markdown("### 🔧 Parámetros del sistema")
+   # st.markdown("### 🔧 Parámetros del sistema")
+    st.markdown("<h2 style='font-size:20px;'>🔧 Parámetros del sistema</h2>", unsafe_allow_html=True)
+
+    
     edit_config = st.data_editor(
         df_config[["Descripción", "Activo"]],
         use_container_width=True,
@@ -54,6 +57,7 @@ def mostrar(supabase):
 
     #st.markdown("### 👥 Asignación de Evaluadores")
 
+    # --- Cargar datos ---
     agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
     usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
 
@@ -64,11 +68,22 @@ def mostrar(supabase):
     mapa_agentes = {a["apellido_nombre"]: a for a in agentes_data}
     mapa_usuarios = {u["usuario"]: u for u in usuarios_data if u["activo"]}
 
-    nombre_seleccionado = st.selectbox("👤 Agente a modificar", list(mapa_agentes.keys()))
+    lista_agentes = ["- Seleccioná a un agente -"] + list(mapa_agentes.keys())
+    nombre_seleccionado = st.selectbox("👤 Agente a modificar", lista_agentes)
+
+    if nombre_seleccionado == "- Seleccioná un agente -":
+        st.info("Por favor, seleccioná un agente para modificar.")
+        return
+
+    # --- Continuar con selección válida ---
     agente = mapa_agentes[nombre_seleccionado]
 
     dependencias_disponibles = sorted({u["dependencia"] for u in usuarios_data if u["activo"] and u["dependencia"]})
-    nueva_dependencia = st.selectbox("🏢 Nueva dependencia", dependencias_disponibles, index=dependencias_disponibles.index(agente.get("dependencia", "")))
+    nueva_dependencia = st.selectbox(
+        "🏢 Nueva dependencia",
+        dependencias_disponibles,
+        index=dependencias_disponibles.index(agente.get("dependencia", ""))
+    )
 
     evaluadores_opciones = [u for u in usuarios_data if u["dependencia"] == nueva_dependencia and u["activo"]]
     opciones_evaluador = {u["apellido_nombre"]: u["usuario"] for u in evaluadores_opciones}
@@ -76,7 +91,11 @@ def mostrar(supabase):
     usuario_actual = agente.get("evaluador_2024", "")
     nombre_actual = next((u["apellido_nombre"] for u in usuarios_data if u["usuario"] == usuario_actual), "[No asignado]")
 
-    nombre_evaluador = st.selectbox("🧑‍🏫 Evaluador asignado (2024)", list(opciones_evaluador.keys()), index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual))
+    nombre_evaluador = st.selectbox(
+        "🧑‍🏫 Evaluador asignado (2024)",
+        list(opciones_evaluador.keys()),
+        index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual)
+    )
 
     if st.button("🔁 Actualizar asignación", use_container_width=True):
         nuevo_usuario = opciones_evaluador[nombre_evaluador]
@@ -87,6 +106,7 @@ def mostrar(supabase):
             "evaluador_2024": nuevo_usuario
         }).eq("cuil", agente["cuil"]).execute()
         st.success("✅ Datos actualizados correctamente.")
+
 
 
     st.divider()
