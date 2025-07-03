@@ -71,7 +71,7 @@ def mostrar(supabase):
     lista_agentes = ["- Seleccioná a un agente -"] + list(mapa_agentes.keys())
     nombre_seleccionado = st.selectbox("👤 Agente a modificar", lista_agentes)
 
-    if nombre_seleccionado == "- Seleccioná un agente -":
+    if nombre_seleccionado == "- Seleccioná a un agente -":
         st.info("Por favor, seleccioná un agente para modificar.")
         return
 
