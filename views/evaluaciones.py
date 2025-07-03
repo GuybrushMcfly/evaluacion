@@ -142,7 +142,7 @@ def mostrar(supabase):
    #     unsafe_allow_html=True
    # )
     st.markdown(
-        "<p style='font-size: 14pt; margin-top: 1em;'>Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
+        "<p style='font-size: 11pt; margin-top: 1em;'>🖱️ Haga clic en cada una de las opciones para visualizar los datos correspondientes.</p>",
         unsafe_allow_html=True
     )    
     seleccion = option_menu(
