@@ -631,7 +631,8 @@ def mostrar(supabase):
 
             
             # Botón para anular seleccionadas
-            if st.button("❌ Anular seleccionadas", use_container_width=True):
+            if st.button("❌ Anular seleccionadas", use_container_width=True, type="primary"):
+
                 if "Seleccionar" in seleccion.columns:
                     seleccionados = seleccion[seleccion["Seleccionar"] == True]
                     ids_seleccionados = seleccionados["id_evaluacion"].tolist()
