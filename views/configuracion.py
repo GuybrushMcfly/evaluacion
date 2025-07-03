@@ -96,7 +96,7 @@ def mostrar(supabase):
             )
 
             #if st.button("🔁 Actualizar asignación", use_container_width=True):
-            if st.button("🔁 Actualizar asignación", use_container_width=True, type="primary"):
+            if st.button("🔁 Actualizar asignación", type="primary"):
                 nuevo_usuario = opciones_evaluador[nombre_evaluador]
                 dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
                 supabase.table("agentes").update({
