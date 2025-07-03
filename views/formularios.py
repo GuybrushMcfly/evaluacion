@@ -180,7 +180,7 @@ def mostrar(supabase, formularios, clasificaciones):
             else:
                 respuestas_completas = False
 
-        previsualizar = st.form_submit_button("🔍 Previsualizar calificación")
+        previsualizar = st.form_submit_button("🔍 Previsualizar calificación", type = "primary")
 
     if previsualizar:
         if respuestas_completas:
@@ -278,7 +278,8 @@ def mostrar(supabase, formularios, clasificaciones):
         with col2:
             if st.button(
                 "❌ No, revisar opciones",
-                help="Modificar las selecciones antes de enviar." 
+                help="Modificar las selecciones antes de enviar.",
+                type = "primary"
             ):
                 st.session_state["previsualizado"] = False
                 st.warning("🔄 Por favor revise las opciones seleccionadas")
