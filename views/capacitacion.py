@@ -151,15 +151,20 @@ def mostrar(supabase):
         st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
     
         # Obtener datos desde Supabase
+        # Obtener datos desde Supabase excluyendo anuladas
         evaluaciones_data = supabase.table("evaluaciones").select("*").neq("anulada", True).execute().data
         df = pd.DataFrame(evaluaciones_data)
-    
+        
         if df.empty or "dependencia_general" not in df.columns:
             st.warning("No hay datos disponibles.")
             st.stop()
-    
+        
+        # Asegurarse que formulario existe y convertir nivel
+        df = df[df["formulario"].notnull()]  # eliminar filas sin formulario
         df["nivel"] = df["formulario"].astype(int)
+        
         df["residual"] = False  # Inicializamos como no residual
+
     
         # Lista de direcciones únicas
         direcciones = sorted(df["dependencia_general"].dropna().unique())
