@@ -1,6 +1,8 @@
 import streamlit as st
 from datetime import datetime
 import pandas as pd
+import secrets
+import bcrypt
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:28px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
@@ -83,3 +85,37 @@ def mostrar(supabase):
             "evaluador_2024": nuevo_usuario
         }).eq("cuil", agente["cuil"]).execute()
         st.success("✅ Datos actualizados correctamente.")
+
+
+    st.divider()
+    st.markdown("### 🔐 Generar contraseña para evaluador")
+    
+    # Listado de evaluadores activos
+    evaluadores_disponibles = {u["apellido_nombre"]: u for u in usuarios_data if u["activo"]}
+    opciones_nombres = ["- Seleccioná a un evaluador -"] + sorted(evaluadores_disponibles.keys())
+    
+    nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
+    
+    if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
+        if st.button("🔐 Generar contraseña", use_container_width=True):
+            usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
+            nuevo_usuario = usuario_seleccionado["usuario"]
+    
+            # Generar clave aleatoria de 5 dígitos
+            nueva_password = str(secrets.randbelow(10**5)).zfill(5)  # Siempre 5 dígitos
+            hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
+    
+            # Guardar en Supabase
+            supabase.table("usuarios").update({
+                "password": hashed,
+                "cambiar_password": True
+            }).eq("usuario", nuevo_usuario).execute()
+    
+            # Mostrar usuario y clave
+            st.success(f"""
+            ✅ Contraseña generada correctamente:
+    
+            - **Usuario**: `{nuevo_usuario}`  
+            - **Contraseña temporal**: `{nueva_password}`
+            """)
+
