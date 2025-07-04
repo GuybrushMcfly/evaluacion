@@ -360,61 +360,66 @@ def mostrar(supabase):
                         )
                         
                         # Mostrar advertencias si hay empates
+
                         if len(df_elegibles) > cupo_bonificaciones:
                             # Verificar si hay empates en el límite
                             puntaje_corte = df_elegibles.iloc[cupo_bonificaciones-1]["puntaje_relativo"]
                             empates = df_elegibles[df_elegibles["puntaje_relativo"] == puntaje_corte]
                             
                             if len(empates) > 1:
-                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
+                                #st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
+                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados. El superior debe desempatar.")
                                 
-                                # Crear formulario para seleccionar ganadores del empate
-                                with st.form(f"form_empate_{seleccion_dir}"):
-                                    st.write("**Seleccione quién debe recibir la bonificación entre los empatados:**")
+                                # Crear tabla con checkboxes editables
+                                col1, col2 = st.columns([4, 1])
+                                
+                                with col1:
+                                    # Crear editor de datos para resolver empates
+                                    empates_editor = empates[["apellido_nombre", "puntaje_relativo", "bonificacion_elegible"]].copy()
+                                    empates_editor = empates_editor.rename(columns={
+                                        "apellido_nombre": "AGENTE",
+                                        "puntaje_relativo": "PUNTAJE RELATIVO", 
+                                        "bonificacion_elegible": "RECIBE BDD"
+                                    })
                                     
-                                    # Crear checkboxes para cada agente empatado
-                                    selecciones = {}
-                                    for idx, row in empates.iterrows():
-                                        # Verificar si ya tiene bonificación asignada
-                                        ya_seleccionado = row["bonificacion_elegible"] == True
+                                    # Usar st.data_editor para permitir edición de checkboxes
+                                    edited_empates = st.data_editor(
+                                        empates_editor,
+                                        column_config={
+                                            "RECIBE BDD": st.column_config.CheckboxColumn(
+                                                "RECIBE BDD",
+                                                help="Seleccione quién recibe la bonificación BDD",
+                                                default=False,
+                                            )
+                                        },
+                                        disabled=["AGENTE", "PUNTAJE RELATIVO"],
+                                        hide_index=True,
+                                        use_container_width=True,
+                                        key=f"editor_empates_{seleccion_dir}"
+                                    )
+                                
+                                with col2:
+                                    # Botón para aplicar cambios
+                                    if st.button("✅ Aplicar", key=f"btn_empate_{seleccion_dir}"):
+                                        # Contar seleccionados
+                                        seleccionados = edited_empates["RECIBE BDD"].sum()
                                         
-                                        selecciones[row["id_evaluacion"]] = st.checkbox(
-                                            f"{row['apellido_nombre']} (Puntaje: {row['puntaje_relativo']:.3f})",
-                                            value=ya_seleccionado,
-                                            key=f"checkbox_{row['id_evaluacion']}"
-                                        )
-                                    
-                                    # Botón para aplicar selección
-                                    if st.form_submit_button("✅ Aplicar Selección de Empate"):
-                                        # Contar cuántos están seleccionados
-                                        seleccionados = sum(selecciones.values())
-                                        
-                                        # Calcular cuántos espacios quedan en el cupo
+                                        # Calcular espacios disponibles
                                         ya_asignados = len(df_elegibles[df_elegibles["bonificacion_elegible"] == True])
                                         espacios_disponibles = cupo_bonificaciones - ya_asignados + len(empates[empates["bonificacion_elegible"] == True])
                                         
                                         if seleccionados <= espacios_disponibles:
                                             # Actualizar base de datos
-                                            for id_eval, seleccionado in selecciones.items():
+                                            for idx, (orig_idx, emp_row) in enumerate(empates.iterrows()):
+                                                nuevo_valor = edited_empates.iloc[idx]["RECIBE BDD"]
                                                 supabase.table("evaluaciones").update({
-                                                    "bonificacion_elegible": seleccionado
-                                                }).eq("id_evaluacion", id_eval).execute()
+                                                    "bonificacion_elegible": nuevo_valor
+                                                }).eq("id_evaluacion", emp_row["id_evaluacion"]).execute()
                                             
-                                            st.success(f"✅ Selección aplicada. {seleccionados} agentes seleccionados para BDD.")
-                                            st.rerun()  # Recargar la página para mostrar cambios
+                                            st.success(f"✅ Aplicado: {seleccionados} seleccionados")
+                                            st.rerun()
                                         else:
-                                            st.error(f"❌ Error: Has seleccionado {seleccionados} agentes pero solo hay {espacios_disponibles} espacios disponibles.")
-                                
-                                # Mostrar tabla de empates (solo informativa)
-                                st.dataframe(
-                                    empates[["apellido_nombre", "puntaje_relativo", "bonificacion_elegible"]].rename(columns={
-                                        "apellido_nombre": "AGENTE",
-                                        "puntaje_relativo": "PUNTAJE RELATIVO", 
-                                        "bonificacion_elegible": "RECIBE BDD"
-                                    }),
-                                    use_container_width=True,
-                                    hide_index=True
-                                )
+                                            st.error(f"❌ Seleccionados: {seleccionados}, Disponibles: {espacios_disponibles}")
         
                 # SIEMPRE mostrar tabla de residuales al final
                 st.markdown("---")
