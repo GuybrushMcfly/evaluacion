@@ -14,6 +14,7 @@ def mostrar(supabase):
 
     
     st.markdown("---")
+    st.markdown("---")
     st.subheader("🗃️ Registros en tabla `agentes`")
     
     # --- Obtener registros y convertirlos a DataFrame ---
@@ -52,7 +53,7 @@ def mostrar(supabase):
         selected_rows = grid_response['selected_rows']
         
         # Mostrar información adicional si hay filas seleccionadas
-        if selected_rows:
+        if len(selected_rows) > 0:
             st.subheader("Filas seleccionadas:")
             st.dataframe(selected_rows)
             
