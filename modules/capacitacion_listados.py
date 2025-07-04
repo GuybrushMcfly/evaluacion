@@ -3,12 +3,13 @@ import pandas as pd
 import io
 
 def mostrar_listado_general(df_evals, agentes):
-    st.markdown("### \ud83d\udcc1 Listado General de Evaluaciones")
+    st.markdown("### 📑 Listado General de Evaluaciones")
+
 
     # Selector de dependencia general
     opciones_dependencias = sorted(df_evals["dependencia_general"].dropna().unique().tolist())
     opciones_dependencias.insert(0, "TODAS")
-    dependencia_seleccionada = st.selectbox("\ud83d\udcc2 Filtrar por Dirección General", opciones_dependencias)
+    dependencia_seleccionada = st.selectbox("📂 Seleccioná una Dirección General", opciones_dependencias)
 
     if dependencia_seleccionada == "TODAS":
         df_filtrada = df_evals[df_evals["anulada"] != True].copy()
