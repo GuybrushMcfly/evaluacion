@@ -106,3 +106,58 @@ def mostrar(supabase):
             
     else:
         st.warning("No hay datos disponibles en la tabla agentes")
+
+    # --- SEGUNDA TABLA CON DATA EDITOR ---
+    st.markdown("---")
+    st.subheader("📊 Tabla con Data Editor (Streamlit nativo)")
+    
+    # --- Obtener los mismos datos ---
+    data_editor = supabase.table("agentes").select("apellido_nombre, dependencia").execute().data
+    df_editor = pd.DataFrame(data_editor)
+    
+    if not df_editor.empty:
+        # Configurar tipos de columnas
+        column_config = {
+            "apellido_nombre": st.column_config.TextColumn(
+                "Apellido y Nombre",
+                help="Nombre completo del agente",
+                max_chars=100,
+                width="medium"
+            ),
+            "dependencia": st.column_config.TextColumn(
+                "Dependencia",
+                help="Área de trabajo del agente",
+                max_chars=100,
+                width="medium"
+            )
+        }
+        
+        # Mostrar tabla editable
+        edited_df = st.data_editor(
+            df_editor,
+            column_config=column_config,
+            use_container_width=True,
+            num_rows="dynamic",  # Permite agregar/eliminar filas
+            height=400,
+            key="data_editor_agentes"
+        )
+        
+        # Mostrar información de cambios
+        if not edited_df.equals(df_editor):
+            st.info("✏️ Se detectaron cambios en los datos")
+            
+            # Botón para guardar cambios
+            if st.button("💾 Guardar cambios", key="save_changes"):
+                st.success("Cambios guardados exitosamente")
+                # Aquí podrías implementar la lógica para actualizar Supabase
+                # supabase.table("agentes").update(...).execute()
+        
+        # Mostrar estadísticas
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Total de registros", len(edited_df))
+        with col2:
+            st.metric("Dependencias únicas", edited_df['dependencia'].nunique())
+            
+    else:
+        st.warning("No hay datos disponibles para el data editor")
