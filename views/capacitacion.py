@@ -20,20 +20,27 @@ def mostrar(supabase):
 
     df_evals = pd.DataFrame(evals)
 
+    # --- Menú de navegación (tabs estilo botones)
     seleccion = option_menu(
         menu_title=None,
         options=["📋 LISTADOS", "📊 ANÁLISIS", "🌟 DESTACADOS"],
+ #       icons=["bar-chart-line", "clipboard-check"],
         orientation="horizontal",
         default_index=0,
+        
         styles={
             "container": {
                 "padding": "0!important", 
                 "background-color": "transparent",
+                # "max-width": "800px",  # ← Eliminar esta línea
+                # "margin": "0 auto"     # ← Eliminar esta línea
             },
             "nav-link": {
                 "font-size": "17px",
                 "text-align": "center",
                 "margin": "0 10px",
+               # "flex": "1",  # ← Esto hace que se distribuyan uniformemente
+                "max-width": "280px",  # ← Eliminar esta línea
                 "color": "white",
                 "font-weight": "bold",
                 "background-color": "#F05A7E",
@@ -47,6 +54,7 @@ def mostrar(supabase):
                 "border-radius": "8px",
             },
         }
+
     )
 
     if seleccion == "📋 LISTADOS":
