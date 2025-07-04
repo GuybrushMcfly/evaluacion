@@ -278,7 +278,7 @@ def mostrar_evaluaciones(data):
                 if total_activos > 3:  # Mostrar solo si hay más de 3
                     import math
                     cupo_exacto = total_activos * 0.3
-                    max_destacados = math.floor(cupo_exacto) if (cupo_exacto - math.floor(cupo_exacto)) <= 0.5 else math.floor(cupo_exacto) + 1
+                    max_destacados = math.floor(cupo_exacto) if (cupo_exacto - math.floor(cupo_exacto)) < 0.5 else math.floor(cupo_exacto) + 1
                 
                     df_destacados = df_no_anuladas[df_no_anuladas["calificacion"] == "DESTACADO"].copy()
                     usados = len(df_destacados)
