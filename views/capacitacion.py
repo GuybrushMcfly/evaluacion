@@ -199,10 +199,11 @@ def mostrar(supabase):
                         "residual": row["residual"]
                     }).eq("id_evaluacion", row["id_evaluacion"]).execute()
                 
-                # Resetear todas las bonificaciones antes de calcular
-                supabase.table("evaluaciones").update({
-                    "bonificacion_elegible": False
-                }).execute()
+                # Resetear bonificaciones solo para las dependencias analizadas
+                for dep in dependencias:
+                    supabase.table("evaluaciones").update({
+                        "bonificacion_elegible": False
+                    }).eq("dependencia_general", dep).execute()
                 
                 # Analizar BDD para cada dependencia
                 for dep in dependencias:
