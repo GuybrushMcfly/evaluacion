@@ -367,7 +367,54 @@ def mostrar(supabase):
                             
                             if len(empates) > 1:
                                 st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
-                                st.dataframe(empates[["apellido_nombre", "puntaje_relativo"]])
+                                
+                                # Crear formulario para seleccionar ganadores del empate
+                                with st.form(f"form_empate_{seleccion_dir}"):
+                                    st.write("**Seleccione quién debe recibir la bonificación entre los empatados:**")
+                                    
+                                    # Crear checkboxes para cada agente empatado
+                                    selecciones = {}
+                                    for idx, row in empates.iterrows():
+                                        # Verificar si ya tiene bonificación asignada
+                                        ya_seleccionado = row["bonificacion_elegible"] == True
+                                        
+                                        selecciones[row["id_evaluacion"]] = st.checkbox(
+                                            f"{row['apellido_nombre']} (Puntaje: {row['puntaje_relativo']:.3f})",
+                                            value=ya_seleccionado,
+                                            key=f"checkbox_{row['id_evaluacion']}"
+                                        )
+                                    
+                                    # Botón para aplicar selección
+                                    if st.form_submit_button("✅ Aplicar Selección de Empate"):
+                                        # Contar cuántos están seleccionados
+                                        seleccionados = sum(selecciones.values())
+                                        
+                                        # Calcular cuántos espacios quedan en el cupo
+                                        ya_asignados = len(df_elegibles[df_elegibles["bonificacion_elegible"] == True])
+                                        espacios_disponibles = cupo_bonificaciones - ya_asignados + len(empates[empates["bonificacion_elegible"] == True])
+                                        
+                                        if seleccionados <= espacios_disponibles:
+                                            # Actualizar base de datos
+                                            for id_eval, seleccionado in selecciones.items():
+                                                supabase.table("evaluaciones").update({
+                                                    "bonificacion_elegible": seleccionado
+                                                }).eq("id_evaluacion", id_eval).execute()
+                                            
+                                            st.success(f"✅ Selección aplicada. {seleccionados} agentes seleccionados para BDD.")
+                                            st.rerun()  # Recargar la página para mostrar cambios
+                                        else:
+                                            st.error(f"❌ Error: Has seleccionado {seleccionados} agentes pero solo hay {espacios_disponibles} espacios disponibles.")
+                                
+                                # Mostrar tabla de empates (solo informativa)
+                                st.dataframe(
+                                    empates[["apellido_nombre", "puntaje_relativo", "bonificacion_elegible"]].rename(columns={
+                                        "apellido_nombre": "AGENTE",
+                                        "puntaje_relativo": "PUNTAJE RELATIVO", 
+                                        "bonificacion_elegible": "RECIBE BDD"
+                                    }),
+                                    use_container_width=True,
+                                    hide_index=True
+                                )
         
                 # SIEMPRE mostrar tabla de residuales al final
                 st.markdown("---")
