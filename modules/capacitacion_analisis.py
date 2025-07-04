@@ -161,7 +161,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
             
             # SECCIÓN BDD - Agregar después de mostrar Niveles y antes de Residuales
             st.markdown("---")
-            st.markdown("### 🏆 Elegibles para Bonificación por Desempeño Destacado (10%)")
+            st.markdown("#### 🏆 Elegibles para Bonificación por Desempeño Destacado (10%)")
             
             # Filtrar elegibles según manual BDD
             df_elegibles = df_filtrada[
