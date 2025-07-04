@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode
+
 
 def mostrar(supabase):
     st.title("📝 Instructivo")
@@ -10,48 +12,49 @@ def mostrar(supabase):
     3. Previsualice y confirme la evaluación.  
     """)
 
-
+    
     st.markdown("---")
-    st.subheader("🗃️ Registros en tabla `casp`")
-
+    st.subheader("🗃️ Registros en tabla `agentes`")
+    
     # --- Obtener registros y convertirlos a DataFrame ---
-    data = supabase.table("casp").select("*").execute().data
-    
-    if not data:
-        st.info("No hay registros cargados aún.")
-        return
-    
+    data = supabase.table("agentes").select("apellido_nombre, dependencia").execute().data
     df = pd.DataFrame(data)
     
-    # --- Mostrar tabla con checkboxes ---
-    st.markdown("**Seleccione registros para borrar:**")
-    
-    # Crear columna de selección
-    df['Seleccionar'] = False
-    
-    # Mostrar tabla editable con checkboxes
-    edited_df = st.data_editor(
-        df,
-        column_config={
-            "Seleccionar": st.column_config.CheckboxColumn(
-                "Seleccionar",
-                help="Seleccione registros para borrar",
-                default=False,
-            ),
-            "id": None  # Ocultar columna ID si lo prefieres
-        },
-        hide_index=True,
-        use_container_width=True,
-        key="data_editor"
-    )
-    
-    # Obtener IDs de los registros seleccionados
-    seleccionados = edited_df[edited_df['Seleccionar']]['id'].tolist()
-    
-    # --- Botón para borrar seleccionados ---
-    if seleccionados:
-        if st.button("🗑️ Borrar seleccionados", type="primary"):
-            for id_ in seleccionados:
-                supabase.table("casp").delete().eq("id", id_).execute()
-            st.success(f"{len(seleccionados)} registro(s) borrado(s).")
-            st.rerun()  # Recargar la página para ver los cambios
+    if not df.empty:
+        # Configurar AgGrid
+        gb = GridOptionsBuilder.from_dataframe(df)
+        gb.configure_pagination(paginationAutoPageSize=True)
+        gb.configure_side_bar()
+        gb.configure_selection('multiple', use_checkbox=True, groupSelectsChildren="Group checkbox select children")
+        gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc='sum', editable=True)
+        
+        # Configurar columnas específicas
+        gb.configure_column("apellido_nombre", header_name="Apellido y Nombre", width=300)
+        gb.configure_column("dependencia", header_name="Dependencia", width=250)
+        
+        gridOptions = gb.build()
+        
+        # Mostrar la tabla
+        grid_response = AgGrid(
+            df,
+            gridOptions=gridOptions,
+            data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
+            update_mode=GridUpdateMode.MODEL_CHANGED,
+            fit_columns_on_grid_load=False,
+            enable_enterprise_modules=True,
+            height=400,
+            width='100%',
+            reload_data=True
+        )
+        
+        # Obtener datos modificados
+        updated_df = grid_response['data']
+        selected_rows = grid_response['selected_rows']
+        
+        # Mostrar información adicional si hay filas seleccionadas
+        if selected_rows:
+            st.subheader("Filas seleccionadas:")
+            st.dataframe(selected_rows)
+            
+    else:
+        st.warning("No hay datos disponibles en la tabla agentes")
