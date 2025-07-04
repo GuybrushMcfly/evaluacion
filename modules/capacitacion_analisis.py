@@ -3,7 +3,7 @@ import pandas as pd
 
 def mostrar_analisis(df_evals, agentes, supabase):
     #st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
-    st.markdown("<h2 style='font-size:20px;'>📊 Análisis de Evaluaciones por Dependencia General</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size:22px;'>📊 Análisis de Evaluaciones por Dependencia General</h2>", unsafe_allow_html=True)
 
     # Obtener datos desde Supabase
     evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
@@ -127,7 +127,6 @@ def mostrar_analisis(df_evals, agentes, supabase):
         df["nivel"] = df["formulario"].astype(int)
         
         st.markdown("---")
-        st.markdown("<h3 style='font-size:22px;'> 📋 Ver Detalles por Dependencia</h3>", unsafe_allow_html=True)
 
         st.markdown("#### 📋 Ver Detalles por Dependencia")
         
