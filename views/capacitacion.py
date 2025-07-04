@@ -359,16 +359,15 @@ def mostrar(supabase):
                             hide_index=True
                         )
                         
-                        # Mostrar advertencias si hay empates
 
+                        # Mostrar advertencias si hay empates
                         if len(df_elegibles) > cupo_bonificaciones:
                             # Verificar si hay empates en el límite
                             puntaje_corte = df_elegibles.iloc[cupo_bonificaciones-1]["puntaje_relativo"]
                             empates = df_elegibles[df_elegibles["puntaje_relativo"] == puntaje_corte]
                             
                             if len(empates) > 1:
-                                #st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
-                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados. El superior debe desempatar.")
+                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
                                 
                                 # Crear tabla con checkboxes editables
                                 col1, col2 = st.columns([4, 1])
@@ -411,7 +410,7 @@ def mostrar(supabase):
                                         if seleccionados <= espacios_disponibles:
                                             # Actualizar base de datos
                                             for idx, (orig_idx, emp_row) in enumerate(empates.iterrows()):
-                                                nuevo_valor = edited_empates.iloc[idx]["RECIBE BDD"]
+                                                nuevo_valor = bool(edited_empates.iloc[idx]["RECIBE BDD"])  # Convertir a bool nativo
                                                 supabase.table("evaluaciones").update({
                                                     "bonificacion_elegible": nuevo_valor
                                                 }).eq("id_evaluacion", emp_row["id_evaluacion"]).execute()
