@@ -200,67 +200,78 @@ def mostrar(supabase):
                 }).eq("id_evaluacion", row["id_evaluacion"]).execute()
             
             st.success("✅ Análisis completo realizado en todas las dependencias.")
-    
-        # Mostrar desplegable solo después del análisis
-        st.markdown("---")
-        st.markdown("### 📋 Ver Detalles por Dependencia")
-        
-        # Lista de direcciones únicas
-        direcciones = sorted(df["dependencia_general"].dropna().unique())
-        opciones = ["- Seleccionar Dirección -"] + direcciones
-    
-        seleccion_dir = st.selectbox("📍 Seleccione Dirección para ver detalles", opciones)
-    
-        if seleccion_dir != "- Seleccionar Dirección -":
-            df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
-            st.write(f"👥 Evaluaciones encontradas en {seleccion_dir}: {len(df_filtrada)}")
-    
-            def mostrar_detalle_tabla(df_subset, titulo, niveles):
-                subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
-                st.markdown(f"### 🔹 {titulo}")
-                if subset.empty:
-                    st.info("No se calificaron con esos niveles.")
-                elif len(subset) < 6:
-                    st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
-                else:
-                    st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
-                    st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
-    
-            # Mostrar detalles de cada nivel
-            mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
-            mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
             
-            # Mostrar Nivel 1 si existe
-            df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
-            if not df_nivel1.empty:
-                st.markdown("### 🔹 Nivel 1 (Siempre Residual)")
-                st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
+            # Marcar que el análisis fue realizado usando session_state
+            st.session_state.analisis_realizado = True
     
-        # SIEMPRE mostrar tabla de residuales al final
-        st.markdown("---")
-        st.markdown("### 🔄 Tabla Global de Residuales")
-        df_residuales = df[df["residual"] == True].copy()
-        
-        if df_residuales.empty:
-            st.info("No hay evaluaciones marcadas como residuales.")
-        else:
-            # Agregar nombre del agente
-            mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
-            df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+        # Mostrar contenido solo si se realizó el análisis
+        if st.session_state.get("analisis_realizado", False):
+            # Actualizar df con los datos más recientes de Supabase después del análisis
+            evaluaciones_data_actualizada = supabase.table("evaluaciones").select("*").execute().data
+            df = pd.DataFrame(evaluaciones_data_actualizada)
+            df = df[df["anulada"] != True]
+            df = df[df["formulario"].notnull()]
+            df["nivel"] = df["formulario"].astype(int)
             
-            st.dataframe(
-                df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
-                    "agente": "AGENTE",
-                    "dependencia_general": "DEPENDENCIA",
-                    "formulario": "FORMULARIO",
-                    "calificacion": "CALIFICACIÓN",
-                    "puntaje_total": "PUNTAJE"
-                }),
-                use_container_width=True,
-                hide_index=True
-            )
+            st.markdown("---")
+            st.markdown("### 📋 Ver Detalles por Dependencia")
             
-            st.metric("🔄 Total de Evaluaciones Residuales", len(df_residuales))
+            # Lista de direcciones únicas
+            direcciones = sorted(df["dependencia_general"].dropna().unique())
+            opciones = ["- Seleccionar Dirección -"] + direcciones
+    
+            seleccion_dir = st.selectbox("📍 Seleccione Dirección para ver detalles", opciones)
+    
+            if seleccion_dir != "- Seleccionar Dirección -":
+                df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
+                st.write(f"👥 Evaluaciones encontradas en {seleccion_dir}: {len(df_filtrada)}")
+    
+                def mostrar_detalle_tabla(df_subset, titulo, niveles):
+                    subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
+                    st.markdown(f"### 🔹 {titulo}")
+                    if subset.empty:
+                        st.info("No se calificaron con esos niveles.")
+                    elif len(subset) < 6:
+                        st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
+                    else:
+                        st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
+                        st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
+    
+                # Mostrar detalles de cada nivel
+                mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
+                mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
+                
+                # Mostrar Nivel 1 si existe
+                df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
+                if not df_nivel1.empty:
+                    st.markdown("### 🔹 Nivel 1 (Siempre Residual)")
+                    st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
+    
+            # SIEMPRE mostrar tabla de residuales al final
+            st.markdown("---")
+            st.markdown("### 🔄 Tabla Global de Residuales")
+            df_residuales = df[df["residual"] == True].copy()
+            
+            if df_residuales.empty:
+                st.info("No hay evaluaciones marcadas como residuales.")
+            else:
+                # Agregar nombre del agente
+                mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+                df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+                
+                st.dataframe(
+                    df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
+                        "agente": "AGENTE",
+                        "dependencia_general": "DEPENDENCIA",
+                        "formulario": "FORMULARIO",
+                        "calificacion": "CALIFICACIÓN",
+                        "puntaje_total": "PUNTAJE"
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                st.metric("🔄 Total de Evaluaciones Residuales", len(df_residuales))
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
