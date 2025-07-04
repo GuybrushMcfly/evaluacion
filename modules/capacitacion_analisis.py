@@ -140,7 +140,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
 
             def mostrar_detalle_tabla(df_subset, titulo, niveles):
                 subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
-                st.markdown(f"### 🔹 {titulo}")
+                st.markdown(f"#### 🔹 {titulo}")
                 if subset.empty:
                     st.info("No se calificaron con esos niveles.")
                 elif len(subset) < 6:
