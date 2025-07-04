@@ -126,7 +126,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
         df["nivel"] = df["formulario"].astype(int)
         
         st.markdown("---")
-        st.markdown("### 📋 Ver Detalles por Dependencia")
+        st.markdown("#### 📋 Ver Detalles por Dependencia")
         
         # Lista de direcciones únicas
         direcciones = sorted(df["dependencia_general"].dropna().unique())
@@ -156,7 +156,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
             # Mostrar Nivel 1 si existe
             df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
             if not df_nivel1.empty:
-                st.markdown("### 🔹 Nivel 1 (Siempre Residual)")
+                st.markdown("#### 🔹 Nivel 1 (Siempre Residual)")
                 st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
             
             # SECCIÓN BDD - Agregar después de mostrar Niveles y antes de Residuales
@@ -277,7 +277,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
 
         # SIEMPRE mostrar tabla de residuales al final
         st.markdown("---")
-        st.markdown("### 🔄 Tabla Global de Residuales")
+        st.markdown("#### 🔄 Tabla Global de Residuales")
         df_residuales = df[df["residual"] == True].copy()
         
         if df_residuales.empty:
@@ -303,7 +303,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
             
             # BDD para Unidad Residual
             st.markdown("---")
-            st.markdown("### 🏆 Bonificaciones BDD - Unidad Residual")
+            st.markdown("#### 🏆 Bonificaciones BDD - Unidad Residual")
             
             df_residuales_bdd = df_residuales[
                 (df_residuales["calificacion"] == "DESTACADO") &
@@ -369,7 +369,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
         
         # Mostrar resumen global de BDD al final
         st.markdown("---")
-        st.markdown("### 📈 Resumen Global de Elegibles BDD")
+        st.markdown("#### 📈 Resumen Global de Elegibles BDD")
         
         # Obtener todas las dependencias
         dependencias = df["dependencia_general"].dropna().unique()
