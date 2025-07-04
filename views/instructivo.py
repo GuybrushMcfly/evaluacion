@@ -1,6 +1,6 @@
 import streamlit as st
 
-def mostrar():
+def mostrar(supabase):
     st.title("📝 Instructivo")
     st.markdown("""
     Bienvenido al sistema de Evaluación de Desempeño.  
