@@ -85,7 +85,7 @@ def mostrar(supabase, formularios, clasificaciones):
                     if total_agentes >= 3:
                         import math
                         cupo_exacto = total_agentes * 0.3
-                        max_destacados = math.floor(cupo_exacto) if (cupo_exacto - math.floor(cupo_exacto)) <= 0.5 else math.floor(cupo_exacto) + 1
+                        max_destacados = math.floor(cupo_exacto) if (cupo_exacto - math.floor(cupo_exacto)) < 0.5 else math.floor(cupo_exacto) + 1
                         
                         # Obtener cantidad de DESTACADOS ya asignados en esa dependencia_general
                         destacados_actuales = supabase.table("evaluaciones")\
