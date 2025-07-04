@@ -15,6 +15,7 @@ def mostrar(supabase):
 
     
     st.markdown("---")
+    st.markdown("---")
     st.subheader("🗃️ Registros en tabla `agentes`")
     
     # --- Obtener registros y convertirlos a DataFrame ---
@@ -22,7 +23,7 @@ def mostrar(supabase):
     df = pd.DataFrame(data)
     
     if not df.empty:
-        # Configurar AgGrid
+        # Configurar AgGrid con idioma español
         gb = GridOptionsBuilder.from_dataframe(df)
         gb.configure_pagination(paginationAutoPageSize=True)
         gb.configure_side_bar()
@@ -33,7 +34,51 @@ def mostrar(supabase):
         gb.configure_column("apellido_nombre", header_name="Apellido y Nombre", width=300)
         gb.configure_column("dependencia", header_name="Dependencia", width=250)
         
+        # Configurar textos en español
+        gb.configure_grid_options(
+            localeText={
+                'page': 'Página',
+                'more': 'Más',
+                'to': 'a',
+                'of': 'de',
+                'next': 'Siguiente',
+                'last': 'Último',
+                'first': 'Primero',
+                'previous': 'Anterior',
+                'loadingOoo': 'Cargando...',
+                'selectAll': 'Seleccionar Todo',
+                'searchOoo': 'Buscar...',
+                'blanks': 'Vacíos',
+                'filterOoo': 'Filtrar...',
+                'applyFilter': 'Aplicar Filtro',
+                'equals': 'Igual',
+                'notEqual': 'No Igual',
+                'lessThan': 'Menor que',
+                'greaterThan': 'Mayor que',
+                'contains': 'Contiene',
+                'startsWith': 'Comienza con',
+                'endsWith': 'Termina con',
+                'group': 'Grupo',
+                'columns': 'Columnas',
+                'filters': 'Filtros',
+                'pivotMode': 'Modo Pivot',
+                'groups': 'Grupos',
+                'values': 'Valores',
+                'pivots': 'Pivots',
+                'toolPanel': 'Panel de Herramientas',
+                'export': 'Exportar',
+                'csvExport': 'Exportar CSV',
+                'excelExport': 'Exportar Excel'
+            }
+        )
+        
         gridOptions = gb.build()
+        
+        # Configurar idioma español
+        custom_css = {
+            ".ag-header-cell-text": {"font-size": "12px", "font-weight": "bold"},
+            ".ag-theme-streamlit": {"transform": "scale(0.95)", "transform-origin": "0 0"}
+        }
         
         # Mostrar la tabla
         grid_response = AgGrid(
@@ -45,7 +90,9 @@ def mostrar(supabase):
             enable_enterprise_modules=True,
             height=400,
             width='100%',
-            reload_data=True
+            reload_data=True,
+            custom_css=custom_css,
+            key="agentes_grid"
         )
         
         # Obtener datos modificados
