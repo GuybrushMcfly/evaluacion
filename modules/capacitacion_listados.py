@@ -43,7 +43,7 @@ def mostrar_listado_general(df_evals, agentes):
             "DEPENDENCIA GENERAL": e.get("dependencia_general", ""),
             "AGENTE": agente,
             "FORMULARIO": formulario,
-            "CALIFICACI\u00d3N": calificacion,
+            "CALIFICACIÓN": calificacion,
             "FECHA": fecha_str
         })
 
@@ -56,9 +56,9 @@ def mostrar_listado_general(df_evals, agentes):
             "FORMULARIO": formulario,
             "FACTOR/PUNTAJE": resumen_puntaje,
             "FACTOR/POSICION": resumen_posicion,
-            "CALIFICACI\u00d3N": calificacion,
+            "CALIFICACIÓN": calificacion,
             "PUNTAJE TOTAL": total,
-            "PUNTAJE M\u00c1XIMO": e.get("puntaje_maximo", ""),
+            "PUNTAJE MÁXIMO": e.get("puntaje_maximo", ""),
             "PUNTAJE RELATIVO": e.get("puntaje_relativo", ""),
             "DEPENDENCIA": e.get("dependencia", ""),
             "DEPENDENCIA GENERAL": e.get("dependencia_general", "")
@@ -72,7 +72,7 @@ def mostrar_listado_general(df_evals, agentes):
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         df_excel.to_excel(writer, index=False, sheet_name="Resumen")
     st.download_button(
-        label="\ud83d\udcc5 Descargar Listado General (Excel)",
+        label="📥 Descargar Listado General (Excel)",
         data=buffer.getvalue(),
         file_name="listado_general.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
