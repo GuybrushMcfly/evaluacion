@@ -18,7 +18,7 @@ def mostrar_destacados(df_evals, agentes):
     resumen = df_agentes.groupby("dependencia_general").agg(
         total_agentes=("cuil", "count")
     ).reset_index()
-    resumen["cupo_destacados"] = resumen["total_agentes"].apply(lambda x: math.floor(x * 0.3) if (x * 0.3) - math.floor(x * 0.3) <= 0.5 else math.floor(x * 0.3) + 1)
+    resumen["cupo_destacados"] = resumen["total_agentes"].apply(lambda x: math.floor(x * 0.3) if (x * 0.3) - math.floor(x * 0.3) < 0.5 else math.floor(x * 0.3) + 1)
     evaluados_destacados = df_eval_validas.groupby("dependencia_general").agg(
         evaluados_con_destacado=("cuil", "count")
     ).reset_index()
