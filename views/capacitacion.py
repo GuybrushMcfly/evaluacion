@@ -151,7 +151,6 @@ def mostrar(supabase):
         st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
     
         # Obtener datos desde Supabase
-
         evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
         df = pd.DataFrame(evaluaciones_data)
         df = df[df["anulada"] != True]  # Aplicar el mismo filtro que en LISTADOS
@@ -165,11 +164,10 @@ def mostrar(supabase):
         df["nivel"] = df["formulario"].astype(int)
         
         df["residual"] = False  # Inicializamos como no residual
-
     
-        # Lista de direcciones únicas
+        # Lista de direcciones únicas (SIN la opción "Todas")
         direcciones = sorted(df["dependencia_general"].dropna().unique())
-        opciones = ["- Seleccionar Dirección -"] + direcciones + ["Unidad Residual", "Todas"]
+        opciones = ["- Seleccionar Dirección -"] + direcciones + ["Unidad Residual"]
     
         seleccion_dir = st.selectbox("📍 Seleccione Dirección", opciones)
     
@@ -178,8 +176,6 @@ def mostrar(supabase):
                 if seleccion_dir == "Unidad Residual":
                     df_filtrada = df[df["nivel"] == 1].copy()
                     df_filtrada["residual"] = True
-                elif seleccion_dir == "Todas":
-                    df_filtrada = df.copy()
                 else:
                     df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
     
@@ -193,22 +189,24 @@ def mostrar(supabase):
                     elif len(subset) < 6:
                         st.warning("Hubo menos de 6 calificaciones. Pasaron a Residual.")
                         df.loc[subset.index, "residual"] = True
-                        st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
+                        # NO mostrar tabla si son residuales
                     else:
                         st.success("Grupo válido. No Residual.")
                         df.loc[subset.index, "residual"] = False
                         st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
     
-                # Nivel Medio (2, 3, 4)
-                mostrar_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
+                # Solo analizar si no es "Unidad Residual"
+                if seleccion_dir != "Unidad Residual":
+                    # Nivel Medio (2, 3, 4)
+                    mostrar_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
     
-                # Nivel Operativo (5, 6)
-                mostrar_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
+                    # Nivel Operativo (5, 6)
+                    mostrar_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
     
-                # Nivel 1: siempre residual
-                df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1].copy()
-                if not df_nivel1.empty:
-                    df.loc[df_nivel1.index, "residual"] = True
+                    # Nivel 1: siempre residual
+                    df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1].copy()
+                    if not df_nivel1.empty:
+                        df.loc[df_nivel1.index, "residual"] = True
     
                 # Actualizar en Supabase solo los evaluados en esta dependencia
                 cambios = df.loc[df_filtrada.index, ["id_evaluacion", "residual"]]
@@ -218,6 +216,29 @@ def mostrar(supabase):
                     }).eq("id_evaluacion", row["id_evaluacion"]).execute()
     
                 st.success("✅ Evaluaciones analizadas y actualizadas correctamente.")
+
+    # SIEMPRE mostrar tabla de residuales al final
+    st.markdown("### 🔄 Tabla de Residuales")
+    df_residuales = df[df["residual"] == True].copy()
+    
+    if df_residuales.empty:
+        st.info("No hay evaluaciones marcadas como residuales.")
+    else:
+        # Agregar nombre del agente
+        mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+        df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+        
+        st.dataframe(
+            df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
+                "agente": "AGENTE",
+                "dependencia_general": "DEPENDENCIA",
+                "formulario": "FORMULARIO",
+                "calificacion": "CALIFICACIÓN",
+                "puntaje_total": "PUNTAJE"
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
