@@ -216,29 +216,29 @@ def mostrar(supabase):
                     }).eq("id_evaluacion", row["id_evaluacion"]).execute()
     
                 st.success("✅ Evaluaciones analizadas y actualizadas correctamente.")
-
-    # SIEMPRE mostrar tabla de residuales al final
-    st.markdown("### 🔄 Tabla de Residuales")
-    df_residuales = df[df["residual"] == True].copy()
     
-    if df_residuales.empty:
-        st.info("No hay evaluaciones marcadas como residuales.")
-    else:
-        # Agregar nombre del agente
-        mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
-        df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+        # SIEMPRE mostrar tabla de residuales al final
+        st.markdown("### 🔄 Tabla de Residuales")
+        df_residuales = df[df["residual"] == True].copy()
         
-        st.dataframe(
-            df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
-                "agente": "AGENTE",
-                "dependencia_general": "DEPENDENCIA",
-                "formulario": "FORMULARIO",
-                "calificacion": "CALIFICACIÓN",
-                "puntaje_total": "PUNTAJE"
-            }),
-            use_container_width=True,
-            hide_index=True
-        )
+        if df_residuales.empty:
+            st.info("No hay evaluaciones marcadas como residuales.")
+        else:
+            # Agregar nombre del agente
+            mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+            df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+            
+            st.dataframe(
+                df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
+                    "agente": "AGENTE",
+                    "dependencia_general": "DEPENDENCIA",
+                    "formulario": "FORMULARIO",
+                    "calificacion": "CALIFICACIÓN",
+                    "puntaje_total": "PUNTAJE"
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
