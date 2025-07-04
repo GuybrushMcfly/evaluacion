@@ -367,7 +367,8 @@ def mostrar(supabase):
                             empates = df_elegibles[df_elegibles["puntaje_relativo"] == puntaje_corte]
                             
                             if len(empates) > 1:
-                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
+                                #st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
+                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados. El superior debe desempatar.")
                                 
                                 # Crear tabla con checkboxes editables
                                 col1, col2 = st.columns([4, 1])
