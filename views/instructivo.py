@@ -12,8 +12,8 @@ def mostrar(supabase):
     3. Previsualice y confirme la evaluación.  
     """)
 
+
     
-    st.markdown("---")
     st.markdown("---")
     st.subheader("🗃️ Registros en tabla `agentes`")
     
@@ -53,7 +53,7 @@ def mostrar(supabase):
         selected_rows = grid_response['selected_rows']
         
         # Mostrar información adicional si hay filas seleccionadas
-        if len(selected_rows) > 0:
+        if selected_rows is not None and len(selected_rows) > 0:
             st.subheader("Filas seleccionadas:")
             st.dataframe(selected_rows)
             
