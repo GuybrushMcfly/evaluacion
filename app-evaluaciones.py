@@ -105,7 +105,7 @@ elif authentication_status:
     opcion = st.sidebar.radio("📂 Navegación", opciones_menu, index=indice_default)
 
     if opcion == "📝 Instructivo":
-        instructivo.mostrar()
+        instructivo.mostrar(supabase)
 
     elif opcion == "📄 Formularios":
         if rol.get("evaluador") or rol.get("evaluador_general"):
