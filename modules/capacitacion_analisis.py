@@ -127,6 +127,8 @@ def mostrar_analisis(df_evals, agentes, supabase):
         df["nivel"] = df["formulario"].astype(int)
         
         st.markdown("---")
+        st.markdown("<h3 style='font-size:20px;'> 📋 Ver Detalles por Dependencia</h3>", unsafe_allow_html=True)
+
         st.markdown("#### 📋 Ver Detalles por Dependencia")
         
         # Lista de direcciones únicas
