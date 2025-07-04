@@ -233,6 +233,30 @@ def mostrar(supabase):
                                 "bonificacion_elegible": True
                             }).eq("id_evaluacion", id_eval).execute()
                 
+                # Analizar BDD para Unidad Residual
+                df_residuales_bdd = df[
+                    (df["residual"] == True) &  # Solo residuales
+                    (df["calificacion"] == "DESTACADO") &  # Solo calificación Destacado
+                    (df["anulada"] != True)  # Excluir anuladas
+                ].copy()
+                
+                if not df_residuales_bdd.empty:
+                    # Calcular cupo según regla residual: una bonificación por cada fracción superior a 5
+                    total_residuales = len(df_residuales_bdd)
+                    cupo_residual = max(1, total_residuales // 5)
+                    
+                    # Ordenar por puntaje relativo descendente
+                    df_residuales_bdd = df_residuales_bdd.sort_values("puntaje_relativo", ascending=False)
+                    
+                    # Marcar quiénes reciben bonificación residual
+                    residuales_ids = df_residuales_bdd.iloc[:cupo_residual]["id_evaluacion"].tolist()
+                    
+                    # Actualizar en base de datos
+                    for id_eval in residuales_ids:
+                        supabase.table("evaluaciones").update({
+                            "bonificacion_elegible": True
+                        }).eq("id_evaluacion", id_eval).execute()
+                
                 st.success("✅ Análisis completo realizado: Residuales y BDD procesados en todas las dependencias.")
                 
                 # Marcar que el análisis fue realizado usando session_state
@@ -370,6 +394,72 @@ def mostrar(supabase):
                     )
                     
                     st.metric("🔄 Total de Evaluaciones Residuales", len(df_residuales))
+                    
+                    # BDD para Unidad Residual
+                    st.markdown("---")
+                    st.markdown("### 🏆 Bonificaciones BDD - Unidad Residual")
+                    
+                    df_residuales_bdd = df_residuales[
+                        (df_residuales["calificacion"] == "DESTACADO") &
+                        (df_residuales["anulada"] != True)
+                    ].copy()
+                    
+                    if df_residuales_bdd.empty:
+                        st.info("No hay personal residual elegible para BDD (sin calificación DESTACADO).")
+                    else:
+                        # Calcular cupo según regla residual
+                        total_residuales_destacado = len(df_residuales_bdd)
+                        cupo_residual = max(1, total_residuales_destacado // 5)
+                        
+                        # Ordenar por puntaje relativo descendente
+                        df_residuales_bdd = df_residuales_bdd.sort_values("puntaje_relativo", ascending=False)
+                        
+                        # Determinar quiénes reciben bonificación
+                        df_residuales_bdd["recibe_bdd"] = df_residuales_bdd["bonificacion_elegible"]
+                        
+                        # Mostrar métricas
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("📊 Residuales DESTACADO", total_residuales_destacado)
+                        with col2:
+                            st.metric("🎯 Cupo Residual (1 cada 5)", cupo_residual)
+                        with col3:
+                            porcentaje_residual = (cupo_residual / total_residuales_destacado) * 100 if total_residuales_destacado > 0 else 0
+                            st.metric("📈 % Bonificados", f"{porcentaje_residual:.1f}%")
+                        
+                        # Tabla de BDD residuales
+                        st.dataframe(
+                            df_residuales_bdd[[
+                                "agente", 
+                                "dependencia_general",
+                                "formulario", 
+                                "calificacion", 
+                                "puntaje_total",
+                                "puntaje_relativo", 
+                                "recibe_bdd"
+                            ]].rename(columns={
+                                "agente": "AGENTE",
+                                "dependencia_general": "DEPENDENCIA",
+                                "formulario": "NIVEL",
+                                "calificacion": "CALIFICACIÓN",
+                                "puntaje_total": "PUNTAJE TOTAL",
+                                "puntaje_relativo": "PUNTAJE RELATIVO",
+                                "recibe_bdd": "RECIBE BDD"
+                            }),
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Mostrar advertencias si hay empates
+                        if total_residuales_destacado > cupo_residual:
+                            # Verificar si hay empates en el límite
+                            if cupo_residual > 0:
+                                puntaje_corte = df_residuales_bdd.iloc[cupo_residual-1]["puntaje_relativo"]
+                                empates = df_residuales_bdd[df_residuales_bdd["puntaje_relativo"] == puntaje_corte]
+                                
+                                if len(empates) > 1:
+                                    st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. El superior debe desempatar.")
+                                    st.dataframe(empates[["agente", "puntaje_relativo"]])
                 
                 # Mostrar resumen global de BDD al final
                 st.markdown("---")
@@ -405,11 +495,20 @@ def mostrar(supabase):
                 total_bonificados = df_resumen["BONIFICADOS_EFECTIVOS"].sum()
                 total_evaluados_global = df_resumen["TOTAL_EVALUADOS"].sum()
                 
-                col1, col2 = st.columns(2)
+                # Agregar bonificaciones residuales al total
+                bonificados_residuales = len(df[
+                    (df["residual"] == True) & 
+                    (df["bonificacion_elegible"] == True)
+                ])
+                
+                col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("🏆 Total de Bonificaciones Otorgadas", total_bonificados)
+                    st.metric("🏆 Bonificaciones Dependencias", total_bonificados)
                 with col2:
-                    st.metric("📊 Porcentaje Real de Bonificados", f"{(total_bonificados/total_evaluados_global)*100:.1f}%")
+                    st.metric("🔄 Bonificaciones Residuales", bonificados_residuales)
+                with col3:
+                    total_final = total_bonificados + bonificados_residuales
+                    st.metric("🎯 TOTAL BONIFICACIONES", total_final)
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
