@@ -148,130 +148,267 @@ def mostrar(supabase):
         )
 
     elif seleccion == "📊 ANÁLISIS":
-        st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
-    
-        # Obtener datos desde Supabase
-        evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
-        df = pd.DataFrame(evaluaciones_data)
-        df = df[df["anulada"] != True]  # Aplicar el mismo filtro que en LISTADOS
+            st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
         
-        if df.empty or "dependencia_general" not in df.columns:
-            st.warning("No hay datos disponibles.")
-            st.stop()
-        
-        # Asegurarse que formulario existe y convertir nivel
-        df = df[df["formulario"].notnull()]  # eliminar filas sin formulario
-        df["nivel"] = df["formulario"].astype(int)
-        
-        df["residual"] = False  # Inicializamos como no residual
-    
-        # BOTÓN PRINCIPAL: Analizar todas las dependencias primero
-        if st.button("🔍 Analizar Todas las Dependencias", type="primary"):
+            # Obtener datos desde Supabase
+            evaluaciones_data = supabase.table("evaluaciones").select("*").execute().data
+            df = pd.DataFrame(evaluaciones_data)
+            df = df[df["anulada"] != True]  # Aplicar el mismo filtro que en LISTADOS
             
-            # Obtener todas las dependencias únicas
-            dependencias = df["dependencia_general"].dropna().unique()
+            if df.empty or "dependencia_general" not in df.columns:
+                st.warning("No hay datos disponibles.")
+                st.stop()
             
-            st.write(f"🏢 Analizando {len(dependencias)} dependencias...")
-            
-            # Analizar cada dependencia
-            for dep in dependencias:
-                df_dep = df[df["dependencia_general"] == dep].copy()
-                
-                # Nivel 1: siempre residual
-                df_nivel1 = df_dep[df_dep["nivel"] == 1]
-                if not df_nivel1.empty:
-                    df.loc[df_nivel1.index, "residual"] = True
-                
-                # Niveles Medios (2, 3, 4)
-                df_medios = df_dep[df_dep["nivel"].isin([2, 3, 4])]
-                if not df_medios.empty and len(df_medios) < 6:
-                    df.loc[df_medios.index, "residual"] = True
-                
-                # Niveles Operativos (5, 6)
-                df_operativos = df_dep[df_dep["nivel"].isin([5, 6])]
-                if not df_operativos.empty and len(df_operativos) < 6:
-                    df.loc[df_operativos.index, "residual"] = True
-            
-            # Actualizar en Supabase TODOS los cambios
-            cambios = df[["id_evaluacion", "residual"]]
-            for _, row in cambios.iterrows():
-                supabase.table("evaluaciones").update({
-                    "residual": row["residual"]
-                }).eq("id_evaluacion", row["id_evaluacion"]).execute()
-            
-            st.success("✅ Análisis completo realizado en todas las dependencias.")
-            
-            # Marcar que el análisis fue realizado usando session_state
-            st.session_state.analisis_realizado = True
-    
-        # Mostrar contenido solo si se realizó el análisis
-        if st.session_state.get("analisis_realizado", False):
-            # Actualizar df con los datos más recientes de Supabase después del análisis
-            evaluaciones_data_actualizada = supabase.table("evaluaciones").select("*").execute().data
-            df = pd.DataFrame(evaluaciones_data_actualizada)
-            df = df[df["anulada"] != True]
-            df = df[df["formulario"].notnull()]
+            # Asegurarse que formulario existe y convertir nivel
+            df = df[df["formulario"].notnull()]  # eliminar filas sin formulario
             df["nivel"] = df["formulario"].astype(int)
             
-            st.markdown("---")
-            st.markdown("### 📋 Ver Detalles por Dependencia")
-            
-            # Lista de direcciones únicas
-            direcciones = sorted(df["dependencia_general"].dropna().unique())
-            opciones = ["- Seleccionar Dirección -"] + direcciones
-    
-            seleccion_dir = st.selectbox("📍 Seleccione Dirección para ver detalles", opciones)
-    
-            if seleccion_dir != "- Seleccionar Dirección -":
-                df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
-                st.write(f"👥 Evaluaciones encontradas en {seleccion_dir}: {len(df_filtrada)}")
-    
-                def mostrar_detalle_tabla(df_subset, titulo, niveles):
-                    subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
-                    st.markdown(f"### 🔹 {titulo}")
-                    if subset.empty:
-                        st.info("No se calificaron con esos niveles.")
-                    elif len(subset) < 6:
-                        st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
+            df["residual"] = False  # Inicializamos como no residual
+        
+            # BOTÓN PRINCIPAL: Analizar todas las dependencias primero
+            if st.button("🔍 Analizar Todas las Dependencias", type="primary"):
+                
+                # Obtener todas las dependencias únicas
+                dependencias = df["dependencia_general"].dropna().unique()
+                
+                st.write(f"🏢 Analizando {len(dependencias)} dependencias...")
+                
+                # Analizar cada dependencia
+                for dep in dependencias:
+                    df_dep = df[df["dependencia_general"] == dep].copy()
+                    
+                    # Nivel 1: siempre residual
+                    df_nivel1 = df_dep[df_dep["nivel"] == 1]
+                    if not df_nivel1.empty:
+                        df.loc[df_nivel1.index, "residual"] = True
+                    
+                    # Niveles Medios (2, 3, 4)
+                    df_medios = df_dep[df_dep["nivel"].isin([2, 3, 4])]
+                    if not df_medios.empty and len(df_medios) < 6:
+                        df.loc[df_medios.index, "residual"] = True
+                    
+                    # Niveles Operativos (5, 6)
+                    df_operativos = df_dep[df_dep["nivel"].isin([5, 6])]
+                    if not df_operativos.empty and len(df_operativos) < 6:
+                        df.loc[df_operativos.index, "residual"] = True
+                
+                # Actualizar en Supabase TODOS los cambios de residual
+                cambios = df[["id_evaluacion", "residual"]]
+                for _, row in cambios.iterrows():
+                    supabase.table("evaluaciones").update({
+                        "residual": row["residual"]
+                    }).eq("id_evaluacion", row["id_evaluacion"]).execute()
+                
+                # Resetear todas las bonificaciones antes de calcular
+                supabase.table("evaluaciones").update({
+                    "bonificacion_elegible": False
+                }).execute()
+                
+                # Analizar BDD para cada dependencia
+                for dep in dependencias:
+                    df_dep = df[df["dependencia_general"] == dep].copy()
+                    
+                    # Filtrar elegibles según manual BDD
+                    df_elegibles = df_dep[
+                        (df_dep["calificacion"] == "DESTACADO") &  # Solo calificación Destacado
+                        (df_dep["residual"] == False) &  # Excluir residuales
+                        (df_dep["anulada"] != True)  # Excluir anuladas
+                    ].copy()
+                    
+                    if not df_elegibles.empty:
+                        # Calcular cupo de bonificaciones (10% del total evaluado)
+                        total_evaluados = len(df_dep[df_dep["anulada"] != True])
+                        cupo_bonificaciones = max(1, int(total_evaluados * 0.1))
+                        
+                        # Ordenar por puntaje relativo descendente
+                        df_elegibles = df_elegibles.sort_values("puntaje_relativo", ascending=False)
+                        
+                        # Marcar quiénes reciben bonificación
+                        elegibles_ids = df_elegibles.iloc[:cupo_bonificaciones]["id_evaluacion"].tolist()
+                        
+                        # Actualizar en base de datos
+                        for id_eval in elegibles_ids:
+                            supabase.table("evaluaciones").update({
+                                "bonificacion_elegible": True
+                            }).eq("id_evaluacion", id_eval).execute()
+                
+                st.success("✅ Análisis completo realizado: Residuales y BDD procesados en todas las dependencias.")
+                
+                # Marcar que el análisis fue realizado usando session_state
+                st.session_state.analisis_realizado = True
+        
+            # Mostrar contenido solo si se realizó el análisis
+            if st.session_state.get("analisis_realizado", False):
+                # Actualizar df con los datos más recientes de Supabase después del análisis
+                evaluaciones_data_actualizada = supabase.table("evaluaciones").select("*").execute().data
+                df = pd.DataFrame(evaluaciones_data_actualizada)
+                df = df[df["anulada"] != True]
+                df = df[df["formulario"].notnull()]
+                df["nivel"] = df["formulario"].astype(int)
+                
+                st.markdown("---")
+                st.markdown("### 📋 Ver Detalles por Dependencia")
+                
+                # Lista de direcciones únicas
+                direcciones = sorted(df["dependencia_general"].dropna().unique())
+                opciones = ["- Seleccionar Dirección -"] + direcciones
+        
+                seleccion_dir = st.selectbox("📍 Seleccione Dirección para ver detalles", opciones)
+        
+                if seleccion_dir != "- Seleccionar Dirección -":
+                    df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
+                    st.write(f"👥 Evaluaciones encontradas en {seleccion_dir}: {len(df_filtrada)}")
+        
+                    def mostrar_detalle_tabla(df_subset, titulo, niveles):
+                        subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
+                        st.markdown(f"### 🔹 {titulo}")
+                        if subset.empty:
+                            st.info("No se calificaron con esos niveles.")
+                        elif len(subset) < 6:
+                            st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
+                        else:
+                            st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
+                            st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
+        
+                    # Mostrar detalles de cada nivel
+                    mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
+                    mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
+                    
+                    # Mostrar Nivel 1 si existe
+                    df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
+                    if not df_nivel1.empty:
+                        st.markdown("### 🔹 Nivel 1 (Siempre Residual)")
+                        st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
+                    
+                    # SECCIÓN BDD - Agregar después de mostrar Niveles y antes de Residuales
+                    st.markdown("---")
+                    st.markdown("### 🏆 Elegibles para Bonificación por Desempeño Destacado (10%)")
+                    
+                    # Filtrar elegibles según manual BDD
+                    df_elegibles = df_filtrada[
+                        (df_filtrada["calificacion"] == "DESTACADO") &  # Solo calificación Destacado
+                        (df_filtrada["residual"] == False) &  # Excluir residuales
+                        (df_filtrada["anulada"] != True)  # Excluir anuladas
+                    ].copy()
+                    
+                    if df_elegibles.empty:
+                        st.info("No hay personal elegible para BDD en esta dependencia.")
                     else:
-                        st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
-                        st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
-    
-                # Mostrar detalles de cada nivel
-                mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
-                mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
+                        # Calcular cupo de bonificaciones (10% del total evaluado)
+                        total_evaluados = len(df_filtrada[df_filtrada["anulada"] != True])
+                        cupo_bonificaciones = max(1, int(total_evaluados * 0.1))
+                        
+                        # Ordenar por puntaje relativo descendente (mayor puntaje primero)
+                        df_elegibles = df_elegibles.sort_values("puntaje_relativo", ascending=False)
+                        
+                        # Determinar quiénes reciben efectivamente la bonificación
+                        df_elegibles["recibe_bdd"] = df_elegibles["bonificacion_elegible"]
+                        
+                        # Mostrar métricas
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("📊 Total Evaluados", total_evaluados)
+                        with col2:
+                            st.metric("🎯 Cupo BDD (10%)", cupo_bonificaciones)
+                        with col3:
+                            st.metric("⭐ Elegibles Destacado", len(df_elegibles))
+                        
+                        # Tabla de elegibles
+                        st.dataframe(
+                            df_elegibles[[
+                                "apellido_nombre", 
+                                "formulario", 
+                                "calificacion", 
+                                "puntaje_total",
+                                "puntaje_relativo", 
+                                "recibe_bdd"
+                            ]].rename(columns={
+                                "apellido_nombre": "AGENTE",
+                                "formulario": "NIVEL",
+                                "calificacion": "CALIFICACIÓN",
+                                "puntaje_total": "PUNTAJE TOTAL",
+                                "puntaje_relativo": "PUNTAJE RELATIVO",
+                                "recibe_bdd": "RECIBE BDD"
+                            }),
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Mostrar advertencias si hay empates
+                        if len(df_elegibles) > cupo_bonificaciones:
+                            # Verificar si hay empates en el límite
+                            puntaje_corte = df_elegibles.iloc[cupo_bonificaciones-1]["puntaje_relativo"]
+                            empates = df_elegibles[df_elegibles["puntaje_relativo"] == puntaje_corte]
+                            
+                            if len(empates) > 1:
+                                st.warning(f"⚠️ Hay {len(empates)} agentes empatados con puntaje {puntaje_corte:.3f}. Según manual BDD, el superior debe desempatar.")
+                                st.dataframe(empates[["apellido_nombre", "puntaje_relativo"]])
+        
+                # SIEMPRE mostrar tabla de residuales al final
+                st.markdown("---")
+                st.markdown("### 🔄 Tabla Global de Residuales")
+                df_residuales = df[df["residual"] == True].copy()
                 
-                # Mostrar Nivel 1 si existe
-                df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
-                if not df_nivel1.empty:
-                    st.markdown("### 🔹 Nivel 1 (Siempre Residual)")
-                    st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
-    
-            # SIEMPRE mostrar tabla de residuales al final
-            st.markdown("---")
-            st.markdown("### 🔄 Tabla Global de Residuales")
-            df_residuales = df[df["residual"] == True].copy()
-            
-            if df_residuales.empty:
-                st.info("No hay evaluaciones marcadas como residuales.")
-            else:
-                # Agregar nombre del agente
-                mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
-                df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+                if df_residuales.empty:
+                    st.info("No hay evaluaciones marcadas como residuales.")
+                else:
+                    # Agregar nombre del agente
+                    mapa_agentes = {a["cuil"]: a["apellido_nombre"] for a in agentes}
+                    df_residuales["agente"] = df_residuales["cuil"].map(mapa_agentes)
+                    
+                    st.dataframe(
+                        df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
+                            "agente": "AGENTE",
+                            "dependencia_general": "DEPENDENCIA",
+                            "formulario": "FORMULARIO",
+                            "calificacion": "CALIFICACIÓN",
+                            "puntaje_total": "PUNTAJE"
+                        }),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                    
+                    st.metric("🔄 Total de Evaluaciones Residuales", len(df_residuales))
                 
-                st.dataframe(
-                    df_residuales[["agente", "dependencia_general", "formulario", "calificacion", "puntaje_total"]].rename(columns={
-                        "agente": "AGENTE",
-                        "dependencia_general": "DEPENDENCIA",
-                        "formulario": "FORMULARIO",
-                        "calificacion": "CALIFICACIÓN",
-                        "puntaje_total": "PUNTAJE"
-                    }),
-                    use_container_width=True,
-                    hide_index=True
-                )
+                # Mostrar resumen global de BDD al final
+                st.markdown("---")
+                st.markdown("### 📈 Resumen Global de Elegibles BDD")
                 
-                st.metric("🔄 Total de Evaluaciones Residuales", len(df_residuales))
+                # Obtener todas las dependencias
+                dependencias = df["dependencia_general"].dropna().unique()
+                resumen_global = []
+                
+                for dep in dependencias:
+                    df_dep = df[df["dependencia_general"] == dep]
+                    total_dep = len(df_dep[df_dep["anulada"] != True])
+                    elegibles_dep = len(df_dep[
+                        (df_dep["calificacion"] == "DESTACADO") & 
+                        (df_dep["residual"] == False) & 
+                        (df_dep["anulada"] != True)
+                    ])
+                    bonificados_dep = len(df_dep[df_dep["bonificacion_elegible"] == True])
+                    cupo_dep = max(1, int(total_dep * 0.1))
+                    
+                    resumen_global.append({
+                        "DEPENDENCIA": dep,
+                        "TOTAL_EVALUADOS": total_dep,
+                        "ELEGIBLES_DESTACADO": elegibles_dep,
+                        "CUPO_BDD_10%": cupo_dep,
+                        "BONIFICADOS_EFECTIVOS": bonificados_dep
+                    })
+                
+                df_resumen = pd.DataFrame(resumen_global)
+                st.dataframe(df_resumen, use_container_width=True, hide_index=True)
+                
+                # Métricas totales
+                total_bonificados = df_resumen["BONIFICADOS_EFECTIVOS"].sum()
+                total_evaluados_global = df_resumen["TOTAL_EVALUADOS"].sum()
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("🏆 Total de Bonificaciones Otorgadas", total_bonificados)
+                with col2:
+                    st.metric("📊 Porcentaje Real de Bonificados", f"{(total_bonificados/total_evaluados_global)*100:.1f}%")
 
     elif seleccion == "🌟 DESTACADOS":
         st.markdown("### 🌟 Cupo DESTACADOS por Dependencia General")
