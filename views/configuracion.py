@@ -141,7 +141,7 @@ def mostrar(supabase):
                 }).eq("usuario", nuevo_usuario).execute()
         
                 st.markdown(f"""
-                <div style='background-color: #2cf464; padding: 20px; border-left: 5px solid #4CAF50; border-radius: 8px; margin-bottom: 20px;'>
+                <div style='background-color: #dafbe1; padding: 20px; border-left: 5px solid #4CAF50; border-radius: 8px; margin-bottom: 20px;'>
                     <h4 style='margin-top: 0; font-size: 20px;'>✅ Contraseña generada correctamente</h4>
                     <p style='font-size: 18px;'>
                         <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
