@@ -4,12 +4,23 @@ import pandas as pd
 import secrets
 import bcrypt
 
+@st.cache_data(ttl=60)
+def cargar_configuracion(supabase):
+    return supabase.table("configuracion").select("*").execute().data
+
+@st.cache_data(ttl=60)
+def cargar_agentes(supabase):
+    return supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
+
+@st.cache_data(ttl=60)
+def cargar_usuarios(supabase):
+    return supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:26px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
 
     # --- CONSULTA CONFIGURACIÓN ACTUAL ---
-    config_items = supabase.table("configuracion").select("*").execute().data
+    config_items = cargar_configuracion(supabase)
     config_map = {item["id"]: item for item in config_items}
 
     # Crear tabla de configuración editable
@@ -36,8 +47,7 @@ def mostrar(supabase):
         column_config={"Activo": st.column_config.CheckboxColumn("Activo")}
     )
 
-    #if st.button("💾 Guardar cambios", use_container_width=True):
-    if st.button("💾 Guardar cambios", type = "primary"):
+    if st.button("💾 Guardar cambios", type="primary"):
         usuario = st.session_state.get("usuario", "desconocido")
         for i, row in edit_config.iterrows():
             id_config = df_config.loc[i, "ID"]
@@ -47,6 +57,7 @@ def mostrar(supabase):
                 "valor": nuevo_valor,
                 "actualizado_por": usuario
             }).execute()
+        st.cache_data.clear()
         st.success("✅ Configuración actualizada correctamente.")
         st.rerun()
 
@@ -55,10 +66,9 @@ def mostrar(supabase):
     # --- EDICIÓN DE EVALUADOR POR AGENTE ---
     st.markdown("<h2 style='font-size:20px;'>👥 Asignación de Evaluadores</h2>", unsafe_allow_html=True)
 
-    # Cargar datos (si falla, mostramos un error pero seguimos mostrando el resto)
     try:
-        agentes_data = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
-        usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+        agentes_data = cargar_agentes(supabase)
+        usuarios_data = cargar_usuarios(supabase)
     except Exception as e:
         st.error(f"Error al cargar datos: {e}")
         agentes_data = []
@@ -95,7 +105,6 @@ def mostrar(supabase):
                 index=0 if nombre_actual not in opciones_evaluador else list(opciones_evaluador.keys()).index(nombre_actual)
             )
 
-            #if st.button("🔁 Actualizar asignación", use_container_width=True):
             if st.button("🔁 Actualizar asignación", type="primary"):
                 nuevo_usuario = opciones_evaluador[nombre_evaluador]
                 dependencia_gral = mapa_usuarios[nuevo_usuario]["dependencia_general"]
@@ -104,17 +113,18 @@ def mostrar(supabase):
                     "dependencia_general": dependencia_gral,
                     "evaluador_2024": nuevo_usuario
                 }).eq("cuil", agente["cuil"]).execute()
+                st.cache_data.clear()
                 st.success("✅ Datos actualizados correctamente.")
+                st.rerun()
 
     st.divider()
 
     # --- BLOQUE DE CONTRASEÑAS (SIEMPRE VISIBLE) ---
     st.markdown("<h2 style='font-size:20px;'>🔐 Generar contraseña para evaluador</h2>", unsafe_allow_html=True)
 
-    # Cargar usuarios activos (si no se cargaron antes)
     if not usuarios_data:
         try:
-            usuarios_data = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+            usuarios_data = cargar_usuarios(supabase)
         except Exception as e:
             st.error(f"Error al cargar usuarios: {e}")
             usuarios_data = []
@@ -128,22 +138,22 @@ def mostrar(supabase):
         nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
-#            if st.button("🔐 Generar contraseña", use_container_width=True):
             if st.button("🔐 Generar contraseña", type="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
-        
+
                 nueva_password = str(secrets.randbelow(10**5)).zfill(5)
                 hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
-        
+
                 supabase.table("usuarios").update({
                     "password": hashed,
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
-        
+                st.cache_data.clear()
+
                 st.success(f"""
                 ✅ Contraseña generada correctamente:
-        
+
                 - **Usuario**: `{nuevo_usuario}`  
                 - **Contraseña temporal**: `{nueva_password}`
                 """)
