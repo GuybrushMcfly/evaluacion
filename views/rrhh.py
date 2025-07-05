@@ -1,15 +1,23 @@
 import streamlit as st
 import pandas as pd
 
-@st.cache_data(ttl=60)
 def cargar_agentes(supabase):
-    return supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
+    datos = supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
+    return cachear_agentes(datos)
 
 @st.cache_data(ttl=60)
+def cachear_agentes(datos):
+    return datos
+
 def cargar_evaluaciones(supabase):
-    return supabase.table("evaluaciones")\
+    datos = supabase.table("evaluaciones")\
         .select("cuil, anulada, anio_evaluacion, calificacion")\
         .eq("anio_evaluacion", 2024).execute().data
+    return cachear_evaluaciones(datos)
+
+@st.cache_data(ttl=60)
+def cachear_evaluaciones(datos):
+    return datos
 
 def mostrar(supabase):
     st.header("📊 Estado General de Evaluación de Desempeño 2024")
