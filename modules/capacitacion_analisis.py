@@ -146,14 +146,30 @@ def mostrar_analisis(df_evals, agentes, supabase):
 
             def mostrar_detalle_tabla(df_subset, titulo, niveles):
                 subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
+                subset = subset.sort_values("apellido_nombre")
+            
                 st.markdown(f"#### 🔹 {titulo}")
+                
                 if subset.empty:
                     st.info("No se calificaron con esos niveles.")
                 elif len(subset) < 6:
                     st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
                 else:
                     st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
-                    st.dataframe(subset[["apellido_nombre", "formulario", "calificacion", "puntaje_total"]].rename(columns={"puntaje_total": "puntaje"}))
+                    st.dataframe(
+                        subset[[
+                            "apellido_nombre", "formulario", "calificacion", "puntaje_total", "puntaje_relativo"
+                        ]].rename(columns={
+                            "apellido_nombre": "Apellido/s y Nombre/s",
+                            "formulario": "Nivel Evaluación",
+                            "calificacion": "Calificación",
+                            "puntaje_total": "Puntaje Total",
+                            "puntaje_relativo": "Puntaje Relativo"
+                        }),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
 
             # Mostrar detalles de cada nivel
             mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
