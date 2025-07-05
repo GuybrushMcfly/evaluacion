@@ -1,61 +1,14 @@
+
+
 import streamlit as st
 import json
 from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 import bcrypt
 
-# Configuración de página
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide", initial_sidebar_state="expanded")
 
-# ---- ESTILOS CSS ----
-st.markdown("""
-<style>
-/* Estilos para el sidebar */
-[data-testid="stSidebar"] {
-    background-color: #f8f9fa;
-}
-
-/* Estilos para los items del menú */
-.stRadio > div > div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.stRadio > div > div > label {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-}
-
-.stRadio > div > div > label:hover {
-    background-color: #e9ecef;
-}
-
-.stRadio > div > div > label > div:first-child {
-    padding-left: 0.5rem;
-}
-
-/* Estilo para el item seleccionado */
-.stRadio > div > div > [data-testid="stMarkdownContainer"]:has(> p > div:has(> input:checked)) {
-    background-color: #0d6efd;
-    color: white !important;
-    font-weight: bold;
-}
-
-/* Logo */
-.sidebar-logo {
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Logo en sidebar
-with st.sidebar:
-    st.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
-    st.image("logo-cap.png", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+st.sidebar.image("logo-cap.png", use_container_width=True)
 
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase, cambiar_password = auth.cargar_usuarios_y_autenticar()
@@ -81,16 +34,15 @@ if cambiar_password:
             }).eq("usuario", username).execute()
 
             st.success("✅ Contraseña actualizada correctamente.")
-            st.rerun()
+            st.rerun()  # vuelve a autenticar ahora sin cambiar_password
 
-    st.stop()
+    else:
+        st.info("Ingrese su nueva contraseña dos veces, y pulse ENTER para confirmar.")
 
-elif authentication_status is False:
-    st.error("❌ Usuario o contraseña incorrectos")
     st.stop()
 
 elif authentication_status:
-    # Cargar datos del usuario
+    # Usuario autenticado, cargar datos y mostrar interfaz
     try:
         usuario_data = supabase.table("usuarios")\
             .select("apellido_nombre, rol")\
@@ -111,7 +63,7 @@ elif authentication_status:
             st.session_state.update({
                 "usuario": username,
                 "nombre_completo": usuario_data[0]['apellido_nombre'],
-                "rol": rol_data or {}  # Aseguramos que rol siempre sea un dict
+                "rol": rol_data
             })
         else:
             st.error("❌ No se pudieron cargar los datos del usuario.")
@@ -127,51 +79,61 @@ elif authentication_status:
         st.stop()
 
     # ---- INTERFAZ DE USUARIO ----
-    with st.sidebar:
-        st.success(f"👤 {st.session_state['nombre_completo']}")
-        authenticator.logout("Cerrar sesión")
-        st.markdown("---")
+    # ---- INTERFAZ DE USUARIO ----
+    st.sidebar.success(f"{st.session_state['nombre_completo']}")
+    authenticator.logout("Cerrar sesión", "sidebar")
 
-        # ---- NAVEGACIÓN ----
-        opciones_menu = ["📝 Instructivo"]
-        funciones_menu = [lambda: instructivo.mostrar(supabase)]
+    # ---- NAVEGACIÓN (con opción predeterminada según rol) ----
+    opciones_menu = [
+        "📝 Instructivo",
+        "📄 Formularios",
+        "📋 Evaluaciones",
+        "👥 RRHH",
+        "📘 Capacitación",
+        "⚙️ Configuración"
+    ]
 
-        # Verificar roles correctamente
-        rol = st.session_state.get("rol", {})
-        
+    rol = st.session_state.get("rol", {})
+
+    if rol.get("evaluador") or rol.get("evaluador_general"):
+        indice_default = opciones_menu.index("📄 Formularios")
+    elif rol.get("coordinador"):
+        indice_default = opciones_menu.index("📘 Capacitación")
+    else:
+        indice_default = opciones_menu.index("📝 Instructivo")
+
+    opcion = st.sidebar.radio("📂 Navegación", opciones_menu, index=indice_default)
+
+    if opcion == "📝 Instructivo":
+        instructivo.mostrar(supabase)
+
+    elif opcion == "📄 Formularios":
         if rol.get("evaluador") or rol.get("evaluador_general"):
             formularios_data, clasificaciones_data = formularios.cargar_formularios()
-            opciones_menu.extend(["📄 Formularios", "📋 Evaluaciones"])
-            funciones_menu.extend([
-                lambda: formularios.mostrar(supabase, formularios_data, clasificaciones_data),
-                lambda: evaluaciones.mostrar(supabase)
-            ])
-
-        if rol.get("rrhh"):
-            opciones_menu.append("👥 RRHH")
-            funciones_menu.append(lambda: rrhh.mostrar(supabase))
-
-        if rol.get("coordinador"):
-            opciones_menu.extend(["📘 Capacitación", "⚙️ Configuración"])
-            funciones_menu.extend([
-                lambda: capacitacion.mostrar(supabase),
-                lambda: configuracion.mostrar(supabase)
-            ])
-
-        # Selección de página
-        if rol.get("evaluador") or rol.get("evaluador_general"):
-            indice_default = opciones_menu.index("📄 Formularios") if "📄 Formularios" in opciones_menu else 0
-        elif rol.get("coordinador"):
-            indice_default = opciones_menu.index("📘 Capacitación") if "📘 Capacitación" in opciones_menu else 0
+            formularios.mostrar(supabase, formularios_data, clasificaciones_data)
         else:
-            indice_default = 0
+            st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
-        opcion = st.radio(
-            "📂 Navegación",
-            opciones_menu,
-            index=indice_default,
-            label_visibility="collapsed"
-        )
+    elif opcion == "📋 Evaluaciones":
+        if rol.get("evaluador") or rol.get("evaluador_general"):
+            evaluaciones.mostrar(supabase)
+        else:
+            st.warning("⚠️ Esta sección está habilitada para otro rol.")
 
-    # Mostrar la página seleccionada
-    funciones_menu[opciones_menu.index(opcion)]()
+    elif opcion == "👥 RRHH":
+        if rol.get("rrhh"):
+            rrhh.mostrar(supabase)
+        else:
+            st.warning("⚠️ Esta sección está habilitada para otro rol.")
+
+    elif opcion == "📘 Capacitación":
+        if rol.get("coordinador"):
+            capacitacion.mostrar(supabase)
+        else:
+            st.warning("⚠️ Esta sección está habilitada para otro rol.")
+
+    elif opcion == "⚙️ Configuración":
+        if rol.get("coordinador"):
+            configuracion.mostrar(supabase)
+        else:
+            st.warning("⚠️ Esta sección está habilitada para otro rol.")
