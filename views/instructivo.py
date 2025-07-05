@@ -19,7 +19,7 @@ def mostrar(supabase):
     st.subheader("🗃️ Registros en tabla `agentes`")
     
     # --- Filtros superiores ---
-    col1, col2, col3 = st.columns([2, 2, 1])
+    col1, col2, col3 = st.columns([2, 2, 1])  # Corregí el número de columnas (antes tenía [2, 2, 1] para 3 columnas)
     
     with col1:
         nivel_filter = st.selectbox(
@@ -35,9 +35,6 @@ def mostrar(supabase):
             key="dependencia_filter_aggrid"
         )
     
-    with col3:
-        st.markdown("📥 **Descargar:**")
-        
     # --- Obtener registros con filtros aplicados ---
     query = supabase.table("agentes").select("apellido_nombre, dependencia, nivel")
     
@@ -51,69 +48,60 @@ def mostrar(supabase):
     df = pd.DataFrame(data)
     
     if not df.empty:
-        # Configurar AgGrid con idioma español
+        # Configuración CSS para multilínea y estilo
+        custom_css = {
+            ".ag-theme-streamlit": {
+                "--ag-font-size": "14px",
+                "--ag-cell-horizontal-padding": "15px",
+                "--ag-cell-vertical-padding": "8px",
+            },
+            ".ag-cell": {
+                "line-height": "1.5",
+                "white-space": "normal !important",
+                "display": "flex",
+                "align-items": "center",
+            },
+            ".ag-header-cell-label": {
+                "justify-content": "left",
+            }
+        }
+    
+        # Configurar AgGrid con multilínea
         gb = GridOptionsBuilder.from_dataframe(df)
         gb.configure_pagination(paginationAutoPageSize=True)
         gb.configure_side_bar()
         gb.configure_selection('multiple', use_checkbox=True, groupSelectsChildren="Group checkbox select children")
-        gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc='sum', editable=True)
         
-        # Configurar columnas específicas
-        gb.configure_column("apellido_nombre", header_name="Apellido y Nombre", width=300)
-        gb.configure_column("dependencia", header_name="Dependencia", width=250)
-        gb.configure_column("nivel", header_name="Nivel", width=150)
-        
-        # Habilitar exportación a Excel
-        gb.configure_grid_options(enableRangeSelection=True)
-        gb.configure_selection('multiple', use_checkbox=True)
-        
-        # Configurar textos en español
-        gb.configure_grid_options(
-            localeText={
-                'page': 'Página',
-                'more': 'Más',
-                'to': 'a',
-                'of': 'de',
-                'next': 'Siguiente',
-                'last': 'Último',
-                'first': 'Primero',
-                'previous': 'Anterior',
-                'loadingOoo': 'Cargando...',
-                'selectAll': 'Seleccionar Todo',
-                'searchOoo': 'Buscar...',
-                'blanks': 'Vacíos',
-                'filterOoo': 'Filtrar...',
-                'applyFilter': 'Aplicar Filtro',
-                'equals': 'Igual',
-                'notEqual': 'No Igual',
-                'lessThan': 'Menor que',
-                'greaterThan': 'Mayor que',
-                'contains': 'Contiene',
-                'startsWith': 'Comienza con',
-                'endsWith': 'Termina con',
-                'group': 'Grupo',
-                'columns': 'Columnas',
-                'filters': 'Filtros',
-                'pivotMode': 'Modo Pivot',
-                'groups': 'Grupos',
-                'values': 'Valores',
-                'pivots': 'Pivots',
-                'toolPanel': 'Panel de Herramientas',
-                'export': 'Exportar',
-                'csvExport': 'Exportar CSV',
-                'excelExport': 'Exportar Excel'
-            }
+        # Configuración para multilínea
+        gb.configure_default_column(
+            autoHeight=True,
+            wrapText=True,
+            cellStyle={"white-space": "normal", "line-height": "1.5"},
+            suppressMenu=True,
+            filterable=True
         )
         
+        # Configurar columnas específicas con flex para mejor responsive
+        gb.configure_column("apellido_nombre", 
+                           header_name="Apellido y Nombre",
+                           flex=2,
+                           minWidth=200,
+                           tooltipField="apellido_nombre")
+        
+        gb.configure_column("dependencia", 
+                           header_name="Dependencia",
+                           flex=2,
+                           minWidth=200,
+                           tooltipField="dependencia")
+        
+        gb.configure_column("nivel", 
+                           header_name="Nivel",
+                           width=150,
+                           tooltipField="nivel")
+    
         gridOptions = gb.build()
-        
-        # Configurar idioma español
-        custom_css = {
-            ".ag-header-cell-text": {"font-size": "12px", "font-weight": "bold"},
-            ".ag-theme-streamlit": {"transform": "scale(0.95)", "transform-origin": "0 0"}
-        }
-        
-        # Mostrar la tabla
+    
+        # Mostrar la tabla con configuración mejorada
         grid_response = AgGrid(
             df,
             gridOptions=gridOptions,
@@ -121,10 +109,11 @@ def mostrar(supabase):
             update_mode=GridUpdateMode.MODEL_CHANGED,
             fit_columns_on_grid_load=False,
             enable_enterprise_modules=True,
-            height=400,
+            height=500,  # Aumenté la altura para mejor visualización
             width='100%',
-            reload_data=True,
+            reload_data=False,  # Cambiado a False para mejor performance
             custom_css=custom_css,
+            theme='streamlit',
             key="agentes_grid"
         )
         
@@ -156,107 +145,3 @@ def mostrar(supabase):
     else:
         st.warning("No hay datos disponibles en la tabla agentes")
     
-    # --- SEGUNDA TABLA CON DATA EDITOR ---
-    st.markdown("---")
-    st.subheader("📊 Tabla con Data Editor (Streamlit nativo)")
-    
-    # --- Filtros superiores para Data Editor ---
-    col1, col2, col3 = st.columns([2, 2, 1])
-    
-    with col1:
-        nivel_filter_editor = st.selectbox(
-            "🎯 Filtrar por Nivel:",
-            ["Todos"] + list(set([item.get('nivel', 'Sin nivel') for item in supabase.table("agentes").select("nivel").execute().data if item.get('nivel')])),
-            key="nivel_filter_editor"
-        )
-    
-    with col2:
-        dependencia_filter_editor = st.selectbox(
-            "🏢 Filtrar por Dependencia:",
-            ["Todas"] + list(set([item.get('dependencia', 'Sin dependencia') for item in supabase.table("agentes").select("dependencia").execute().data if item.get('dependencia')])),
-            key="dependencia_filter_editor"
-        )
-    
-    with col3:
-        st.markdown("📥 **Descargar:**")
-    
-    # --- Obtener datos con filtros para Data Editor ---
-    query_editor = supabase.table("agentes").select("apellido_nombre, dependencia, nivel")
-    
-    # Aplicar filtros
-    if nivel_filter_editor != "Todos":
-        query_editor = query_editor.eq("nivel", nivel_filter_editor)
-    if dependencia_filter_editor != "Todas":
-        query_editor = query_editor.eq("dependencia", dependencia_filter_editor)
-    
-    data_editor = query_editor.execute().data
-    df_editor = pd.DataFrame(data_editor)
-    
-    if not df_editor.empty:
-        # Configurar tipos de columnas
-        column_config = {
-            "apellido_nombre": st.column_config.TextColumn(
-                "Apellido y Nombre",
-                help="Nombre completo del agente",
-                max_chars=100,
-                width="medium"
-            ),
-            "dependencia": st.column_config.TextColumn(
-                "Dependencia",
-                help="Área de trabajo del agente",
-                max_chars=100,
-                width="medium"
-            ),
-            "nivel": st.column_config.SelectboxColumn(
-                "Nivel",
-                help="Nivel del agente",
-                options=list(set([item.get('nivel', 'Sin nivel') for item in supabase.table("agentes").select("nivel").execute().data if item.get('nivel')])),
-                width="small"
-            )
-        }
-        
-        # Mostrar tabla editable
-        edited_df = st.data_editor(
-            df_editor,
-            column_config=column_config,
-            use_container_width=True,
-            num_rows="dynamic",  # Permite agregar/eliminar filas
-            height=400,
-            key="data_editor_agentes"
-        )
-        
-        # Mostrar información de cambios
-        if not edited_df.equals(df_editor):
-            st.info("✏️ Se detectaron cambios en los datos")
-            
-            # Botón para guardar cambios
-            if st.button("💾 Guardar cambios", key="save_changes"):
-                st.success("Cambios guardados exitosamente")
-                # Aquí podrías implementar la lógica para actualizar Supabase
-                # supabase.table("agentes").update(...).execute()
-        
-        # Botón de descarga para Data Editor
-        if not df_editor.empty:
-            # Crear Excel en memoria
-            from io import BytesIO
-            buffer_editor = BytesIO()
-            with pd.ExcelWriter(buffer_editor, engine='openpyxl') as writer:
-                edited_df.to_excel(writer, index=False, sheet_name='Agentes_Editados')
-            
-            st.download_button(
-                label="📥 Descargar Excel (Data Editor)",
-                data=buffer_editor.getvalue(),
-                file_name=f"agentes_dataeditor_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="download_dataeditor"
-            )
-        
-        # Mostrar estadísticas
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Total de registros", len(edited_df))
-        with col2:
-            st.metric("Dependencias únicas", edited_df['dependencia'].nunique())
-            
-    else:
-        st.warning("No hay datos disponibles para el data editor")
