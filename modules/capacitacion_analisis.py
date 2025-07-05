@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import os
+import io
+from modules.capacitacion_utils import generar_informe_evaluaciones_docx
+
 
 def mostrar_analisis(df_evals, agentes, supabase):
     #st.subheader("📊 Análisis de Evaluaciones por Dependencia General")
@@ -154,6 +158,49 @@ def mostrar_analisis(df_evals, agentes, supabase):
             # Mostrar detalles de cada nivel
             mostrar_detalle_tabla(df_filtrada, "Niveles Medios (2, 3, 4)", [2, 3, 4])
             mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
+
+
+            st.markdown("#### 📝 Generar Informe para el Comité")
+            
+            if st.button("📄 Descargar INFORME", key=f"informe_{seleccion_dir}"):
+                os.makedirs("tmp_informes", exist_ok=True)
+                path_docx = f"tmp_informes/INFORME_EVALUACIÓN_{seleccion_dir}.docx"
+            
+                # Preparar total y resumen de niveles
+                total = len(df_filtrada)
+                df_filtrada["nivel"] = df_filtrada["formulario"].astype(int)
+            
+                resumen_niveles = (
+                    df_filtrada.groupby("nivel")
+                    .agg(Cantidad_de_agentes=("cuil", "count"),
+                         Bonif_otorgadas=("calificacion", lambda x: (pd.Series(x).str.upper() == "DESTACADO").sum()))
+                    .reindex([1, 2, 3, 4, 5, 6], fill_value=0)
+                )
+            
+                resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"] * 0.3).round().astype(int)
+                resumen_niveles["Diferencia"] = (
+                    resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
+                )
+                resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(
+                    lambda x: f"{x:+d}" if x != 0 else "0"
+                )
+            
+                df_resumen = pd.DataFrame({
+                    "Cantidad de agentes": resumen_niveles["Cantidad_de_agentes"],
+                    "Bonif. otorgadas": resumen_niveles["Bonif_otorgadas"],
+                    "Bonif. correspondientes": resumen_niveles["Bonif. correspondientes"],
+                    "Diferencia": resumen_niveles["Diferencia"]
+                }).T
+            
+                generar_informe_evaluaciones_docx(df_filtrada, seleccion_dir, total, df_resumen, path_docx)
+            
+                with open(path_docx, "rb") as f:
+                    st.download_button(
+                        label=f"📥 Descargar INFORME EVALUACIÓN {seleccion_dir}",
+                        data=f,
+                        file_name=f"INFORME_EVALUACIÓN_{seleccion_dir}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
             
             # Mostrar Nivel 1 si existe
             df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
