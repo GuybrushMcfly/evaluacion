@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode
-
+from io import BytesIO
 
 def mostrar(supabase):
     st.title("📝 Instructivo")
@@ -12,14 +12,11 @@ def mostrar(supabase):
     3. Previsualice y confirme la evaluación.  
     """)
 
-
-    
-    st.markdown("---")
     st.markdown("---")
     st.subheader("🗃️ Registros en tabla `agentes`")
     
     # --- Filtros superiores ---
-    col1, col2, col3 = st.columns([2, 2, 1])  # Corregí el número de columnas (antes tenía [2, 2, 1] para 3 columnas)
+    col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
         nivel_filter = st.selectbox(
@@ -38,7 +35,6 @@ def mostrar(supabase):
     # --- Obtener registros con filtros aplicados ---
     query = supabase.table("agentes").select("apellido_nombre, dependencia, nivel")
     
-    # Aplicar filtros
     if nivel_filter != "Todos":
         query = query.eq("nivel", nivel_filter)
     if dependencia_filter != "Todas":
@@ -48,100 +44,63 @@ def mostrar(supabase):
     df = pd.DataFrame(data)
     
     if not df.empty:
-        # Configuración CSS para multilínea y estilo
+        # Configuración CSS para multilínea
         custom_css = {
-            ".ag-theme-streamlit": {
-                "--ag-font-size": "14px",
-                "--ag-cell-horizontal-padding": "15px",
-                "--ag-cell-vertical-padding": "8px",
-            },
             ".ag-cell": {
-                "line-height": "1.5",
                 "white-space": "normal !important",
+                "line-height": "1.5",
                 "display": "flex",
-                "align-items": "center",
-            },
-            ".ag-header-cell-label": {
-                "justify-content": "left",
+                "align-items": "center"
             }
         }
-    
-        # Configurar AgGrid con multilínea
+
+        # Configurar AgGrid
         gb = GridOptionsBuilder.from_dataframe(df)
-        gb.configure_pagination(paginationAutoPageSize=True)
-        gb.configure_side_bar()
-        gb.configure_selection('multiple', use_checkbox=True, groupSelectsChildren="Group checkbox select children")
-        
-        # Configuración para multilínea
         gb.configure_default_column(
             autoHeight=True,
             wrapText=True,
-            cellStyle={"white-space": "normal", "line-height": "1.5"},
-            suppressMenu=True,
-            filterable=True
+            cellStyle={"white-space": "normal", "line-height": "1.5"}
         )
         
-        # Configurar columnas específicas con flex para mejor responsive
-        gb.configure_column("apellido_nombre", 
-                           header_name="Apellido y Nombre",
-                           flex=2,
-                           minWidth=200,
-                           tooltipField="apellido_nombre")
+        gb.configure_columns(
+            ["apellido_nombre", "dependencia", "nivel"],
+            headerClass="header-style",
+            cellStyle={"text-align": "left"}
+        )
         
-        gb.configure_column("dependencia", 
-                           header_name="Dependencia",
-                           flex=2,
-                           minWidth=200,
-                           tooltipField="dependencia")
+        gb.configure_pagination(paginationAutoPageSize=True)
+        gb.configure_side_bar()
+        gb.configure_selection('multiple', use_checkbox=True)
         
-        gb.configure_column("nivel", 
-                           header_name="Nivel",
-                           width=150,
-                           tooltipField="nivel")
-    
-        gridOptions = gb.build()
-    
-        # Mostrar la tabla con configuración mejorada
+        # Mostrar tabla
         grid_response = AgGrid(
             df,
-            gridOptions=gridOptions,
-            data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-            update_mode=GridUpdateMode.MODEL_CHANGED,
-            fit_columns_on_grid_load=False,
-            enable_enterprise_modules=True,
-            height=500,  # Aumenté la altura para mejor visualización
+            gridOptions=gb.build(),
+            height=500,
             width='100%',
-            reload_data=False,  # Cambiado a False para mejor performance
             custom_css=custom_css,
             theme='streamlit',
-            key="agentes_grid"
+            enable_enterprise_modules=True
         )
-        
-        # Obtener datos modificados
-        updated_df = grid_response['data']
-        selected_rows = grid_response['selected_rows']
-        
-        # Mostrar botón de descarga para AgGrid
-        if not df.empty:
-            # Crear Excel en memoria
-            from io import BytesIO
+
+        # Exportar a Excel (con verificación de openpyxl)
+        try:
             buffer = BytesIO()
-            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Agentes')
+            df.to_excel(buffer, index=False, engine='openpyxl')  # Especifica el motor
             
             st.download_button(
-                label="📥 Descargar Excel (AgGrid)",
+                "📥 Descargar Excel",
                 data=buffer.getvalue(),
-                file_name=f"agentes_aggrid_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="download_aggrid"
+                file_name="agentes.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+        except ImportError:
+            st.warning("Para exportar a Excel, instala openpyxl: pip install openpyxl")
         
-        # Mostrar información adicional si hay filas seleccionadas
-        if selected_rows is not None and len(selected_rows) > 0:
-            st.subheader("Filas seleccionadas:")
-            st.dataframe(selected_rows)
+        # Mostrar selección
+        if grid_response['selected_rows']:
+            st.subheader("Filas seleccionadas")
+            st.write(grid_response['selected_rows'])
             
     else:
-        st.warning("No hay datos disponibles en la tabla agentes")
-    
+        st.warning("No hay datos disponibles")
