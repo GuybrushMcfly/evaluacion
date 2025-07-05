@@ -148,15 +148,16 @@ def mostrar_analisis(df_evals, agentes, supabase):
                 subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
                 subset = subset.sort_values("apellido_nombre")
                 subset["puntaje_relativo"] = subset["puntaje_relativo"].round(2)
+                total = len(subset)
             
-                st.markdown(f"#### 🔹 {titulo}")
+                st.markdown(f"<h5>🔹 {titulo}: Total de {total} evaluados</h5>", unsafe_allow_html=True)
                 
                 if subset.empty:
                     st.info("No se calificaron con esos niveles.")
-                elif len(subset) < 6:
-                    st.warning(f"Hubo {len(subset)} calificaciones (menos de 6). Pasaron a Residual.")
+                elif total < 6:
+                    st.warning(f"Hubo {total} calificaciones (menos de 6). Pasaron a Residual.")
                 else:
-                    st.success(f"Grupo válido con {len(subset)} evaluaciones. No Residual.")
+                    st.success(f"Grupo válido con {total} evaluaciones. No Residual.")
                     st.dataframe(
                         subset[[
                             "apellido_nombre", "formulario", "calificacion", "puntaje_total", "puntaje_relativo"
