@@ -7,6 +7,7 @@ from docx.oxml.ns import qn
 from datetime import datetime
 
 
+
 def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
     doc = Document()
     sec = doc.sections[0]
@@ -39,15 +40,12 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
     if "nivel" not in df.columns:
         df["nivel"] = df["formulario"].astype(int)
 
-    # Filtrar evaluaciones no residuales
     df_nores = df[df["residual"] != True]
 
-    # Niveles Medios agrupados (2, 3, 4)
     medios_df = df_nores[df_nores["nivel"].isin([2, 3, 4])]
     if not medios_df.empty:
         grupos["Niveles Medios"] = medios_df
 
-    # Niveles Operativos agrupados (5, 6)
     oper_df = df_nores[df_nores["nivel"].isin([5, 6])]
     if not oper_df.empty:
         grupos["Niveles Operativos"] = oper_df
@@ -83,7 +81,6 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
                         run.font.size = Pt(9)
                         run.font.color.rgb = RGBColor(0, 0, 0)
 
-        # Totales por grupo
         n = len(tabla_df)
         cupo = max(1, math.ceil(n * 0.1))
         tbl_sum = doc.add_table(rows=2, cols=2, style="Table Grid")
@@ -112,7 +109,6 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
     doc.add_paragraph("")
     doc.add_page_break()
 
-    # Totales generales
     doc.add_heading("Totales Generales", level=2)
     cupo30 = math.floor(total * 0.3)
     cupo10 = max(1, math.ceil(total * 0.1))
@@ -141,49 +137,49 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
             for run in p.runs:
                 run.font.name = "Calibri"
                 run.font.size = Pt(9)
-        # Evaluables para Bonificación Especial (solo no residuales, calificación DESTACADO)
-        evaluables_bdd = df[
-            (df["residual"] == False) &
-            (df["calificacion"].str.upper() == "DESTACADO")
-        ].copy()
-    
-        if not evaluables_bdd.empty:
-            evaluables_bdd = evaluables_bdd.sort_values("puntaje_relativo", ascending=False)
-    
-            doc.add_paragraph("")
-            doc.add_heading("Evaluables para Bonificación Especial", level=2)
-    
-            cols_bdd = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
-            tbl_bdd = doc.add_table(rows=1 + len(evaluables_bdd), cols=len(cols_bdd), style="Table Grid")
-    
-            # Encabezados
-            for j, c in enumerate(cols_bdd):
-                cell = tbl_bdd.rows[0].cells[j]
-                r = cell.paragraphs[0].add_run(c)
-                r.bold = True
-                r.font.name = "Calibri"
-                tc = cell._tc.get_or_add_tcPr()
-                shd = OxmlElement('w:shd')
-                shd.set(qn('w:val'), 'clear')
-                shd.set(qn('w:fill'), azul)
-                tc.append(shd)
-    
-            # Filas de datos
-            for i, row in enumerate(evaluables_bdd.itertuples(index=False), start=1):
-                cells = tbl_bdd.rows[i].cells
-                cells[0].text = row.apellido_nombre
-                cells[1].text = row.calificacion
-                cells[2].text = str(row.puntaje_total)
-                cells[3].text = f"{row.puntaje_relativo:.2f}"
-                cells[4].text = "✔" if row.bonificacion_elegible else ""
-                for cell in cells:
-                    for p in cell.paragraphs:
-                        for run in p.runs:
-                            run.font.name = 'Calibri'
-                            run.font.size = Pt(9)
-                            run.font.color.rgb = RGBColor(0, 0, 0)
+
+    # Evaluables para Bonificación Especial
+    evaluables_bdd = df[
+        (df["residual"] == False) &
+        (df["calificacion"].str.upper() == "DESTACADO")
+    ].copy()
+
+    if not evaluables_bdd.empty:
+        evaluables_bdd = evaluables_bdd.sort_values("puntaje_relativo", ascending=False)
+
+        doc.add_paragraph("")
+        doc.add_heading("Evaluables para Bonificación Especial", level=2)
+
+        cols_bdd = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
+        tbl_bdd = doc.add_table(rows=1 + len(evaluables_bdd), cols=len(cols_bdd), style="Table Grid")
+
+        for j, c in enumerate(cols_bdd):
+            cell = tbl_bdd.rows[0].cells[j]
+            r = cell.paragraphs[0].add_run(c)
+            r.bold = True
+            r.font.name = "Calibri"
+            tc = cell._tc.get_or_add_tcPr()
+            shd = OxmlElement('w:shd')
+            shd.set(qn('w:val'), 'clear')
+            shd.set(qn('w:fill'), azul)
+            tc.append(shd)
+
+        for i, row in enumerate(evaluables_bdd.itertuples(index=False), start=1):
+            cells = tbl_bdd.rows[i].cells
+            cells[0].text = row.apellido_nombre
+            cells[1].text = row.calificacion
+            cells[2].text = str(row.puntaje_total)
+            cells[3].text = f"{row.puntaje_relativo:.2f}"
+            cells[4].text = "SI" if row.bonificacion_elegible else ""
+            for cell in cells:
+                for p in cell.paragraphs:
+                    for run in p.runs:
+                        run.font.name = 'Calibri'
+                        run.font.size = Pt(9)
+                        run.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.save(path_docx)
+
 
 
 
