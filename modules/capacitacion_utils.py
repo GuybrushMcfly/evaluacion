@@ -7,7 +7,7 @@ from docx.oxml.ns import qn
 from datetime import datetime
 
 
-def generar_informe_comite_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
+def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles, path_docx):
     doc = Document()
     sec = doc.sections[0]
     sec.top_margin = Cm(2)
