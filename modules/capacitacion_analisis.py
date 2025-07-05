@@ -147,6 +147,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
             def mostrar_detalle_tabla(df_subset, titulo, niveles):
                 subset = df_subset[df_subset["nivel"].isin(niveles)].copy()
                 subset = subset.sort_values("apellido_nombre")
+                subset["puntaje_relativo"] = subset["puntaje_relativo"].round(2)
             
                 st.markdown(f"#### 🔹 {titulo}")
                 
@@ -176,7 +177,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
             mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
 
 
-            st.markdown("#### 📝 Generar Informe para el Comité")
+            st.markdown("#### 📝 Generar Informe Evaluación")
             
             if st.button("📄 Descargar INFORME", key=f"informe_{seleccion_dir}"):
                 os.makedirs("tmp_informes", exist_ok=True)
@@ -219,10 +220,10 @@ def mostrar_analisis(df_evals, agentes, supabase):
                     )
             
             # Mostrar Nivel 1 si existe
-            df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
-            if not df_nivel1.empty:
-                st.markdown("#### 🔹 Nivel 1 (Siempre Residual)")
-                st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
+           # df_nivel1 = df_filtrada[df_filtrada["nivel"] == 1]
+           # if not df_nivel1.empty:
+            #    st.markdown("#### 🔹 Nivel 1 (Siempre Residual)")
+           #     st.info("Todas las evaluaciones de Nivel 1 van automáticamente a Residual.")
             
             # SECCIÓN BDD - Agregar después de mostrar Niveles y antes de Residuales
             st.markdown("---")
