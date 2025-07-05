@@ -1,17 +1,25 @@
 import streamlit as st
 import pandas as pd
 
+@st.cache_data(ttl=60)
+def cargar_agentes(supabase):
+    return supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
+
+@st.cache_data(ttl=60)
+def cargar_evaluaciones(supabase):
+    return supabase.table("evaluaciones")\
+        .select("cuil, anulada, anio_evaluacion, calificacion")\
+        .eq("anio_evaluacion", 2024).execute().data
+
 def mostrar(supabase):
     st.header("📊 Estado General de Evaluación de Desempeño 2024")
 
     # Cargar agentes
-    agentes = supabase.table("agentes").select("cuil, apellido_nombre, dependencia_general").execute().data
+    agentes = cargar_agentes(supabase)
     df_agentes = pd.DataFrame(agentes)
 
     # Cargar evaluaciones del año
-    evaluaciones = supabase.table("evaluaciones")\
-        .select("cuil, anulada, anio_evaluacion, calificacion")\
-        .eq("anio_evaluacion", 2024).execute().data
+    evaluaciones = cargar_evaluaciones(supabase)
 
     if evaluaciones:
         df_eval = pd.DataFrame(evaluaciones)
