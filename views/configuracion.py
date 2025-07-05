@@ -154,14 +154,15 @@ def mostrar(supabase):
         
                 # Mensaje para copiar
                 mensaje_credenciales = f"""Se adjuntan las credenciales para poder acceder al Sistema de Evaluación de Desempeño 2024.
-        
-        Su usuario: {nuevo_usuario}
-        Su password por defecto es: {nueva_password}
-        
-        Deberá cambiarla al ingresar por primera vez."""
-        
-                # Textarea + botón de copiado con feedback
+                
+                Su usuario: carlos
+                Su password por defecto es: 48014
+                
+                Deberá cambiarla al ingresar por primera vez."""
+                
                 st.markdown(f"""
+                <h4>✉️ Mensaje para enviar al usuario:</h4>
+                
                 <textarea id="mensaje" style="width:100%; height:150px;">{mensaje_credenciales}</textarea>
                 <br>
                 <button onclick="
