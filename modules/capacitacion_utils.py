@@ -39,24 +39,15 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
     if "nivel" not in df.columns:
         df["nivel"] = df["formulario"].astype(int)
 
-    # Residuales
-    residuales_df = df[df["residual"] == True]
-    if not residuales_df.empty:
-        grupos["Unidad Residual"] = residuales_df
-
-    # No residuales
+    # Filtrar evaluaciones no residuales
     df_nores = df[df["residual"] != True]
 
+    # Niveles Medios agrupados (2, 3, 4)
     medios_df = df_nores[df_nores["nivel"].isin([2, 3, 4])]
     if not medios_df.empty:
-        if len(medios_df) < 6:
-            grupos["Niveles Medios"] = medios_df
-        else:
-            for lvl in [2, 3, 4]:
-                tmp = medios_df[medios_df["nivel"] == lvl]
-                if not tmp.empty:
-                    grupos[f"Nivel {lvl}"] = tmp
+        grupos["Niveles Medios"] = medios_df
 
+    # Niveles Operativos agrupados (5, 6)
     oper_df = df_nores[df_nores["nivel"].isin([5, 6])]
     if not oper_df.empty:
         grupos["Niveles Operativos"] = oper_df
@@ -152,6 +143,7 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
                 run.font.size = Pt(9)
 
     doc.save(path_docx)
+
 
 
 def generar_anexo_iii_docx(texto, path_docx):
