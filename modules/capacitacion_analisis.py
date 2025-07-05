@@ -136,9 +136,9 @@ def mostrar_analisis(df_evals, agentes, supabase):
         
         # Lista de direcciones únicas
         direcciones = sorted(df["dependencia_general"].dropna().unique())
-        opciones = ["- Seleccionar Dirección -"] + direcciones
+        opciones = ["- Seleccioná Dirección -"] + direcciones
 
-        seleccion_dir = st.selectbox("📍 Seleccione Dirección para ver detalles", opciones)
+        seleccion_dir = st.selectbox("📍 Seleccioná Dirección para ver detalles", opciones)
 
         if seleccion_dir != "- Seleccionar Dirección -":
             df_filtrada = df[df["dependencia_general"] == seleccion_dir].copy()
@@ -150,7 +150,7 @@ def mostrar_analisis(df_evals, agentes, supabase):
                 subset["puntaje_relativo"] = subset["puntaje_relativo"].round(2)
                 total = len(subset)
             
-                st.markdown(f"<h5>🔹 {titulo}: Total de {total} evaluados</h5>", unsafe_allow_html=True)
+                st.markdown(f"<h5>🔹 {titulo}: {total} evaluados</h5>", unsafe_allow_html=True)
                 
                 if subset.empty:
                     st.info("No se calificaron con esos niveles.")
@@ -178,23 +178,23 @@ def mostrar_analisis(df_evals, agentes, supabase):
             mostrar_detalle_tabla(df_filtrada, "Niveles Operativos (5, 6)", [5, 6])
 
 
-            st.markdown("#### 📝 Generar Informe Evaluación")
+           # st.markdown("#### 📝 Generar Informe Evaluación")
             
             if st.button("📄 Descargar INFORME", key=f"informe_{seleccion_dir}"):
                 os.makedirs("tmp_informes", exist_ok=True)
                 path_docx = f"tmp_informes/INFORME_EVALUACIÓN_{seleccion_dir}.docx"
-            
+                
                 # Preparar total y resumen de niveles
                 total = len(df_filtrada)
                 df_filtrada["nivel"] = df_filtrada["formulario"].astype(int)
-            
+                
                 resumen_niveles = (
                     df_filtrada.groupby("nivel")
                     .agg(Cantidad_de_agentes=("cuil", "count"),
                          Bonif_otorgadas=("calificacion", lambda x: (pd.Series(x).str.upper() == "DESTACADO").sum()))
                     .reindex([1, 2, 3, 4, 5, 6], fill_value=0)
                 )
-            
+                
                 resumen_niveles["Bonif. correspondientes"] = (resumen_niveles["Cantidad_de_agentes"] * 0.3).round().astype(int)
                 resumen_niveles["Diferencia"] = (
                     resumen_niveles["Bonif_otorgadas"] - resumen_niveles["Bonif. correspondientes"]
@@ -202,22 +202,25 @@ def mostrar_analisis(df_evals, agentes, supabase):
                 resumen_niveles["Diferencia"] = resumen_niveles["Diferencia"].apply(
                     lambda x: f"{x:+d}" if x != 0 else "0"
                 )
-            
+                
                 df_resumen = pd.DataFrame({
                     "Cantidad de agentes": resumen_niveles["Cantidad_de_agentes"],
                     "Bonif. otorgadas": resumen_niveles["Bonif_otorgadas"],
                     "Bonif. correspondientes": resumen_niveles["Bonif. correspondientes"],
                     "Diferencia": resumen_niveles["Diferencia"]
                 }).T
-            
+                
+                # Generar informe
                 generar_informe_evaluaciones_docx(df_filtrada, seleccion_dir, total, df_resumen, path_docx)
-            
+                
+                # Descargar
                 with open(path_docx, "rb") as f:
                     st.download_button(
-                        label=f"📥 Descargar INFORME EVALUACIÓN {seleccion_dir}",
+                        label=f"📄 Descargar INFORME EVALUACIÓN {seleccion_dir}",
                         data=f,
                         file_name=f"INFORME_EVALUACIÓN_{seleccion_dir}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key=f"descargar_{seleccion_dir}"
                     )
             
             # Mostrar Nivel 1 si existe
