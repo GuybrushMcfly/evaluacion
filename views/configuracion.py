@@ -128,7 +128,6 @@ def mostrar(supabase):
         nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
-#            if st.button("🔐 Generar contraseña", use_container_width=True):
             if st.button("🔐 Generar contraseña", type="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
@@ -136,14 +135,49 @@ def mostrar(supabase):
                 nueva_password = str(secrets.randbelow(10**5)).zfill(5)
                 hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
         
+                # Actualizar en Supabase
                 supabase.table("usuarios").update({
                     "password": hashed,
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
         
-                st.success(f"""
-                ✅ Contraseña generada correctamente:
+                # Mostrar mensaje
+                st.markdown(f"""
+                ### ✅ Contraseña generada correctamente:
         
                 - **Usuario**: `{nuevo_usuario}`  
                 - **Contraseña temporal**: `{nueva_password}`
+        
+                ---
+                ### ✉️ Mensaje para enviar al usuario:
                 """)
+        
+                # Mensaje para copiar
+                mensaje_credenciales = f"""Se adjuntan las credenciales para poder acceder al Sistema de Evaluación de Desempeño 2024.
+        
+        Su usuario: {nuevo_usuario}
+        Su password por defecto es: {nueva_password}
+        
+        Deberá cambiarla al ingresar por primera vez."""
+        
+                # Textarea + botón de copiado con feedback
+                st.markdown(f"""
+                <textarea id="mensaje" style="width:100%; height:150px;">{mensaje_credenciales}</textarea>
+                <br>
+                <button onclick="
+                navigator.clipboard.writeText(document.getElementById('mensaje').value);
+                var btn = this;
+                btn.innerText = '✔️ Copiado';
+                setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
+                " style="
+                    margin-top: 5px;
+                    padding: 6px 12px;
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">
+                📋 Copiar al portapapeles
+                </button>
+                """, unsafe_allow_html=True)
