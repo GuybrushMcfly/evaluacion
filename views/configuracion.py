@@ -128,6 +128,7 @@ def mostrar(supabase):
         nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
+#            if st.button("🔐 Generar contraseña", use_container_width=True):
             if st.button("🔐 Generar contraseña", type="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
@@ -140,12 +141,9 @@ def mostrar(supabase):
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
         
-                st.markdown(f"""
-                <div style='background-color: #dafbe1; padding: 20px; border-left: 5px solid #4CAF50; border-radius: 8px; margin-bottom: 20px;'>
-                    <h4 style='margin-top: 0; font-size: 20px;'>✅ Contraseña generada correctamente</h4>
-                    <p style='font-size: 18px;'>
-                        <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
-                        <b>Contraseña temporal:</b> <span style='color:#136ac1'>{nueva_password}</span>
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.success(f"""
+                ✅ Contraseña generada correctamente:
+        
+                - **Usuario**: `{nuevo_usuario}`  
+                - **Contraseña temporal**: `{nueva_password}`
+                """)
