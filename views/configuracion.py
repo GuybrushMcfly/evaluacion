@@ -141,18 +141,18 @@ def mostrar(supabase):
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
         
-                # Mensaje claro en grande
-                st.markdown("""
-                ### ✅ Contraseña generada correctamente
-                """)
+                # ✅ Visual superior con fondo verde
                 st.markdown(f"""
-                <div style='font-size:18px; padding:10px 0;'>
-                <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
-                <b>Contraseña temporal:</b> <span style='color:#136ac1'>{nueva_password}</span>
+                <div style='background-color: #e6f4ea; padding: 20px; border-left: 5px solid #4CAF50; border-radius: 8px; margin-bottom: 20px;'>
+                    <h3 style='margin-top: 0;'>✅ Contraseña generada correctamente</h3>
+                    <p style='font-size: 18px;'>
+                        <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
+                        <b>Contraseña temporal:</b> <span style='color:#136ac1'>{nueva_password}</span>
+                    </p>
                 </div>
                 """, unsafe_allow_html=True)
         
-                # Mensaje completo para copiar
+                # Mensaje para enviar/copiar
                 mensaje_credenciales = f"""Se adjuntan las credenciales para poder acceder al Sistema de Evaluación de Desempeño 2024.
         
         Su usuario: {nuevo_usuario}
@@ -160,25 +160,27 @@ def mostrar(supabase):
         
         Deberá cambiarla al ingresar por primera vez."""
         
-                # Área de copiado
+                # 🧾 Área de texto con botón copiar que FUNCIONA
                 st.markdown(f"""
                 <h4>✉️ Mensaje para enviar al usuario:</h4>
-                <textarea id="mensaje" style="width:100%; height:150px;">{mensaje_credenciales}</textarea>
-                <br>
-                <button onclick="
-                    navigator.clipboard.writeText(document.getElementById('mensaje').value);
-                    var btn = this;
-                    btn.innerText = '✔️ Copiado';
-                    setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
-                " style="
-                    margin-top: 5px;
-                    padding: 6px 12px;
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                ">
-                📋 Copiar al portapapeles
-                </button>
+        
+                <div style="position: relative;">
+                    <textarea id="mensaje" style="width:100%; height:150px; padding:10px; font-size:15px;">{mensaje_credenciales}</textarea>
+                    <button onclick="
+                        navigator.clipboard.writeText(document.getElementById('mensaje').value);
+                        var btn = this;
+                        btn.innerText = '✔️ Copiado';
+                        setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
+                    " style="
+                        margin-top: 10px;
+                        padding: 8px 16px;
+                        background-color: #4CAF50;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                    ">
+                    📋 Copiar al portapapeles
+                    </button>
+                </div>
                 """, unsafe_allow_html=True)
