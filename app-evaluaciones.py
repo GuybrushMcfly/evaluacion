@@ -13,8 +13,12 @@ st.sidebar.image("logo-cap.png", use_container_width=True)
 # ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase, cambiar_password = auth.cargar_usuarios_y_autenticar()
 
+if authentication_status == False:
+    st.error("❌ Usuario o contraseña incorrectos.")
+elif authentication_status == None:
+    st.info("Por favor ingrese usuario y contraseña.")
 # ---- CAMBIO DE CONTRASEÑA FORZADO ----
-if cambiar_password:
+elif cambiar_password:
     st.warning("🔐 Debe cambiar su contraseña para continuar.")
     st.markdown("**⚠️ Requisitos de la nueva contraseña:**\n- Mínimo 6 caracteres\n- Debe contener al menos un número")
 
