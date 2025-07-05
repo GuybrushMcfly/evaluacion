@@ -141,35 +141,35 @@ def mostrar(supabase):
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
         
-                # Mostrar mensaje
-                st.markdown(f"""
-                ### ✅ Contraseña generada correctamente:
-        
-                - **Usuario**: `{nuevo_usuario}`  
-                - **Contraseña temporal**: `{nueva_password}`
-        
-                ---
-                ### ✉️ Mensaje para enviar al usuario:
+                # Mensaje claro en grande
+                st.markdown("""
+                ### ✅ Contraseña generada correctamente
                 """)
+                st.markdown(f"""
+                <div style='font-size:18px; padding:10px 0;'>
+                <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
+                <b>Contraseña temporal:</b> <span style='color:#136ac1'>{nueva_password}</span>
+                </div>
+                """, unsafe_allow_html=True)
         
-                # Mensaje para copiar
+                # Mensaje completo para copiar
                 mensaje_credenciales = f"""Se adjuntan las credenciales para poder acceder al Sistema de Evaluación de Desempeño 2024.
-                
-                Su usuario: carlos
-                Su password por defecto es: 48014
-                
-                Deberá cambiarla al ingresar por primera vez."""
-                
+        
+        Su usuario: {nuevo_usuario}
+        Su password por defecto es: {nueva_password}
+        
+        Deberá cambiarla al ingresar por primera vez."""
+        
+                # Área de copiado
                 st.markdown(f"""
                 <h4>✉️ Mensaje para enviar al usuario:</h4>
-                
                 <textarea id="mensaje" style="width:100%; height:150px;">{mensaje_credenciales}</textarea>
                 <br>
                 <button onclick="
-                navigator.clipboard.writeText(document.getElementById('mensaje').value);
-                var btn = this;
-                btn.innerText = '✔️ Copiado';
-                setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
+                    navigator.clipboard.writeText(document.getElementById('mensaje').value);
+                    var btn = this;
+                    btn.innerText = '✔️ Copiado';
+                    setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
                 " style="
                     margin-top: 5px;
                     padding: 6px 12px;
