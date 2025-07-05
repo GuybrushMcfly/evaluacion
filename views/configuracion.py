@@ -128,6 +128,7 @@ def mostrar(supabase):
         nombre_seleccionado_pwd = st.selectbox("👤 Seleccioná al evaluador", opciones_nombres, index=0)
         
         if nombre_seleccionado_pwd != "- Seleccioná a un evaluador -":
+#            if st.button("🔐 Generar contraseña", use_container_width=True):
             if st.button("🔐 Generar contraseña", type="primary"):
                 usuario_seleccionado = evaluadores_disponibles[nombre_seleccionado_pwd]
                 nuevo_usuario = usuario_seleccionado["usuario"]
@@ -135,52 +136,19 @@ def mostrar(supabase):
                 nueva_password = str(secrets.randbelow(10**5)).zfill(5)
                 hashed = bcrypt.hashpw(nueva_password.encode(), bcrypt.gensalt()).decode()
         
-                # Actualizar en Supabase
                 supabase.table("usuarios").update({
                     "password": hashed,
                     "cambiar_password": True
                 }).eq("usuario", nuevo_usuario).execute()
         
-                # ✅ Visual superior con fondo verde
+                st.success(f"""
+        
                 st.markdown(f"""
                 <div style='background-color: #e6f4ea; padding: 20px; border-left: 5px solid #4CAF50; border-radius: 8px; margin-bottom: 20px;'>
-                    <h3 style='margin-top: 0;'>✅ Contraseña generada correctamente</h3>
+                    <h4 style='margin-top: 0; font-size: 20px;'>✅ Contraseña generada correctamente</h4>
                     <p style='font-size: 18px;'>
                         <b>Usuario:</b> <span style='color:#136ac1'>{nuevo_usuario}</span><br>
                         <b>Contraseña temporal:</b> <span style='color:#136ac1'>{nueva_password}</span>
                     </p>
-                </div>
-                """, unsafe_allow_html=True)
-        
-                # Mensaje para enviar/copiar
-                mensaje_credenciales = f"""Se adjuntan las credenciales para poder acceder al Sistema de Evaluación de Desempeño 2024.
-        
-        Su usuario: {nuevo_usuario}
-        Su password por defecto es: {nueva_password}
-        
-        Deberá cambiarla al ingresar por primera vez."""
-        
-                # 🧾 Área de texto con botón copiar que FUNCIONA
-                st.markdown(f"""
-                <h4>✉️ Mensaje para enviar al usuario:</h4>
-        
-                <div style="position: relative;">
-                    <textarea id="mensaje" style="width:100%; height:150px; padding:10px; font-size:15px;">{mensaje_credenciales}</textarea>
-                    <button onclick="
-                        navigator.clipboard.writeText(document.getElementById('mensaje').value);
-                        var btn = this;
-                        btn.innerText = '✔️ Copiado';
-                        setTimeout(function(){{ btn.innerText = '📋 Copiar al portapapeles'; }}, 2000);
-                    " style="
-                        margin-top: 10px;
-                        padding: 8px 16px;
-                        background-color: #4CAF50;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    ">
-                    📋 Copiar al portapapeles
-                    </button>
                 </div>
                 """, unsafe_allow_html=True)
