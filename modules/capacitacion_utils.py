@@ -141,6 +141,47 @@ def generar_informe_evaluaciones_docx(df, unidad_nombre, total, resumen_niveles,
             for run in p.runs:
                 run.font.name = "Calibri"
                 run.font.size = Pt(9)
+        # Evaluables para Bonificación Especial (solo no residuales, calificación DESTACADO)
+        evaluables_bdd = df[
+            (df["residual"] == False) &
+            (df["calificacion"].str.upper() == "DESTACADO")
+        ].copy()
+    
+        if not evaluables_bdd.empty:
+            evaluables_bdd = evaluables_bdd.sort_values("puntaje_relativo", ascending=False)
+    
+            doc.add_paragraph("")
+            doc.add_heading("Evaluables para Bonificación Especial", level=2)
+    
+            cols_bdd = ["Apellido y Nombre", "Calificación", "Puntaje Absoluto", "Puntaje Relativo", "Bonificado"]
+            tbl_bdd = doc.add_table(rows=1 + len(evaluables_bdd), cols=len(cols_bdd), style="Table Grid")
+    
+            # Encabezados
+            for j, c in enumerate(cols_bdd):
+                cell = tbl_bdd.rows[0].cells[j]
+                r = cell.paragraphs[0].add_run(c)
+                r.bold = True
+                r.font.name = "Calibri"
+                tc = cell._tc.get_or_add_tcPr()
+                shd = OxmlElement('w:shd')
+                shd.set(qn('w:val'), 'clear')
+                shd.set(qn('w:fill'), azul)
+                tc.append(shd)
+    
+            # Filas de datos
+            for i, row in enumerate(evaluables_bdd.itertuples(index=False), start=1):
+                cells = tbl_bdd.rows[i].cells
+                cells[0].text = row.apellido_nombre
+                cells[1].text = row.calificacion
+                cells[2].text = str(row.puntaje_total)
+                cells[3].text = f"{row.puntaje_relativo:.2f}"
+                cells[4].text = "✔" if row.bonificacion_elegible else ""
+                for cell in cells:
+                    for p in cell.paragraphs:
+                        for run in p.runs:
+                            run.font.name = 'Calibri'
+                            run.font.size = Pt(9)
+                            run.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.save(path_docx)
 
