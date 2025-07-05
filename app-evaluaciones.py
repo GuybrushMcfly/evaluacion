@@ -4,7 +4,7 @@ from modules import auth
 from views import instructivo, formularios, evaluaciones, rrhh, capacitacion, configuracion
 import bcrypt
 
-# Configuración de página (sin cambios)
+# Configuración de página
 st.set_page_config(page_title="Evaluación de Desempeño", layout="wide", initial_sidebar_state="expanded")
 
 # ---- ESTILOS CSS PARA EL MENÚ ----
@@ -41,15 +41,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Logo en sidebar (sin cambios)
+# Logo en sidebar (corregido use_column_width -> use_container_width)
 st.sidebar.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
-st.sidebar.image("logo-cap.png", use_column_width=True)
+st.sidebar.image("logo-cap.png", use_container_width=True)
 st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
-# ---- AUTENTICACIÓN (sin cambios) ----
+# ---- AUTENTICACIÓN ----
 name, authentication_status, username, authenticator, supabase, cambiar_password = auth.cargar_usuarios_y_autenticar()
 
-# ---- CAMBIO DE CONTRASEÑA FORZADO (sin cambios) ----
+# ---- CAMBIO DE CONTRASEÑA FORZADO ----
 if cambiar_password:
     st.warning("🔐 Debe cambiar su contraseña para continuar.")
     st.markdown("**⚠️ Requisitos de la nueva contraseña:**\n- Mínimo 6 caracteres\n- Debe contener al menos un número")
@@ -74,8 +74,13 @@ if cambiar_password:
 
     st.stop()
 
+elif authentication_status is False:
+    # Mostrar mensaje de error si la autenticación falló
+    st.error("❌ Usuario o contraseña incorrectos")
+    st.stop()
+
 elif authentication_status:
-    # Cargar datos del usuario (sin cambios)
+    # Cargar datos del usuario
     try:
         usuario_data = supabase.table("usuarios")\
             .select("apellido_nombre, rol")\
@@ -111,68 +116,48 @@ elif authentication_status:
         authenticator.logout("Cerrar sesión", "sidebar")
         st.stop()
 
-    # ---- INTERFAZ DE USUARIO (sin cambios) ----
+    # ---- INTERFAZ DE USUARIO ----
     st.sidebar.success(f"{st.session_state['nombre_completo']}")
     authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.markdown("---")
 
-    # ---- NAVEGACIÓN MODERNA (adaptación del menú) ----
-    rol = st.session_state.get("rol", {})
-    
-    # Definir páginas disponibles según rol
-    pages = []
+    # ---- NAVEGACIÓN ALTERNATIVA (por si st.navigation falla) ----
+    opciones_menu = []
+    funciones_menu = []
     
     # Página de Instructivo (disponible para todos)
-    pages.append(st.Page(
-        lambda: instructivo.mostrar(supabase), 
-        title="📝 Instructivo", 
-        icon="📝"
-    ))
+    opciones_menu.append("📝 Instructivo")
+    funciones_menu.append(lambda: instructivo.mostrar(supabase))
     
     # Páginas para evaluadores
     if rol.get("evaluador") or rol.get("evaluador_general"):
         formularios_data, clasificaciones_data = formularios.cargar_formularios()
-        
-        pages.append(st.Page(
-            lambda: formularios.mostrar(supabase, formularios_data, clasificaciones_data), 
-            title="📄 Formularios", 
-            icon="📄"
-        ))
-        
-        pages.append(st.Page(
-            lambda: evaluaciones.mostrar(supabase), 
-            title="📋 Evaluaciones", 
-            icon="📋"
-        ))
+        opciones_menu.append("📄 Formularios")
+        funciones_menu.append(lambda: formularios.mostrar(supabase, formularios_data, clasificaciones_data))
+        opciones_menu.append("📋 Evaluaciones")
+        funciones_menu.append(lambda: evaluaciones.mostrar(supabase))
     
     # Páginas para RRHH
     if rol.get("rrhh"):
-        pages.append(st.Page(
-            lambda: rrhh.mostrar(supabase), 
-            title="👥 RRHH", 
-            icon="👥"
-        ))
+        opciones_menu.append("👥 RRHH")
+        funciones_menu.append(lambda: rrhh.mostrar(supabase))
     
     # Páginas para coordinadores
     if rol.get("coordinador"):
-        pages.append(st.Page(
-            lambda: capacitacion.mostrar(supabase), 
-            title="📘 Capacitación", 
-            icon="📘"
-        ))
-        
-        pages.append(st.Page(
-            lambda: configuracion.mostrar(supabase), 
-            title="⚙️ Configuración", 
-            icon="⚙️"
-        ))
-    
-    # Mostrar navegación y ejecutar página seleccionada
-    current_page = st.navigation(
-        pages,
-        position="sidebar",
-        expanded=True
-    )
-    current_page.run()
+        opciones_menu.append("📘 Capacitación")
+        funciones_menu.append(lambda: capacitacion.mostrar(supabase))
+        opciones_menu.append("⚙️ Configuración")
+        funciones_menu.append(lambda: configuracion.mostrar(supabase))
+
+    # Mostrar menú de navegación alternativo
+    if rol.get("evaluador") or rol.get("evaluador_general"):
+        indice_default = opciones_menu.index("📄 Formularios")
+    elif rol.get("coordinador"):
+        indice_default = opciones_menu.index("📘 Capacitación")
+    else:
+        indice_default = 0
+
+    opcion = st.sidebar.radio("📂 Navegación", opciones_menu, index=indice_default)
+    funciones_menu[opciones_menu.index(opcion)]()
 else:
     st.warning("Por favor inicie sesión")
