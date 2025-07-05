@@ -4,17 +4,29 @@ import pandas as pd
 import secrets
 import bcrypt
 
-@st.cache_data(ttl=60)
 def cargar_configuracion(supabase):
-    return supabase.table("configuracion").select("*").execute().data
+    datos = supabase.table("configuracion").select("*").execute().data
+    return cachear_configuracion(datos)
 
 @st.cache_data(ttl=60)
+def cachear_configuracion(datos):
+    return datos
+
 def cargar_agentes(supabase):
-    return supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
+    datos = supabase.table("agentes").select("cuil, apellido_nombre, dependencia, evaluador_2024").execute().data
+    return cachear_agentes(datos)
 
 @st.cache_data(ttl=60)
+def cachear_agentes(datos):
+    return datos
+
 def cargar_usuarios(supabase):
-    return supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+    datos = supabase.table("usuarios").select("usuario, apellido_nombre, dependencia, dependencia_general, activo").execute().data
+    return cachear_usuarios(datos)
+
+@st.cache_data(ttl=60)
+def cachear_usuarios(datos):
+    return datos
 
 def mostrar(supabase):
     st.markdown("<h1 style='font-size:26px;'>⚙️ Configuración del Sistema</h1>", unsafe_allow_html=True)
